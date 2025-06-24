@@ -1,12 +1,21 @@
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import Dashboard from "./pages/Dashboard";
+import RegisterPage from "./pages/RegisterPage";
+import Features from "./components/Features";
 
 function App() {
   return (
-    <div className="App">
-      <div className="text-2xl text-green-700 underline cursor-pointer">
-        udah bisa gib!!
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/features" element={<Features />} />
+      </Routes>
+    </Router>
   );
 }
 
