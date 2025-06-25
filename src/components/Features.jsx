@@ -1,4 +1,8 @@
+import React from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const Features = () => {
   const programs = [
@@ -77,6 +81,16 @@ const Features = () => {
     },
   ];
 
+  const sliderSettings = {
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    dots: true,
+  };
+
   return (
     <section className="py-16 bg-blue-50 text-center px-4 font-poppins">
       <div className="bg-white relative rounded-[30px] px-4 py-8 mx-6 shadow-md">
@@ -84,59 +98,123 @@ const Features = () => {
         <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-blue-400 text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
           Pilihan Program
         </div>
-        {/* <div className="mb-[5rem]"></div> */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto px-8 mt-[1rem]">
-          {programs.map((program, index) => (
-            <div
-              className={`bg-gray-100 p-6 pt-6 rounded-lg shadow-md hover:shadow-lg transition text-left ${
-                program.title === "Gold"
-                  ? "border-2 border-red-700 relative"
-                  : "border border-gray-300 mt-10"
-              }`}
-            >
-              {program.tag && (
-                <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700">
-                  {program.tag}
-                </div>
-              )}
 
-              <h4
-                className={`text-xl font-bold text-red-800 mb-1 ${
-                  program.title === "Gold" ? "mt-10" : ""
-                }`}
-              >
-                {program.title}
-              </h4>
-              <p className="text-sm text-gray-500 mb-2">
-                Deskripsi item {index + 1}.
-              </p>
-              <div className="text-4xl font-extrabold text-red-800 mb-1">
-                {program.highlight}
-              </div>
-              <div className="text-sm text-yellow-600 font-medium mb-4 whitespace-pre-line">
-                {program.description}
-              </div>
-              <ul className="text-sm text-gray-700 space-y-2">
-                {program.features.map((feat, i) =>
-                  typeof feat === "string" ? (
-                    <li key={i} className="flex items-start">
-                      <FaCheck className="text-green-600 mt-1 mr-2" />
-                      <span>{feat}</span>
-                    </li>
-                  ) : (
-                    <li key={i} className="flex items-start">
-                      <FaTimes className="text-red-600 mt-1 mr-2" />
-                      <span className="line-through text-gray-400">
-                        {feat.text}
-                      </span>
-                    </li>
-                  )
-                )}
-              </ul>
+        {/* Slider for Mobile and Grid for Desktop */}
+        <div className="max-w-7xl mx-auto px-8 mt-[2rem]">
+          <div className="hidden md:block">
+            {/* Grid for Desktop */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {programs.map((program, index) => (
+                <div
+                  key={index}
+                  className={`bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
+                    program.title === "Gold"
+                      ? "border border-red-700 relative"
+                      : "border border-gray-300 mt-10"
+                  }`}
+                >
+                  {program.tag && (
+                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700">
+                      {program.tag}
+                    </div>
+                  )}
+
+                  <h4
+                    className={`text-xl font-bold text-red-800 mb-1 ${
+                      program.title === "Gold" ? "mt-10" : ""
+                    }`}
+                  >
+                    {program.title}
+                  </h4>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Deskripsi item {index + 1}.
+                  </p>
+                  <div className="text-4xl font-extrabold text-red-800 mb-1">
+                    {program.highlight}
+                  </div>
+                  <div className="text-sm text-yellow-600 font-medium mb-4 whitespace-pre-line">
+                    {program.description}
+                  </div>
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    {program.features.map((feat, i) =>
+                      typeof feat === "string" ? (
+                        <li key={i} className="flex items-start">
+                          <FaCheck className="text-green-600 mt-1 mr-2" />
+                          <span>{feat}</span>
+                        </li>
+                      ) : (
+                        <li key={i} className="flex items-start">
+                          <FaTimes className="text-red-600 mt-1 mr-2" />
+                          <span className="line-through text-gray-400">
+                            {feat.text}
+                          </span>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Slider for Mobile */}
+          <div className="md:hidden">
+            <Slider {...sliderSettings}>
+              {programs.map((program, index) => (
+                <div
+                  key={index}
+                  className={`bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
+                    program.title === "Gold"
+                      ? "border-2 border-red-700 relative"
+                      : "border border-gray-300 mt-10"
+                  }`}
+                >
+                  {program.tag && (
+                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700">
+                      {program.tag}
+                    </div>
+                  )}
+
+                  <h4
+                    className={`text-xl font-bold text-red-800 mb-1 ${
+                      program.title === "Gold" ? "mt-10" : ""
+                    }`}
+                  >
+                    {program.title}
+                  </h4>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Deskripsi item {index + 1}.
+                  </p>
+                  <div className="text-4xl font-extrabold text-red-800 mb-1">
+                    {program.highlight}
+                  </div>
+                  <div className="text-sm text-yellow-600 font-medium mb-4 whitespace-pre-line">
+                    {program.description}
+                  </div>
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    {program.features.map((feat, i) =>
+                      typeof feat === "string" ? (
+                        <li key={i} className="flex items-start">
+                          <FaCheck className="text-green-600 mt-1 mr-2" />
+                          <span>{feat}</span>
+                        </li>
+                      ) : (
+                        <li key={i} className="flex items-start">
+                          <FaTimes className="text-red-600 mt-1 mr-2" />
+                          <span className="line-through text-gray-400">
+                            {feat.text}
+                          </span>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              ))}
+            </Slider>
+          </div>
         </div>
-        <div className="text-left px-8 py-4">
+
+        <div className="text-left px-8 pt-8">
           <p className="font-semibold text-sm text-gray-700">
             *Syarat klaim garansi:
           </p>
