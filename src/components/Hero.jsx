@@ -1,6 +1,8 @@
 import dokter from "../assets/dokter.png";
-import garis from "../assets/garis.png";
 import indo_flag from "../assets/indo_flag.png";
+import garisyangbawah from "../assets/garisyangbawah.png";
+import garis from "../assets/garis.png";
+
 const Hero = () => {
   return (
     <section className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen">
@@ -13,12 +15,20 @@ const Hero = () => {
           alt="Description of image"
           className="mx-auto block -my-[5rem]  w-[29rem] sticky z-20"
         />
-        {/* <img
-        src={garis}
-        alt="Description of image"
-        className="absolute top-11 rotate-[-45deg] right-0 w-64 z-20"
-      /> */}
-        <></>
+        {/* <>
+          <img
+            src={garis}
+            alt="Description of image"
+            className="absolute top-[4rem] left-[64rem] z-0"
+          />
+        </> */}
+        <>
+          <img
+            src={garisyangbawah}
+            alt="Description of image"
+            className="absolute top-[4rem] -left-[34rem] rotate-45 z-0"
+          />
+        </>
         <div className="bg-custom-biru mx-auto block -mt-[21rem] ml-[24rem] w-[12rem] py-2.5 rounded-full text-white text-sm font-semibold">
           <strong className="font-bold">98%</strong> Persentase Kelulusan
         </div>
