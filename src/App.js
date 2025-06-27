@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import Features from "./components/Features";
 import Modul from "./components/Modul";
 import Mentor from "./components/Mentor";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   return (

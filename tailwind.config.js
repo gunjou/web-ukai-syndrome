@@ -10,7 +10,7 @@ module.exports = {
         "custom-biru": "#1c80f0",
       },
       fontFamily: {
-        poppins: ["Poppins", "sans-serif"],
+        poppins: ["poppins", "sans-serif"],
       },
     },
   },

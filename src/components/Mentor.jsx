@@ -1,89 +1,55 @@
 import React from "react";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import modul_klinis from "../assets/modul_klinis.png";
-import industri_sba from "../assets/modul_industri_sba.png";
-import osce from "../assets/modul_osce.png";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+
+const locations = [
+  { id: 1, name: "Jakarta", lat: -6.2, lng: 106.816666 },
+  { id: 2, name: "Surabaya", lat: -7.250445, lng: 112.768845 },
+  { id: 3, name: "Bandung", lat: -6.914744, lng: 107.60981 },
+];
+
+const containerStyle = {
+  width: "100%",
+  height: "100%",
+};
+
+const center = {
+  lat: -6.914744,
+  lng: 107.60981,
+};
 
 const Mentor = () => {
-  const modulData = [
-    {
-      title: "Klinis",
-      image: modul_klinis,
-      description:
-        "Modul latihan soal klinis dengan total 600 halaman berisikan literature yang jelas sesuai PERMENKES, DiPiro, WHO, Koda-Kimbel.",
-    },
-    {
-      title: "Industri + SBA",
-      image: industri_sba,
-      description:
-        "Modul dan latihan soal industri dan SBA dengan total 450 halaman, berisikan literature yang jelas sesuai Farmakope edisi VI, Ansel dan Kemenkes Kefarmasian.",
-    },
-    {
-      title: "OSCE",
-      image: osce,
-      description:
-        "Modul OSCE ± 200 halaman, dilengkapi dengan gambar alat dan prosedur kerja. Modul berwarna sesuai dengan blueprint dan soal OSCE terbaru.",
-    },
-  ];
-
-  const sliderSettings = {
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    dots: true,
-  };
-
   return (
-    <section className="py-16 bg-white text-center px-4 font-poppins z-40">
-      <div className="bg-biru-gelap relative rounded-[30px] px-4 py-8 mx-6 shadow-md z-40">
-        {/* Floating Title */}
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-custom-biru text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
-          Modul Terupdate
+    <section className="py-16 bg-white px-4 font-poppins h-[100vh] relative">
+      <h2 className="flex text-3xl font-bold text-justify mb-6 ml-2 -mt-[60px] text-center sticky z-40">
+        Jaringan Mentor <br />
+        Terluas Se-Indonesia
+      </h2>
+
+      <div className="flex flex-col md:flex-row h-[500px] max-w-7xl mx-auto sticky z-40">
+        {/* Bagian kiri - teks */}
+        <div className="w-full md:w-1/3 p-4 bg-white overflow-auto">
+          <p className="pt-[12rem] mb-2">
+            Dengan jaringan mentor terluas, anda akan mendapatkan persiapan UKAI
+            yang lebih optimal dan termurah
+          </p>
         </div>
 
-        {/* Grid for Desktop */}
-        <div className="max-w-7xl mx-auto px-8 mt-[2rem] hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {modulData.map((modul, index) => (
-            <div key={index} className="p-4 text-center">
-              <img
-                src={modul.image}
-                alt={modul.title}
-                className="w-auto h-auto object-cover mb-3"
-              />
-              <h4 className="text-lg font-bold text-yellow-500 mb-2">
-                {modul.title}
-              </h4>
-              <p className="text-sm text-white text-justify">
-                {modul.description}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Slider for Mobile */}
-        <div className="md:hidden mt-6">
-          <Slider {...sliderSettings}>
-            {modulData.map((modul, index) => (
-              <div key={index} className="p-4 text-center">
-                <img
-                  src={modul.image}
-                  alt={modul.title}
-                  className="w-full h-full object-cover  mb-3"
+        {/* Bagian kanan - peta */}
+        <div className="w-full md:w-2/3 h-[500px] p-4">
+          <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={center}
+              zoom={5}
+            >
+              {locations.map((loc) => (
+                <Marker
+                  key={loc.id}
+                  position={{ lat: loc.lat, lng: loc.lng }}
                 />
-                <h4 className="text-lg font-bold text-yellow-500 mb-2">
-                  {modul.title}
-                </h4>
-                <p className="text-sm text-white text-justify">
-                  {modul.description}
-                </p>
-              </div>
-            ))}
-          </Slider>
+              ))}
+            </GoogleMap>
+          </LoadScript>
         </div>
       </div>
     </section>

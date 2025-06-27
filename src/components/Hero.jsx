@@ -5,7 +5,7 @@ import garis from "../assets/garis.png";
 
 const Hero = () => {
   return (
-    <section className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen">
+    <section className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen poppins">
       <div className="hidden md:block">
         <div className="text-5xl md:text-6xl font-bold text-white mb-4 mask-text-gradient tracking-wide whitespace-nowrap">
           SYNDROME UKAI
@@ -63,7 +63,7 @@ const Hero = () => {
             className="absolute -top-[9rem] left-1.5 -64 z-10 drop-shadow-xl"
           />
         </div>
-        <div className="text-black text-left mx-auto block -mt-[10rem] pl-[38rem] text-3xl font-extrabold sticky z-30 leading-[0.9]">
+        <div className="text-black text-left mx-auto block -mt-[10rem] pl-[38rem] text-3xl font-extrabold sticky z-30 leading-[0.9] poppins">
           Bimbingan Berkualitas Untuk <br />
           Apoteker Masa Depan
         </div>

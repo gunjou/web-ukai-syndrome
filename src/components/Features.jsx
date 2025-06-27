@@ -92,7 +92,7 @@ const Features = () => {
   };
 
   return (
-    <section className="py-16 bg-custom-bg text-center px-4 font-poppins">
+    <section className="py-16 bg-custom-bg text-center px-4 font-poppins w-full h-auto mt-[12rem]">
       <div className="bg-white relative rounded-[30px] px-4 py-8 mx-6 shadow-md">
         {/* Floating Title */}
         <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-blue-400 text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
