@@ -1,12 +1,89 @@
+import dokter from "../assets/dokter.png";
+import garis from "../assets/garis.png";
+import indo_flag from "../assets/indo_flag.png";
 const Hero = () => {
   return (
-    <section className="bg-blue-50 mt-5 py-20 text-center">
-      <div className="text-5xl md:text-5xl font-bold text-white mb-4 mask-text-gradient tracking-[0.05em]">
-        SYNDROME UKAI
+    <section className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen">
+      <div className="hidden md:block">
+        <div className="text-5xl md:text-6xl font-bold text-white mb-4 mask-text-gradient tracking-wide whitespace-nowrap">
+          SYNDROME UKAI
+        </div>
+        <img
+          src={dokter}
+          alt="Description of image"
+          className="mx-auto block -my-[5rem]  w-[29rem] sticky z-20"
+        />
+        {/* <img
+        src={garis}
+        alt="Description of image"
+        className="absolute top-11 rotate-[-45deg] right-0 w-64 z-20"
+      /> */}
+        <></>
+        <div className="bg-custom-biru mx-auto block -mt-[21rem] ml-[24rem] w-[12rem] py-2.5 rounded-full text-white text-sm font-semibold">
+          <strong className="font-bold">98%</strong> Persentase Kelulusan
+        </div>
+        <div className="pt-[7rem]">
+          <div className="bg-gradient-to-b from-white via-blue-00 to-transparent mx-auto block -mt-[14rem] mr-[17rem] mb-20 px-8 w-[20rem] pb-[5rem] pl-[4rem] pt-[2rem] rounded-tr-[50px] text-black text-sm text-justify font-semibold">
+            Platform penyedia layanan pendidikan farmasi berbasis teknologi
+            <strong className="font-extrabold text-biru-gelap">
+              {" "}
+              tebaik dan termurah
+            </strong>
+          </div>
+
+          <div className="bg-custom-biru mx-auto block -mt-[9rem] mr-[16rem] mb-20 w-[11rem] py-2.5 rounded-full text-white text-sm font-semibold sticky z-30">
+            <strong className="font-bold">5000+</strong> Siswa Terdaftar
+          </div>
+        </div>
+
+        <div className="relative w-64 h-40">
+          {/* Card Putih dengan sudut kiri bulat dan kanan terpotong miring */}
+          <div
+            className="absolute bottom-0 left-0 w-[20rem] bg-white h-[12rem] z-10"
+            style={{
+              clipPath: "polygon(0 0, 75% 0, 100% 100%, 100% 100%, 0 100%)",
+              borderTopLeftRadius: "40px",
+            }}
+          ></div>
+
+          {/* Bendera */}
+          <img
+            src={indo_flag}
+            alt="Bendera Indonesia"
+            className="absolute -top-[9rem] left-1.5 -64 z-10 drop-shadow-xl"
+          />
+        </div>
+        <div className="text-black text-left mx-auto block -mt-[10rem] pl-[38rem] text-3xl font-extrabold sticky z-30 leading-[0.9]">
+          Bimbingan Berkualitas Untuk <br />
+          Apoteker Masa Depan
+        </div>
       </div>
-      <p className="text-lg text-gray-600 mb-8 px-4 md:px-0 max-w-xl mx-auto">
-        Bimbingan Berkualitas Untuk Apoteker Masa Depan
-      </p>
+      <div className="md:hidden mt-2">
+        <div className="text-4xl md:text-6xl text-white font-bold mb-4 mask-text-gradient tracking-wide">
+          SYNDROME UKAI
+        </div>
+        <img
+          src={dokter}
+          alt="coba"
+          className="mx-auto block -mt-[4rem] w-[18rem] sticky z-20"
+        />
+        <div className="bg-custom-biru mx-auto block -mt-[15rem] ml-[3rem] w-[7rem] py-1.5 rounded-full text-white text-[8px]">
+          <strong className="font-bold">98%</strong> Persentase Kelulusan
+        </div>
+        <div className="pt-[7rem]">
+          <div className="bg-gradient-to-b from-white via-blue-00 to-transparent rounded-tr-[40px] pl-[2rem] text-black text-[8px] p-4 w-[10rem] -mt-[9rem] ml-[14.4rem] text-justify font-semibold">
+            Platform penyedia layanan pendidikan farmasi berbasis teknologi
+            <strong className="font-extrabold text-biru-gelap">
+              {" "}
+              tebaik dan termurah
+            </strong>
+          </div>
+
+          <div className="bg-custom-biru mx-auto block -mt-[9rem] mr-[19rem] mb-20 w-[11rem] py-2.5 rounded-full text-white text-sm font-semibold sticky z-30">
+            <strong className="font-bold">5000+</strong> Siswa Terdaftar
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

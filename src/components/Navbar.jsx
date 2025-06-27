@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import logo from "../assets/logo.png";
+import { MdOutlineArrowDropDown } from "react-icons/md";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-blue-50 fixed top-0 w-full z-50 shadow-sm">
+    <nav className="bg-custom-bg fixed top-0 w-full z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
@@ -24,35 +25,50 @@ const Navbar = () => {
         {/* Desktop*/}
         <ul className="hidden md:flex space-x-6 items-center text-gray-700">
           <li>
-            <Link to="/about" className="hover:text-blue-600">
-              About
+            <Link
+              to="/about"
+              className="flex items-center hover:text-blue-600 space-x-1"
+            >
+              About <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
-            <Link to="/features" className="hover:text-blue-600">
-              Program
+            <Link
+              to="/features"
+              className="flex items-center space-x-1 hover:text-blue-600"
+            >
+              Program <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
-            <Link to="/mentor" className="hover:text-blue-600">
-              Mentor
+            <Link
+              to="/mentor"
+              className="flex items-center space-x-1 hover:text-blue-600"
+            >
+              Mentor <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
-            <Link to="/capaian" className="hover:text-blue-600">
-              Capaian
+            <Link
+              to="/capaian"
+              className="flex items-center space-x-1 hover:text-blue-600"
+            >
+              Capaian <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
-            <Link to="/contact" className="hover:text-blue-600">
-              Contact
+            <Link
+              to="/contact"
+              className="flex items-center space-x-1 hover:text-blue-600"
+            >
+              Contact <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <Link
             to="/login"
-            className="ml-4 bg-blue-600 text-white font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
           >
-            Masuk
+            Login
           </Link>
         </ul>
       </div>
