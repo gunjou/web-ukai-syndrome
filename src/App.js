@@ -7,6 +7,7 @@ import Features from "./components/Features";
 import Modul from "./components/Modul";
 import Mentor from "./components/Mentor";
 import "leaflet/dist/leaflet.css";
+import About from "./components/About";
 
 function App() {
   return (
@@ -19,6 +20,8 @@ function App() {
         <Route path="/features" element={<Features />} />
         <Route path="/mentor" element={<Mentor />} />
         <Route path="/Modul" element={<Modul />} />
+        <Route path="/about" element={<About />} />
+        {/* Tambahkan route lainnya sesuai kebutuhan */}
       </Routes>
     </Router>
   );

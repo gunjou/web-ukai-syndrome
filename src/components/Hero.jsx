@@ -5,28 +5,25 @@ import garis from "../assets/garis.png";
 
 const Hero = () => {
   return (
-    <section className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen poppins">
+    <section
+      id="capaian"
+      className="bg-custom-bg mt-5 py-20 mb-8 text-center w-full h-screen poppins"
+    >
       <div className="hidden md:block">
-        <div className="text-5xl md:text-6xl font-bold text-white mb-4 mask-text-gradient tracking-wide whitespace-nowrap">
+        <div className="flex justify-center text-5xl  font-bold text-white mb-4 mask-text-gradient tracking-wide whitespace-nowrap">
           SYNDROME UKAI
         </div>
         <img
           src={dokter}
           alt="Description of image"
-          className="mx-auto block -my-[5rem]  w-[29rem] sticky z-20"
+          className="flex justify-center mx-auto block -my-[5rem] w-[29rem] sticky z-20"
         />
-        {/* <>
-          <img
-            src={garis}
-            alt="Description of image"
-            className="absolute top-[4rem] left-[64rem] z-0"
-          />
-        </> */}
+
         <>
           <img
             src={garisyangbawah}
             alt="Description of image"
-            className="absolute top-[4rem] -left-[34rem] rotate-45 z-0"
+            className="flex absolute top-[4rem] -left-[34rem] rotate-45 z-0"
           />
         </>
         <div className="bg-custom-biru mx-auto block -mt-[21rem] ml-[24rem] w-[12rem] py-2.5 rounded-full text-white text-sm font-semibold">
@@ -68,7 +65,9 @@ const Hero = () => {
           Apoteker Masa Depan
         </div>
       </div>
-      <div className="md:hidden mt-2">
+
+      {/* mobile */}
+      <div className="md:hidden mt-2 min-h-[100dvh] ">
         <div className="text-4xl md:text-6xl text-white font-bold mb-4 mask-text-gradient tracking-wide">
           SYNDROME UKAI
         </div>
@@ -81,7 +80,7 @@ const Hero = () => {
           <strong className="font-bold">98%</strong> Persentase Kelulusan
         </div>
         <div className="pt-[7rem]">
-          <div className="bg-gradient-to-b from-white via-blue-00 to-transparent rounded-tr-[40px] pl-[2rem] text-black text-[8px] p-4 w-[10rem] -mt-[9rem] ml-[14.4rem] text-justify font-semibold">
+          <div className=" bg-gradient-to-b from-white via-blue-00 to-transparent rounded-tr-[40px] pl-[2rem] text-black text-[8px] p-4 w-[10rem] -mt-[9rem] ml-[14.4rem] text-justify font-semibold">
             Platform penyedia layanan pendidikan farmasi berbasis teknologi
             <strong className="font-extrabold text-biru-gelap">
               {" "}

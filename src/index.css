@@ -33,3 +33,14 @@ code {
 html {
   scroll-behavior: smooth;
 }
+
+/* Ganti warna arrow default slick */
+.slick-prev:before,
+.slick-next:before {
+  color: gray !important; /* warna kuning tailwind (yellow-400) */
+  font-size: 30px;
+}
+.slick-center .mentor-card {
+  transform: translateY(-10px) scale(1.03);
+  transition: all 0.3s ease;
+}
