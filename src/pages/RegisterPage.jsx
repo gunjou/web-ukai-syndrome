@@ -28,8 +28,7 @@ const RegisterPage = () => {
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md">
           <h1 className="text-3xl font-bold text-left">Buat Akun</h1>
           <p className="mb-6 text-gray-400">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Explicabo,
-            excepturi repellat.
+            Daftar untuk menggunakan aplikasi
           </p>
 
           <form onSubmit={handleRegister} className="space-y-2">

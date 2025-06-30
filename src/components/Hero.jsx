@@ -72,24 +72,41 @@ const Hero = () => {
           SYNDROME UKAI
         </div>
         <img
+          src={garisyangbawah}
+          alt="Background garis"
+          className="absolute top-[25rem] -left-[12rem] w-[300px] opacity-60 z-0 rotate-45"
+        />
+        <img
           src={dokter}
           alt="coba"
-          className="mx-auto block -mt-[4rem] w-[18rem] sticky z-20"
+          className="mx-auto block -mt-[4rem] w-[25rem] sticky z-20"
         />
-        <div className="bg-custom-biru mx-auto block -mt-[15rem] ml-[3rem] w-[7rem] py-1.5 rounded-full text-white text-[8px]">
+        <div className="bg-custom-biru mx-auto block -mt-[18rem] ml-[2rem] w-[7rem] py-1.5 rounded-full text-white text-[8px]">
           <strong className="font-bold">98%</strong> Persentase Kelulusan
         </div>
         <div className="pt-[7rem]">
-          <div className=" bg-gradient-to-b from-white via-blue-00 to-transparent rounded-tr-[40px] pl-[2rem] text-black text-[8px] p-4 w-[10rem] -mt-[9rem] ml-[14.4rem] text-justify font-semibold">
-            Platform penyedia layanan pendidikan farmasi berbasis teknologi
-            <strong className="font-extrabold text-biru-gelap">
-              {" "}
-              tebaik dan termurah
-            </strong>
-          </div>
-
-          <div className="bg-custom-biru mx-auto block -mt-[9rem] mr-[19rem] mb-20 w-[11rem] py-2.5 rounded-full text-white text-sm font-semibold sticky z-30">
+          <div className="bg-custom-biru text-center mx-auto block -mt-[7rem] ml-[15rem] w-[7rem] py-1.5 rounded-full text-white text-[8px] font-semibold sticky z-30">
             <strong className="font-bold">5000+</strong> Siswa Terdaftar
+          </div>
+          <div className="text-black text-center  mx-auto block mt-[13rem] text-xl font-extrabold sticky z-30 leading-[0.9] poppins">
+            Bimbingan Berkualitas Untuk <br />
+            Apoteker Masa Depan
+          </div>
+          <div className="relative w-64 h-10">
+            {/* Card Putih dengan sudut kiri bulat dan kanan terpotong miring */}
+            <div
+              className="mt-[5rem] w-[15rem] bg-white h-[12rem] z-10"
+              style={{
+                clipPath: "polygon(0 0, 75% 0, 100% 100%, 100% 100%, 0 100%)",
+                borderTopLeftRadius: "40px",
+              }}
+            ></div>
+            {/* Bendera */}
+            <img
+              src={indo_flag}
+              alt="Bendera Indonesia"
+              className="absolute -top-[6rem] w-[12rem] left-1.5 -64 z-10 drop-shadow-xl"
+            />
           </div>
         </div>
       </div>

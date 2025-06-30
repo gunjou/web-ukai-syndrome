@@ -58,7 +58,6 @@ const About = () => {
         {/* Kolom Tengah */}
         <div>
           <h2 className="text-2xl font-semibold  mb-2">Layanan</h2>
-
           <p className="text-sm text-gray-600 mb-2">Layanan 1</p>
           <p className="text-sm text-gray-600 mb-2">Layanan 2</p>
           <p className="text-sm text-gray-600 mb-2">Layanan 3</p>
