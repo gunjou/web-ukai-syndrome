@@ -46,7 +46,7 @@ const Mentor = () => {
   return (
     <section
       id="mentor"
-      className="py-16 bg-white px-4 font-poppins h-[150vh] relative"
+      className="pt-16 bg-white px-4 font-poppins h-[150vh] relative"
     >
       <h2 className="flex text-3xl font-bold text-justify mb-6 ml-2 -mt-[60px] text-center sticky z-40">
         Jaringan Mentor <br />
@@ -55,8 +55,8 @@ const Mentor = () => {
 
       <div className="flex flex-col md:flex-row h-[500px] max-w-7xl mx-auto sticky z-40">
         {/* Bagian kiri - teks */}
-        <div className="w-full md:w-1/3 p-4 bg-white overflow-auto">
-          <p className="pt-[12rem] mb-2">
+        <div className="w-full md:w-1/3 p-4 bg-white">
+          <p className="mb-2">
             Dengan jaringan mentor terluas, anda akan mendapatkan persiapan UKAI
             yang lebih optimal dan termurah
           </p>
