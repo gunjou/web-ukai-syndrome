@@ -2,9 +2,9 @@ import React from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import modul_klinis from "../assets/modul_klinis.png";
-import industri_sba from "../assets/modul_industri_sba.png";
-import osce from "../assets/modul_osce.png";
+import modul_klinis from "../assets/modul/modul_klinis.png";
+import industri_sba from "../assets/modul/modul_industri_sba.png";
+import osce from "../assets/modul/modul_osce.png";
 
 const Modul = () => {
   const modulData = [
