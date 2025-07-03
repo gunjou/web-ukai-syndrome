@@ -1,36 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom"; // Import Link
 import homepage_img from "../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
+import { FiMenu, FiX } from "react-icons/fi";
 
 const Header = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
   const navItems = [
-    { name: "User", href: "#", dropdown: ["Profile", "Settings"] },
-    { name: "Soal", href: "#", dropdown: ["Category 1", "Category 2"] },
-    { name: "Materi", href: "#", dropdown: ["Upload"] },
-    { name: "Video", href: "#", dropdown: [] },
-    { name: "Paket", href: "#", dropdown: [] },
-    { name: "Pendaftaran", href: "#", dropdown: [] },
-    { name: "Laporan", href: "#", dropdown: [] },
+    { name: "User", href: "/user", dropdown: ["Profile", "Settings"] },
+    { name: "Soal", href: "/soal", dropdown: ["Category 1", "Category 2"] },
+    { name: "Materi", href: "/materi", dropdown: ["Upload"] },
+    { name: "Video", href: "/video", dropdown: [] },
+    { name: "Paket", href: "/paket", dropdown: [] },
+    { name: "Pendaftaran", href: "/pendaftaran", dropdown: [] },
+    { name: "Laporan", href: "/laporan", dropdown: [] },
   ];
 
-  const userName = "John Doe"; // Replace with dynamic user name if available
-  const initials = userName
-    .split(" ")
-    .map((name) => name[0])
-    .join("")
-    .toUpperCase(); // Get initials from name
+  const toggleDropdown = (index) => {
+    if (activeDropdown === index) {
+      setActiveDropdown(null);
+    } else {
+      setActiveDropdown(index);
+    }
+  };
 
   return (
-    <header className="bg-white py-4 px-8 shadow flex justify-between items-center rounded-b-[40px]">
-      <img src={homepage_img} alt="Homepage Logo" className="h-10" />
+    <header className="bg-white py-4 px-8 shadow flex justify-between items-center rounded-b-[40px] sticky top-0 z-50">
+      <a href="/dashboard">
+        <img
+          src={homepage_img}
+          alt="Homepage Logo"
+          className="h-10 cursor-pointer"
+        />
+      </a>
 
-      {/* Centered menu */}
-      <nav className="flex-grow flex justify-center font-semibold space-x-6">
-        {navItems.map((item) => (
-          <div key={item.name} className="relative group">
-            {/* Main menu item with arrow */}
-            <a
-              href={item.href}
+      <div className="md:hidden ml-auto">
+        <button onClick={() => setIsOpen(!isOpen)} className="ml-auto">
+          {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+      </div>
+
+      <nav className="flex-grow flex justify-center font-semibold space-x-6 hidden md:flex">
+        {navItems.map((item, index) => (
+          <div key={item.name} className="relative group z-20">
+            <Link
+              to={item.href} // Use Link instead of a tag
               className="text-gray-700 hover:bg-gray-200 rounded-md p-2 flex items-center gap-2"
               aria-label={item.name}
             >
@@ -38,19 +54,18 @@ const Header = () => {
               {item.dropdown.length > 0 && (
                 <FaCaretDown className="text-gray-300 text-sm" />
               )}
-            </a>
+            </Link>
 
-            {/* Dropdown menu */}
             {item.dropdown.length > 0 && (
               <div className="absolute left-0 hidden pt-2 space-y-2 bg-white shadow-lg rounded-lg group-hover:block w-40">
                 {item.dropdown.map((subItem, index) => (
-                  <a
+                  <Link
                     key={index}
-                    href="#"
+                    to="#"
                     className="block px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg transition-colors duration-200"
                   >
                     {subItem}
-                  </a>
+                  </Link>
                 ))}
               </div>
             )}
@@ -58,12 +73,66 @@ const Header = () => {
         ))}
       </nav>
 
-      {/* Profile initials */}
-      <div className="flex items-center gap-2">
-        <div className="w-10 h-10 bg-blue-500 text-white flex items-center justify-center rounded-full">
-          {initials}
+      <div className="flex items-center gap-2 ml-auto hidden md:flex">
+        <div className="py-2 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full">
+          Logout
         </div>
       </div>
+
+      <div
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 z-40 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-end p-4">
+          <button onClick={() => setIsOpen(false)}>
+            <FiX size={24} />
+          </button>
+        </div>
+        <ul className="flex flex-col space-y-4 px-6 text-gray-700">
+          {navItems.map((item, index) => (
+            <li key={item.name}>
+              <div>
+                <button
+                  onClick={() => toggleDropdown(index)}
+                  className="flex items-center gap-2 text-gray-700 hover:bg-gray-200 rounded-md p-2"
+                >
+                  {item.name}
+                  {item.dropdown.length > 0 && (
+                    <FaCaretDown className="text-gray-300 text-sm" />
+                  )}
+                </button>
+                {activeDropdown === index && item.dropdown.length > 0 && (
+                  <ul className="space-y-2 ml-4">
+                    {item.dropdown.map((subItem, subIndex) => (
+                      <li key={subIndex}>
+                        <Link
+                          to="#"
+                          className="block px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg"
+                        >
+                          {subItem}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))}
+          <li>
+            <button className="py-2 px-4 bg-blue-500 text-white w-full text-center rounded-md">
+              Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-30"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
     </header>
   );
 };
