@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { FaArrowDown } from "react-icons/fa";
+import {
+  FaUsers,
+  FaQuestionCircle,
+  FaVideo,
+  FaFileAlt,
+  FaClipboardList,
+} from "react-icons/fa"; // import relevant icons
 import { Link } from "react-router-dom"; // import Link for routing
 
 import logo from "../../assets/logo.png";
@@ -13,15 +19,39 @@ const Dashboard = () => {
   const menus = [
     {
       label: "USER",
-      link: "/user", // Add link to "USER" menu
+      link: "/user",
+      icon: <FaUsers className="text-[#0680DC] text-sm" />, // User icon
     },
-    { label: "SOAL", link: "/soal" }, // Add link to "SOAL" menu
-    { label: "MATERI", link: "/materi" }, // Add link to "MATERI" menu
-    { label: "VIDEO" },
-    { label: "PAKET" },
-    { label: "PENDAFTARAN" },
-    { label: "LAPORAN" },
-    // { label: "SYNC" },
+    {
+      label: "SOAL",
+      link: "/soal",
+      icon: <FaQuestionCircle className="text-[#0680DC] text-sm" />, // Soal icon
+    },
+    {
+      label: "MATERI",
+      link: "/materi",
+      icon: <FaFileAlt className="text-[#0680DC] text-sm" />, // Materi icon
+    },
+    {
+      label: "VIDEO",
+      link: "/video",
+      icon: <FaVideo className="text-[#0680DC] text-sm" />, // Video icon
+    },
+    {
+      label: "PAKET",
+      link: "/paket",
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Paket icon
+    },
+    {
+      label: "PENDAFTARAN",
+      link: "/pendaftaran",
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Pendaftaran icon
+    },
+    {
+      label: "LAPORAN",
+      link: "/laporan",
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Laporan icon
+    },
   ];
 
   const toggleSubmenu = (index) => {
@@ -83,7 +113,7 @@ const Dashboard = () => {
                     {/* Left Icon */}
                     <div className="w-[35%] bg-[#0680DC] flex items-center justify-center">
                       <div className="bg-white rounded-full p-2">
-                        <FaArrowDown className="text-[#0680DC] text-sm" />
+                        {item.icon}
                       </div>
                     </div>
 
@@ -95,19 +125,6 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </Link>
-                {/* Dropdown Submenu */}
-                {/* {openMenuIndex === idx && item.subs && (
-                  <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-md shadow-lg z-10 overflow-hidden">
-                    {item.subs.map((subItem, subIdx) => (
-                      <div
-                        key={subIdx}
-                        className="px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 cursor-pointer"
-                      >
-                        {subItem}
-                      </div>
-                    ))}
-                  </div>
-                )} */}
               </div>
             ))}
           </div>
