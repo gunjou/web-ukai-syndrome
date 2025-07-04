@@ -13,7 +13,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="home" smooth={true} className="flex items-center space-x-2">
-          <img src={logo} alt="Logo" className="h-8 w-auto" />
+          <img src={logo} alt="Logo" className="h-12 w-auto" />
         </Link>
 
         {/* Mobile Menu Button */}
@@ -27,22 +27,12 @@ const Navbar = () => {
         <ul className="hidden md:flex space-x-6 items-center text-gray-700">
           <li>
             <Link
-              to="about"
-              smooth={true}
-              offset={-70}
-              className="flex items-center hover:text-blue-600 space-x-1"
-            >
-              About <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="program"
+              to="capaian"
               smooth={true}
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Program <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Capaian <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
@@ -57,22 +47,32 @@ const Navbar = () => {
           </li>
           <li>
             <Link
-              to="capaian"
+              to="modul"
               smooth={true}
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Capaian <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Modul <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
           <li>
             <Link
-              to="contact"
+              to="program"
               smooth={true}
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Contact <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Program <MdOutlineArrowDropDown className="ml-1 text-lg" />
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="about"
+              smooth={true}
+              offset={-70}
+              className="flex items-center hover:text-blue-600 space-x-1"
+            >
+              About <MdOutlineArrowDropDown className="ml-1 text-lg" />
             </Link>
           </li>
 
@@ -100,22 +100,22 @@ const Navbar = () => {
         <ul className="flex flex-col space-y-4 px-6 text-gray-700">
           <li>
             <Link
-              to="about"
+              to="capaian"
               smooth={true}
               offset={-70}
               onClick={() => setIsOpen(false)}
             >
-              About
+              Modul
             </Link>
           </li>
           <li>
             <Link
-              to="program"
+              to="modul"
               smooth={true}
               offset={-70}
               onClick={() => setIsOpen(false)}
             >
-              Program
+              Contact
             </Link>
           </li>
           <li>
@@ -128,24 +128,25 @@ const Navbar = () => {
               Mentor
             </Link>
           </li>
+
           <li>
             <Link
-              to="capaian"
+              to="program"
               smooth={true}
               offset={-70}
               onClick={() => setIsOpen(false)}
             >
-              Capaian
+              Program
             </Link>
           </li>
           <li>
             <Link
-              to="contact"
+              to="about"
               smooth={true}
               offset={-70}
               onClick={() => setIsOpen(false)}
             >
-              Contact
+              About
             </Link>
           </li>
 

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Header from "../../components/Header";
-import { FaUpload } from "react-icons/fa";
-import { TbColorPicker } from "react-icons/tb";
+import { FaUpload, FaInfoCircle, FaTrash } from "react-icons/fa"; // Importing the icons
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
+import { MdClose } from "react-icons/md";
 import soalData from "./soalData.js";
+import { LuPencil } from "react-icons/lu";
 
 const SoalPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,36 +40,51 @@ const SoalPage = () => {
   const renderTableRows = () => {
     return filteredData.map((soal, index) => (
       <tr key={index} className="bg-gray-100">
-        <td className="px-6 py-4 text-sm text-gray-800 border-b border-r border-l">
+        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l">
           {soal.name}
         </td>
-        <td className="px-6 py-4 text-sm text-center text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
           {soal.jumlahSoal}
         </td>
-        <td className="px-6 py-4 text-sm text-center font-semibold border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center font-semibold border-b border-r">
           <span
             className={`${
               soal.status === "Open"
                 ? "text-green-500"
                 : soal.status === "Hold"
                 ? "text-yellow-500"
-                : "text-gray-500"
+                : "text-red-500"
             }`}
           >
             {soal.status}
           </span>
         </td>
-        <td className="px-6 py-4 text-sm text-center text-gray-800 border-b border-r">
-          {soal.waktu}
+        <td className=" px-4 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <div className="flex justify-center bg-gray-200 pl-4 rounded-full items-center gap-2">
+            {soal.waktu}{" "}
+            <div className="flex justify justify-right font-semibold bg-gray-300 pl-2 pr-2 w-full py-2 rounded-r-full">
+              Menit
+            </div>
+          </div>
         </td>
-        <td className="px-6 py-4 text-sm text-center text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
           {soal.tanggal}
         </td>
-        <td className="px-6 py-4 text-sm text-center border-b border-r">
-          <button className="text-blue-600 hover:text-blue-800">Detail</button>
+        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+          <button className="flex justify-center bg-gray-200 font-semibold  pl-2 rounded-full hover:bg-gray-500 hover:text-white items-center gap-2">
+            Detail
+            <div className=" bg-gray-500 rounded-r-full px-2 py-2">
+              <LuPencil className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
-        <td className="px-6 py-4 text-sm text-center border-b border-r">
-          <button className="text-red-600 hover:text-red-800">Hapus</button>
+        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
+          <button className="bg-gray-200 font-semibold pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
+            Hapus
+            <div className="bg-red-500 rounded-r-full px-2 py-2">
+              <MdClose className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
       </tr>
     ));
@@ -108,11 +124,11 @@ const SoalPage = () => {
             <input
               type="file"
               onChange={handleFileChange}
-              className="border px-4 py-1 w-full"
+              className="border px-4 py-1 w-full rounded-md"
             />
             <button
               onClick={handleUploadClick}
-              className="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 flex items-center gap-2"
+              className="bg-blue-600 text-white rounded-md px-2 py-2 hover:bg-blue-700 flex items-center gap-2"
             >
               <FaUpload />
               Upload
@@ -120,17 +136,17 @@ const SoalPage = () => {
           </div>
         </div>
         {/* Table */}
-        <div className="overflow-x-auto max-h-[80vh]">
+        <div className="overflow-x-auto max-h-[70vh]">
           <table className="min-w-full bg-white">
             <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-4">Nama Try Out</th>
-                <th className="px-6 py-4">Jumlah Soal</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Waktu</th>
-                <th className="px-6 py-4">Tanggal</th>
-                <th className="px-6 py-4">Detail</th>
-                <th className="px-6 py-4">Hapus</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Nama Try Out</th>
+                <th className="px-2 py-2 text-xs sm:text-sm">Jumlah Soal</th>
+                <th className="px-2 py-2 text-xs sm:text-sm">Status</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Waktu</th>
+                <th className="px-2 py-2 text-xs sm:text-sm">Tanggal</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Detail</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
               </tr>
             </thead>
             <tbody className="overflow-y-auto">{renderTableRows()}</tbody>

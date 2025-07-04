@@ -7,6 +7,11 @@ const MateriPage = () => {
       <h1 className="text-2xl font-bold mb-4">Soal Page</h1>
       {/* Your content here */}
       <p>This is the User Page.</p>
+      <div>
+        <img src="" alt="" />
+        img
+        <img src="" alt="" />
+      </div>
     </div>
   );
 };
