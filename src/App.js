@@ -10,6 +10,10 @@ import Dashboard from "./pages/admin/Dashboard";
 import UserPage from "./pages/admin/UserPage";
 import SoalPage from "./pages/admin/SoalPage";
 import MateriPage from "./pages/admin/MateriPage";
+import VideoPage from "./pages/admin/VideoPage";
+import PaketPage from "./pages/admin/PaketPage.jsx";
+import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
+import LaporanPage from "./pages/admin/LaporanPage.jsx";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -33,6 +37,11 @@ function App() {
         <Route path="/user" element={<UserPage />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
+        <Route path="/video" element={<VideoPage />} />
+        <Route path="/paket" element={<PaketPage />} />
+        <Route path="/pendaftaran" element={<PendaftaranPage />} />
+        <Route path="/laporan" element={<LaporanPage />} />
+
         {/* Tambahkan route lainnya sesuai kebutuhan */}
       </Routes>
     </Router>

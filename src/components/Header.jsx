@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Import Link
+import { Link, useLocation } from "react-router-dom"; // Import Link dan useLocation
 import homepage_img from "../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -7,6 +7,8 @@ import { FiMenu, FiX } from "react-icons/fi";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [activeMenu, setActiveMenu] = useState(null); // State untuk menu aktif
+  const location = useLocation(); // Hook untuk mendapatkan lokasi aktif
 
   const navItems = [
     { name: "User", href: "/user", dropdown: ["Profile", "Settings"] },
@@ -24,6 +26,11 @@ const Header = () => {
     } else {
       setActiveDropdown(index);
     }
+  };
+
+  // Memperbarui menu aktif sebelum navigasi
+  const handleMenuClick = (index) => {
+    setActiveMenu(index);
   };
 
   return (
@@ -46,8 +53,13 @@ const Header = () => {
         {navItems.map((item, index) => (
           <div key={item.name} className="relative group z-20">
             <Link
-              to={item.href} // Use Link instead of a tag
-              className="text-gray-700 hover:bg-gray-200 rounded-md p-2 flex items-center gap-2"
+              to={item.href}
+              className={`text-gray-700 rounded-md p-2 flex items-center gap-2 transition-colors duration-200 ${
+                activeMenu === index || location.pathname === item.href
+                  ? "bg-blue-500 text-white" // Menambahkan kondisi untuk item yang aktif
+                  : "hover:bg-gray-200"
+              }`}
+              onClick={() => handleMenuClick(index)} // Mengubah menu aktif
               aria-label={item.name}
             >
               {item.name}
@@ -74,9 +86,12 @@ const Header = () => {
       </nav>
 
       <div className="flex items-center gap-2 ml-auto hidden md:flex">
-        <div className="py-2 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full">
+        <Link
+          to="/" // Arahkan ke halaman utama (root)
+          className="py-2 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full"
+        >
           Logout
-        </div>
+        </Link>
       </div>
 
       <div
@@ -120,9 +135,12 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <button className="py-2 px-4 bg-blue-500 text-white w-full text-center rounded-md">
+            <Link
+              to="/"
+              className="py-2 px-4 bg-blue-500 text-white w-full text-center rounded-md"
+            >
               Logout
-            </button>
+            </Link>
           </li>
         </ul>
       </div>

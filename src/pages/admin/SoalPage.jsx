@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Header from "../../components/Header";
-import { FaUpload, FaInfoCircle, FaTrash } from "react-icons/fa"; // Importing the icons
+import { FaUpload } from "react-icons/fa"; // Importing the icons
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
 import { MdClose } from "react-icons/md";
@@ -71,40 +71,44 @@ const SoalPage = () => {
           {soal.tanggal}
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <button className="flex justify-center bg-gray-200 font-semibold  pl-2 rounded-full hover:bg-gray-500 hover:text-white items-center gap-2">
-            Detail
-            <div className=" bg-gray-500 rounded-r-full px-2 py-2">
-              <LuPencil className="text-white font-extrabold" />
-            </div>
-          </button>
+          <div className="flex justify-center gap-2">
+            <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-gray-500 hover:text-white items-center gap-2">
+              Detail
+              <div className="bg-gray-500 rounded-r-full px-2 py-2">
+                <LuPencil className="text-white font-extrabold" />
+              </div>
+            </button>
+          </div>
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-          <button className="bg-gray-200 font-semibold pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
-            Hapus
-            <div className="bg-red-500 rounded-r-full px-2 py-2">
-              <MdClose className="text-white font-extrabold" />
-            </div>
-          </button>
+          <div className="flex justify-center gap-2">
+            <button className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
+              Hapus
+              <div className="bg-red-500 rounded-r-full px-2 py-2">
+                <MdClose className="text-white font-extrabold" />
+              </div>
+            </button>
+          </div>
         </td>
       </tr>
     ));
   };
 
   return (
-    <div className="soal bg-custom-bg min-h-screen relative">
-      <img
+    <div className="soal bg-custom-bg min-h-screen relative px-4">
+      {/* <img
         src={bgmaps}
         alt="Background Image"
         className="absolute top-0 right-0 pt-[90px] w-full h-full object-cover opacity-10 z-0"
-      />
+      /> */}
 
       <img
         src={garisKanan}
-        className="absolute top-0 right-0 pt-[90px] h-screen w-auto z-0"
+        className="absolute top-0 right-0 pt-[90px]  h-full w-auto opacity-40 z-0"
       />
       <img
         src={garisKanan}
-        className="absolute bottom-0 left-0 pt-[90px] h-screen w-auto rotate-180 transform z-0"
+        className="absolute bottom-0 left-0 pt-[90px]  h-full w-auto opacity-40 rotate-180 transform z-0"
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">

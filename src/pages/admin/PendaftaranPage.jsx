@@ -3,12 +3,11 @@ import Header from "../../components/Header";
 import { FaUpload } from "react-icons/fa"; // Importing the icons
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
-import { MdClose, MdOutlineBook, MdOutlineLibraryBooks } from "react-icons/md";
-import VideoData from "./VideoData.js";
+import { MdClose } from "react-icons/md";
+import ListPendaftaran from "./ListPendaftaran.js";
 import { LuPencil } from "react-icons/lu";
-import { IoBookOutline } from "react-icons/io5";
 
-const MateriPage = () => {
+const PendaftaranPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [file, setFile] = useState(null);
 
@@ -26,74 +25,57 @@ const MateriPage = () => {
   const handleUploadClick = () => {
     if (file) {
       // Implement your file upload logic here
-      alert(`File ${file.nama} uploaded!`);
+      alert(`File ${file.namaPaket} uploaded!`);
     } else {
       alert("Please select a file to upload.");
     }
   };
 
-  // Filter the VideoData based on the search term
-  const filteredData = VideoData.filter((Video) =>
-    Video.nama.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter the soalData based on the search term
+  const filteredData = ListPendaftaran.filter((list) =>
+    list.namaPaket.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Render a row for each item in VideoData
+  // Render a row for each item in soalData
   const renderTableRows = () => {
-    return filteredData.map((Video, index) => (
+    return filteredData.map((list, index) => (
       <tr key={index} className="bg-gray-100">
         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l">
-          {Video.nama}
+          {list.namaPaket}
         </td>
 
-        <td className="px-2 py-2 text-xs sm:text-sm text-center font-semibold border-b border-r capitalize">
-          <span
-            className={`${
-              Video.status === "open"
-                ? "text-green-500"
-                : Video.status === "hold"
-                ? "text-yellow-500"
-                : "text-red-500"
-            }`}
-          >
-            {Video.status}
-          </span>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          {list.mulai}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          {list.selesai}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          {list.jumlahPeserta}
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-black hover:text-white items-center gap-2">
-              Buka
-              <div className=" bg-black rounded-r-full px-2 py-2">
-                <MdOutlineLibraryBooks className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+          <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-gray-500 hover:text-white items-center gap-2">
+            Detail
+            <div className=" bg-gray-500 rounded-r-full px-2 py-2">
+              <LuPencil className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2">
-              Edit
-              <div className=" bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
-        </td>
+
         <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+          <button className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
+            Hapus
+            <div className="bg-red-500 rounded-r-full px-2 py-2">
+              <MdClose className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
       </tr>
     ));
   };
 
   return (
-    <div className="materi bg-custom-bg min-h-screen relative px-4">
+    <div className="list bg-custom-bg min-h-screen relative px-4">
       {/* <img
         src={bgmaps}
         alt="Background Image"
@@ -120,7 +102,7 @@ const MateriPage = () => {
             className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
           />
           <h1 className="text-xl font-bold text-center sm:text-left w-full sm:w-auto">
-            List Materi
+            List Pendaftaran
           </h1>
           <div className="flex items-center gap-2 w-11/12 sm:w-1/4">
             <input
@@ -142,10 +124,11 @@ const MateriPage = () => {
           <table className="min-w-full bg-white">
             <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-2 text-xs sm:text-sm">Nama Materi</th>
-                <th className="px-2 py-2 text-xs sm:text-sm">Status</th>
-                <th className="px-4 py-2 text-xs sm:text-sm">Lampiran</th>
-                <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Nama Paket</th>
+                <th className="px-2 py-2 text-xs sm:text-sm">Priode Mulai</th>
+                <th className="px-2 py-2 text-xs sm:text-sm">Priode Selesai</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Status</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Detail</th>
                 <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
               </tr>
             </thead>
@@ -157,4 +140,4 @@ const MateriPage = () => {
   );
 };
 
-export default MateriPage;
+export default PendaftaranPage;

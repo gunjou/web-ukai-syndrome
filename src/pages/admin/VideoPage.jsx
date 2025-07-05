@@ -3,12 +3,15 @@ import Header from "../../components/Header";
 import { FaUpload } from "react-icons/fa"; // Importing the icons
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
-import { MdClose, MdOutlineBook, MdOutlineLibraryBooks } from "react-icons/md";
+import { MdClose } from "react-icons/md";
 import VideoData from "./VideoData.js";
 import { LuPencil } from "react-icons/lu";
-import { IoBookOutline } from "react-icons/io5";
+import { FaRegEdit } from "react-icons/fa";
+import { CiPlay1 } from "react-icons/ci";
+import { IoPlay } from "react-icons/io5";
+import { FiPlay } from "react-icons/fi";
 
-const MateriPage = () => {
+const VideoPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [file, setFile] = useState(null);
 
@@ -60,17 +63,17 @@ const MateriPage = () => {
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
-            <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-black hover:text-white items-center gap-2">
-              Buka
-              <div className=" bg-black rounded-r-full px-2 py-2">
-                <MdOutlineLibraryBooks className="text-white font-extrabold" />
+            <button className="flex justify-center bg-gray-200 font-semibold pl-2 rounded-full hover:bg-black hover:text-white items-center gap-2">
+              Play
+              <div className="bg-black rounded-r-full px-2 py-2">
+                <FiPlay className="text-white font-extrabold" />
               </div>
             </button>
           </div>
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
-            <button className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2">
+            <button className="flex justify-center bg-gray-200 font-semibold pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2">
               Edit
               <div className=" bg-blue-500 rounded-r-full px-2 py-2">
                 <LuPencil className="text-white font-extrabold" />
@@ -80,7 +83,7 @@ const MateriPage = () => {
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
-            <button className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
+            <button className="bg-gray-200 font-semibold pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2">
               Hapus
               <div className="bg-red-500 rounded-r-full px-2 py-2">
                 <MdClose className="text-white font-extrabold" />
@@ -93,7 +96,7 @@ const MateriPage = () => {
   };
 
   return (
-    <div className="materi bg-custom-bg min-h-screen relative px-4">
+    <div className="video bg-custom-bg min-h-screen relative px-4">
       {/* <img
         src={bgmaps}
         alt="Background Image"
@@ -120,7 +123,7 @@ const MateriPage = () => {
             className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
           />
           <h1 className="text-xl font-bold text-center sm:text-left w-full sm:w-auto">
-            List Materi
+            List Video
           </h1>
           <div className="flex items-center gap-2 w-11/12 sm:w-1/4">
             <input
@@ -142,7 +145,7 @@ const MateriPage = () => {
           <table className="min-w-full bg-white">
             <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-2 text-xs sm:text-sm">Nama Materi</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Nama Video</th>
                 <th className="px-2 py-2 text-xs sm:text-sm">Status</th>
                 <th className="px-4 py-2 text-xs sm:text-sm">Lampiran</th>
                 <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
@@ -157,4 +160,4 @@ const MateriPage = () => {
   );
 };
 
-export default MateriPage;
+export default VideoPage;
