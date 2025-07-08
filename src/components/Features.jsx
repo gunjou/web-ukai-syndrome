@@ -104,7 +104,7 @@ const Features = () => {
 
         {/* Slider for Mobile and Grid for Desktop */}
         <div className="max-w-7xl mx-auto px-8 mt-[2rem]">
-          <div className="hidden md:block">
+          <div className="hidden md:block sm:block">
             {/* Grid for Desktop */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {programs.map((program, index) => (
@@ -117,7 +117,7 @@ const Features = () => {
                   }`}
                 >
                   {program.tag && (
-                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700">
+                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700 ">
                       {program.tag}
                     </div>
                   )}
@@ -161,7 +161,7 @@ const Features = () => {
           </div>
 
           {/* Slider for Mobile */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Slider {...sliderSettings}>
               {programs.map((program, index) => (
                 <div

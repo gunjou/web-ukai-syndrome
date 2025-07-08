@@ -42,7 +42,7 @@ const Hero = () => {
         <strong className="font-bold">5000+</strong> Siswa Terdaftar
       </div>
 
-      <div className="bg-custom-biru py-2.5 px-4 rounded-full text-white text-sm font-semibold absolute top-[250px] left-1/2 ml-[-250px] sm:ml-[-200px] md:ml-[-250px] hidden sm:block">
+      <div className="bg-custom-biru py-2.5 px-4 rounded-full text-white text-sm font-semibold absolute top-[250px] left-1/2 lg:ml-[-270px] sm:ml-[-200px] md:ml-[-250px] hidden sm:block hidden">
         <strong className="font-bold">98%</strong> Presentase Kelulusan
       </div>
 

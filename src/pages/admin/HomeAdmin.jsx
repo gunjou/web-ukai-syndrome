@@ -13,7 +13,7 @@ import homepage_img from "../../assets/hompage_img.png";
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
 
-const Dashboard = () => {
+const HomeAdmin = () => {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
 
   const menus = [
@@ -99,7 +99,7 @@ const Dashboard = () => {
             terbaik dan ter-murah
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10 py-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10 py-4 sticky z-10">
             {menus.map((item, idx) => (
               <div key={idx} className="relative">
                 {/* Main Menu Button */}
@@ -133,10 +133,10 @@ const Dashboard = () => {
       <img
         src={homepage_img}
         alt="welcome"
-        className="lg:max-h-[440px] max-h-[30%] object-contain absolute bottom-0 left-0"
+        className="lg:max-h-[50%] max-h-[35%] object-contain absolute bottom-0 left-0"
       />
     </div>
   );
 };
 
-export default Dashboard;
+export default HomeAdmin;
