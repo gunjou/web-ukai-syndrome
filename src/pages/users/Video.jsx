@@ -63,6 +63,9 @@ const FolderContent = () => {
 };
 
 const Video = () => {
+  const [backStack, setBackStack] = React.useState([]);
+  const [forwardStack, setForwardStack] = React.useState([]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { folder } = useParams();
@@ -76,6 +79,8 @@ const Video = () => {
 
   const handleFolderClick = (folderName) => {
     const slug = folderName.toLowerCase().replace(/\s+/g, "-");
+    setBackStack((prev) => [...prev, location.pathname]); // simpan riwayat
+    setForwardStack([]); // reset forward saat navigasi baru
     navigate(`${basePath}/${slug}`);
   };
 
@@ -89,7 +94,7 @@ const Video = () => {
   };
 
   return (
-    <div className="bg-white w-full h-auto p-4">
+    <div className="bg-white w-full h-auto h-p-6">
       <div className="w-full bg-gray-100 p-4 rounded-[20px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -98,15 +103,40 @@ const Video = () => {
           {/* Navigation Arrows */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(-1)}
-              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] bg-blue-500 text-white hover:bg-blue-600`}
+              onClick={() => {
+                if (backStack.length > 0) {
+                  const last = backStack[backStack.length - 1];
+                  setBackStack((prev) => prev.slice(0, -1));
+                  setForwardStack((prev) => [location.pathname, ...prev]);
+                  navigate(last);
+                }
+              }}
+              disabled={backStack.length === 0}
+              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
+                backStack.length === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-500 text-white hover:bg-blue-600"
+              }`}
             >
               <HiArrowLeft className="text-lg" />
               Back
             </button>
+
             <button
-              onClick={() => navigate(1)}
-              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] bg-blue-500 text-white hover:bg-blue-600`}
+              onClick={() => {
+                if (forwardStack.length > 0) {
+                  const next = forwardStack[0];
+                  setForwardStack((prev) => prev.slice(1));
+                  setBackStack((prev) => [...prev, location.pathname]);
+                  navigate(next);
+                }
+              }}
+              disabled={forwardStack.length === 0}
+              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
+                forwardStack.length === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-500 text-white hover:bg-blue-600"
+              }`}
             >
               Forward
               <HiArrowRight className="text-lg" />
