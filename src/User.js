@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
-import Navbar from "./components/Menubar";
+import MenuBar from "./components/Menubar";
 import Home from "./pages/users/Home";
 import Video from "./pages/users/Video";
 import Materi from "./pages/users/Materi";
@@ -13,8 +13,8 @@ const User = () => {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="flex-1">
-        <Navbar />
+      <div className="ml-64 flex-1">
+        <MenuBar />
         <div className="p-6">
           <Routes>
             <Route path="/home" element={<Home />} />

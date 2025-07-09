@@ -8,8 +8,7 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
-import Obat from "./menu-video/Obat";
-import CPOB from "./menu-video/CPOB";
+import VideoListContent from "./VideoListContent";
 
 const menuItems = [
   "Senku",
@@ -46,20 +45,7 @@ const VideoList = ({ onFolderClick }) => (
 
 // Komponen untuk isi folder
 const FolderContent = () => {
-  const { folder } = useParams();
-  if (folder === "obat") return <Obat />;
-  if (folder === "cpob") return <CPOB />;
-
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4">
-        {folder.replace(/-/g, " ")}
-      </h2>
-      <p>
-        Ini adalah konten untuk folder <b>{folder.replace(/-/g, " ")}</b>.
-      </p>
-    </div>
-  );
+  return <VideoListContent />;
 };
 
 const Video = () => {

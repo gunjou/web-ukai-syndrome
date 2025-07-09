@@ -2,7 +2,7 @@ import React from "react";
 
 const MenuBar = () => {
   return (
-    <div className="bg-white text-white flex justify-between items-center p-4">
+    <div className="bg-white text-white flex justify-between items-center p-4 sticky top-0 z-10">
       {/* Dashboard Title */}
       <div className="text-xl font-semibold">Dashboard</div>
 

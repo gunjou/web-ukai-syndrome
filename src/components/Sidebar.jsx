@@ -7,7 +7,7 @@ import icon_video from "../assets/icon_video.svg";
 
 const Sidebar = () => {
   return (
-    <aside className="w-64 bg-white h-screen shadow-md hidden md:block z-20">
+    <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
       <div className="p-6 text-2xl font-bold text-blue-600">
         <a href="/dashboard/home">
           <img
