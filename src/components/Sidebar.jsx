@@ -21,7 +21,7 @@ const Sidebar = () => {
         <ul className="space-y-2 px-4">
           <li>
             <NavLink
-              to="dashboard/soal-to"
+              to="/dashboard/soal-to"
               className={({ isActive }) =>
                 `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
@@ -69,7 +69,7 @@ const Sidebar = () => {
           </li>
           <li>
             <NavLink
-              to="dashboard/hasil-to"
+              to="/dashboard/hasil-to"
               className={({ isActive }) =>
                 `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
