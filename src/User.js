@@ -1,8 +1,11 @@
+// src/User.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Sidebar from "./components/Sidebar"; // Pastikan Sidebar sudah ada
-import Navbar from "./components/Menubar"; // Pastikan Navbar sudah ada
-import Home from "./pages/Home";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Menubar";
+import Home from "./pages/users/Home";
+import Video from "./pages/users/Video";
+import Obat from "./pages/users/Obat";
 
 const User = () => {
   return (
@@ -13,8 +16,8 @@ const User = () => {
         <div className="p-6">
           <Routes>
             <Route path="/home" element={<Home />} />
-
-            {/* Add more routes as needed */}
+            {/* Route induk untuk video dengan nested routing */}
+            <Route path="/video/*" element={<Video />} />
           </Routes>
         </div>
       </div>

@@ -11,12 +11,12 @@ const MenuBar = () => {
         <div className="relative w-full max-w-md">
           <input
             type="search"
-            className="w-full px-4 py-2 rounded-lg border border-neutral-300 bg-transparent text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-1.5 rounded-[20px] border border-gray-300 bg-transparent text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:ring-2 focus:ring-gray-300 focus:border-gray-300"
             placeholder="Search"
             aria-label="Search"
           />
           <button
-            className="absolute right-0 top-0 bottom-0 px-4 py-2 bg-blue-600 text-white rounded-r hover:bg-blue-700 focus:outline-none"
+            className="absolute right-0 top-0 bottom-0 px-4 py-1.5 bg-gray-300 text-white rounded-r-[20px] hover:bg-gray-400 focus:outline-none"
             type="button"
           >
             <svg
@@ -37,7 +37,7 @@ const MenuBar = () => {
 
       {/* Logout Button */}
       <div className="space-x-4">
-        <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500">
+        <button className="bg-blue-600 px-4 py-2 rounded-[20px] hover:bg-blue-500">
           Logout
         </button>
       </div>

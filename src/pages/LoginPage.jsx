@@ -9,16 +9,22 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Static email and password for demo
-  const validEmail = "admin@coba.com";
-  const validPassword = "123";
+  const users = [
+    { email: "admin@coba.com", password: "123" },
+    { email: "user@coba.com", password: "456" },
+  ];
 
   // Handle form submission
   const handleLogin = (e) => {
     e.preventDefault();
 
-    if (email === validEmail && password === validPassword) {
-      // Redirect to dashboard
-      navigate("/dashboard");
+    const foundUser = users.find(
+      (user) => user.email === email && user.password === password
+    );
+
+    if (foundUser) {
+      // Redirect to dashboard/home
+      navigate("/dashboard/home");
     } else {
       alert("Email atau password salah!");
     }
