@@ -11,7 +11,7 @@ const MenuBar = () => {
         <div className="relative w-full max-w-md">
           <input
             type="search"
-            className="w-full px-4 py-1.5 rounded-[20px] border border-gray-300 bg-transparent text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:ring-2 focus:ring-gray-300 focus:border-gray-300"
+            className="w-full px-4 py-1 rounded-[20px] border border-gray-300 bg-transparent text-base font-normal leading-[1.6] text-neutral-700 outline-none transition duration-200 ease-in-out focus:ring-2 focus:ring-gray-300 focus:border-gray-300"
             placeholder="Search"
             aria-label="Search"
           />
@@ -37,7 +37,7 @@ const MenuBar = () => {
 
       {/* Logout Button */}
       <div className="space-x-4">
-        <button className="bg-blue-600 px-4 py-2 rounded-[20px] hover:bg-blue-500">
+        <button className="bg-blue-600 px-4 py-1 rounded-[20px] hover:bg-blue-500">
           Logout
         </button>
       </div>

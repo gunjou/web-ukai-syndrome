@@ -9,15 +9,15 @@ const Sidebar = () => {
   return (
     <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
       <div className="p-6 text-2xl font-bold text-blue-600">
-        <a href="/dashboard/home">
+        <a className="flex justify-center" href="/dashboard/home">
           <img
             src={homepage_img}
             alt="Homepage Logo"
-            className="h-10 cursor-pointer"
+            className="h-12 cursor-pointer"
           />
         </a>
       </div>
-      <nav className="mt-8">
+      <nav className="">
         <ul className="space-y-2 px-4">
           <li>
             <NavLink
@@ -31,7 +31,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <img src={icon_file} alt="Soal TO" className="h-auto w-10" />
+              <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
               <span>Soal TO</span>
             </NavLink>
           </li>
@@ -47,7 +47,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <img src={icon_folder} alt="Materi" className="h-auto w-10" />
+              <img src={icon_folder} alt="Materi" className="h-auto w-7" />
               <span>Materi</span>
             </NavLink>
           </li>
@@ -63,7 +63,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <img src={icon_video} alt="Video" className="h-auto w-10" />
+              <img src={icon_video} alt="Video" className="h-auto w-7" />
               <span>Video</span>
             </NavLink>
           </li>
@@ -79,7 +79,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <img src={icon_pesan} alt="Hasil TO" className="h-auto w-10" />
+              <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
               <span>Hasil TO</span>
             </NavLink>
           </li>
