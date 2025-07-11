@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // Import Link dan useLocation
-import homepage_img from "../assets/logo.png";
+import homepage_img from "../../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
 

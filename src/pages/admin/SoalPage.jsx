@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Header from "../../components/Header";
+import Header from "../../components/admin/Header.jsx";
 import { FaUpload } from "react-icons/fa"; // Importing the icons
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";

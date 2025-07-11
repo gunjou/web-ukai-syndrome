@@ -21,10 +21,12 @@ import LaporanPage from "./pages/admin/LaporanPage.jsx";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
+import HomePageUser from "./pages/users/HomePage.jsx";
 
 // Import components
 import About from "./components/About";
 import User from "./User"; // Import User component
+import Pembayaran from "./pages/users/Pembayaran.jsx";
 
 function App() {
   return (
@@ -36,7 +38,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/homepage" element={<HomePage />} />
         {/* Routes for admin dashboard */}
-        <Route path="/home" element={<HomeAdmin />} />
+        <Route path="/home-admin" element={<HomeAdmin />} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
@@ -50,6 +52,9 @@ function App() {
         <Route path="/mentor" element={<Mentor />} />
         {/* About page */}
         <Route path="/about" element={<About />} />
+        {/* Routes for user */}
+        <Route path="/home" element={<HomePageUser />} />
+        <Route path="/pembayaran" element={<Pembayaran />} />
         {/* Route for User Dashboard */}
         <Route path="/dashboard/*" element={<User />} />{" "}
         {/* Add '/user-dashboard/*' as the route */}

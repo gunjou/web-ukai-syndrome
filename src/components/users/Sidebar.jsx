@@ -1,9 +1,9 @@
 import { NavLink } from "react-router-dom";
-import homepage_img from "../assets/logo.png";
-import icon_file from "../assets/icon_file.svg";
-import icon_folder from "../assets/icon_folder.svg";
-import icon_pesan from "../assets/icon_pesan.svg";
-import icon_video from "../assets/icon_video.svg";
+import homepage_img from "../../assets/logo.png";
+import icon_file from "../../assets/icon_file.svg";
+import icon_folder from "../../assets/icon_folder.svg";
+import icon_pesan from "../../assets/icon_pesan.svg";
+import icon_video from "../../assets/icon_video.svg";
 
 const Sidebar = () => {
   return (
