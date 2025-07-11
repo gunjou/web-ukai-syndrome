@@ -79,7 +79,7 @@ const Navbar = () => {
           {/* Tombol Login tetap menggunakan RouterLink */}
           <RouterLink
             to="/login"
-            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-1 rounded-[20px] hover:bg-blue-700 transition"
           >
             Login
           </RouterLink>

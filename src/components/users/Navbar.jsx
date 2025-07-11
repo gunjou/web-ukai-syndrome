@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-scroll"; // Menggunakan Link dari react-scroll
 import { FiMenu, FiX } from "react-icons/fi";
 import logo from "../../assets/logo.png";
+import { Link as RouterLink } from "react-router-dom";
 import { MdOutlineArrowDropDown } from "react-icons/md";
-import { Link as RouterLink } from "react-router-dom"; // Import Link dari react-router-dom untuk Login
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,64 +11,33 @@ const Navbar = () => {
     <nav className="bg-custom-bg fixed top-0 w-full z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link to="home" smooth={true} className="flex items-center space-x-2">
+        <RouterLink to="/home" className="flex items-center space-x-2">
           <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto" />
-        </Link>
+        </RouterLink>
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex space-x-6 items-center text-gray-700">
           <li>
-            <Link
-              to="capaian"
-              smooth={true}
-              offset={-70}
+            <RouterLink
+              to="/home"
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Home <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="mentor"
-              smooth={true}
-              offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
-            >
-              Program <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="modul"
-              smooth={true}
-              offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
-            >
-              Modul <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="program"
-              smooth={true}
-              offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
-            >
-              Pembayaran <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="about"
-              smooth={true}
-              offset={-70}
-              className="flex items-center hover:text-blue-600 space-x-1"
-            >
-              About <MdOutlineArrowDropDown className="ml-1 text-lg" />
-            </Link>
+              Home
+            </RouterLink>
           </li>
 
-          {/* Tombol Login tetap menggunakan RouterLink */}
+          <li>
+            <RouterLink to="/pembayaran" className="hover:text-blue-600">
+              Pembayaran
+            </RouterLink>
+          </li>
+
+          <li>
+            <RouterLink to="/dashboard/materi" className="hover:text-blue-600">
+              Kelas Saya
+            </RouterLink>
+          </li>
+
           <RouterLink
             to="/"
             className="ml-4 bg-custom-biru text-white font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
@@ -77,6 +45,13 @@ const Navbar = () => {
             Logout
           </RouterLink>
         </ul>
+
+        {/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <button onClick={() => setIsOpen(true)}>
+            <FiMenu size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -91,69 +66,27 @@ const Navbar = () => {
           </button>
         </div>
         <ul className="flex flex-col space-y-4 px-6 text-gray-700">
-          <li>
-            <Link
-              to="capaian"
-              smooth={true}
-              offset={-70}
-              onClick={() => setIsOpen(false)}
-            >
-              Modul
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="modul"
-              smooth={true}
-              offset={-70}
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="mentor"
-              smooth={true}
-              offset={-70}
-              onClick={() => setIsOpen(false)}
-            >
-              Mentor
-            </Link>
-          </li>
+          <RouterLink to="/home" onClick={() => setIsOpen(false)}>
+            Home
+          </RouterLink>
+          <RouterLink to="/pembayaran" onClick={() => setIsOpen(false)}>
+            Pembayaran
+          </RouterLink>
+          <RouterLink to="/dashboard/materi" onClick={() => setIsOpen(false)}>
+            Kelas Saya
+          </RouterLink>
 
-          <li>
-            <Link
-              to="program"
-              smooth={true}
-              offset={-70}
-              onClick={() => setIsOpen(false)}
-            >
-              Program
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="about"
-              smooth={true}
-              offset={-70}
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-          </li>
-
-          {/* Tombol Login di mobile menu tetap menggunakan RouterLink */}
           <RouterLink
-            to="/login"
-            className="ml-4 bg-blue-600 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+            to="/"
+            className="bg-blue-600 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+            onClick={() => setIsOpen(false)}
           >
-            Masuk
+            Logout
           </RouterLink>
         </ul>
       </div>
 
-      {/* Overlay background (optional) */}
+      {/* Background overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-30 z-30"

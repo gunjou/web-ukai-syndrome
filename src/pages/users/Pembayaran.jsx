@@ -1,21 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../../components/users/Navbar";
 import garis from "../../assets/garis-kanan.png";
+import ModalMetode from "../../components/users/ModalMetode"; // <-- Tambahkan ini
 
 const Pembayaran = () => {
+  const [showModal, setShowModal] = useState(false); // <-- Tambahkan state
+
   return (
     <div className="min-h-screen bg-custom-bg relative">
       <Navbar />
       <img
         src={garis}
-        className="absolute top-0 right-0 pt-[90px] h-full w-auto"
+        className="absolute -top-12 right-0 pt-[90px] h-full w-50"
       />
       <img
         src={garis}
-        className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1]  transform z-0"
+        className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1] transform z-0"
       />
+
       {/* Card Putih di Kanan Bawah */}
-      <div className="fixed bottom-0 right-0 w-[80%] bg-white rounded-t-[60px] shadow-lg p-8 pl-[10%]">
+      <div className="fixed bottom-0 right-0 w-[80%] bg-white rounded-t-[60px] shadow-lg p-8 pl-[10%] z-10">
         {/* Header Floating */}
         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
           <div className="bg-blue-500 text-white text-lg font-bold py-2 px-6 rounded-full shadow">
@@ -57,13 +61,19 @@ const Pembayaran = () => {
             </div>
 
             <div className="text-center mt-6">
-              <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-medium">
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-medium"
+                onClick={() => setShowModal(true)} // <-- Tampilkan modal
+              >
                 Lanjutkan
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <ModalMetode show={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 };

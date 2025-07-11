@@ -26,10 +26,10 @@ const LoginPage = () => {
       // Check user role and navigate accordingly
       if (foundUser.role === "admin") {
         // Redirect to admin home
-        navigate("/home");
+        navigate("/home-admin");
       } else {
         // Redirect to user dashboard
-        navigate("/dashboard/home");
+        navigate("/home");
       }
     } else {
       alert("Email atau password salah!");

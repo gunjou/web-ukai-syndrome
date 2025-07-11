@@ -18,7 +18,7 @@ const Mentor = () => {
         Terluas Se-Indonesia
       </h2>
 
-      <div className="flex flex-col md:flex-row h-[500px] max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row h-[50%] max-w-7xl mx-auto">
         {/* Bagian kiri - teks */}
         <div className="w-full md:w-1/3 p-4 bg-white flex items-center justify-center">
           <p className="mb-2 text-left font-normal md:text-left">
