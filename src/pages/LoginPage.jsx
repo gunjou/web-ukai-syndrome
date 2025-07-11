@@ -10,8 +10,8 @@ const LoginPage = () => {
 
   // Static email and password for demo
   const users = [
-    { email: "admin@coba.com", password: "123" },
-    { email: "user@coba.com", password: "456" },
+    { email: "admin@coba.com", password: "123", role: "admin" },
+    { email: "user@coba.com", password: "456", role: "user" },
   ];
 
   // Handle form submission
@@ -23,8 +23,14 @@ const LoginPage = () => {
     );
 
     if (foundUser) {
-      // Redirect to dashboard/home
-      navigate("/dashboard/home");
+      // Check user role and navigate accordingly
+      if (foundUser.role === "admin") {
+        // Redirect to admin home
+        navigate("/home");
+      } else {
+        // Redirect to user dashboard
+        navigate("/dashboard/home");
+      }
     } else {
       alert("Email atau password salah!");
     }

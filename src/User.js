@@ -18,12 +18,12 @@ const User = () => {
         <div className="p-6">
           <Routes>
             <Route path="/home" element={<Home />} />
-            <Route path="/materi" element={<Materi />} />
             <Route path="/soal-to" element={<SoalTO />} />
             <Route path="/hasil-to" element={<HasilTO />} />
 
             {/* Route induk untuk video dengan nested routing */}
             <Route path="/video/*" element={<Video />} />
+            <Route path="/materi/*" element={<Materi />} />
           </Routes>
         </div>
       </div>
