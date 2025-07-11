@@ -21,22 +21,6 @@ const Sidebar = () => {
         <ul className="space-y-2 px-4">
           <li>
             <NavLink
-              to="/dashboard/soal-to"
-              className={({ isActive }) =>
-                `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
-                ${
-                  isActive
-                    ? "bg-blue-100 text-blue-600"
-                    : "hover:bg-gray-200 text-gray-700"
-                }`
-              }
-            >
-              <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
-              <span>Soal TO</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
               to="/dashboard/materi"
               className={({ isActive }) =>
                 `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
@@ -65,6 +49,22 @@ const Sidebar = () => {
             >
               <img src={icon_video} alt="Video" className="h-auto w-7" />
               <span>Video</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/dashboard/soal-to"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-600"
+                    : "hover:bg-gray-200 text-gray-700"
+                }`
+              }
+            >
+              <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
+              <span>Soal TO</span>
             </NavLink>
           </li>
           <li>

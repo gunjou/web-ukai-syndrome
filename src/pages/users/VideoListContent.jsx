@@ -75,7 +75,7 @@ const videoDatabase = {
       id: 1,
       title: "Ilmuwan Gila & Obat di Anime Dr. Stone",
       description: "Cara Senku membuat obat dari nol!",
-      thumbnail: "https://img.youtube.com/vi/Yi8GJ1IBRAU/0.jpg",
+      thumbnail: "https://i3.ytimg.com/vi/uNhI52RWwDk/hqdefault.jpg",
     },
   ],
 };
@@ -97,9 +97,9 @@ const VideoListContent = () => {
               <img
                 src={video.thumbnail}
                 alt={video.title}
-                className="w-full sm:w-60 h-40 object-cover rounded-lg sm:rounded-l-lg sm:rounded-r-none"
+                className="w-full sm:w-60 h-40 object-cover rounded-lg sm:rounded-lg sm:rounded-lg"
               />
-              <div className="flex flex-col justify-center p-4 overflow-hidden">
+              <div className="flex flex-col  p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate">
                   {video.title}
                 </h3>
