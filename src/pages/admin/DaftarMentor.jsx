@@ -6,25 +6,26 @@ import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
-const PesertaPage = () => {
+const DaftarMentor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
   const [formData, setFormData] = useState({
     nama: "",
     email: "",
     password: "",
   });
-  const [selectedId, setSelectedId] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    fetchUsers();
+    fetchMentorData();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchMentorData = async () => {
     try {
-      const response = await Api.get("/peserta");
+      const response = await Api.get("/mentor");
       setUserData(response.data);
     } catch (error) {
       console.error("Gagal mengambil data:", error);
@@ -37,73 +38,78 @@ const PesertaPage = () => {
     user.nama.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (user) => {
-    setFormData({ nama: user.nama, email: user.email, password: "" });
-    setSelectedId(user.id_user);
-    setEditMode(true);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus peserta ini?")) return;
-    try {
-      await Api.delete(`/peserta/${id}`);
-      alert("Peserta berhasil dihapus.");
-      fetchUsers();
-    } catch (error) {
-      console.error("Gagal menghapus peserta:", error);
-      alert("Gagal menghapus peserta.");
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await Api.post("/peserta", formData);
-      alert("Peserta berhasil ditambahkan.");
+      await Api.post("/mentor", formData);
+      alert("Mentor berhasil ditambahkan!");
       setShowModal(false);
       setFormData({ nama: "", email: "", password: "" });
-      fetchUsers();
+      fetchMentorData();
     } catch (error) {
-      console.error("Gagal menambahkan peserta:", error);
-      alert("Gagal menambahkan peserta.");
+      console.error("Gagal menambahkan mentor:", error);
+      alert("Gagal menambahkan mentor. Silakan coba lagi.");
     }
+  };
+
+  const handleEdit = (mentor) => {
+    setFormData({
+      nama: mentor.nama,
+      email: mentor.email,
+      password: "", // kosongkan password saat edit
+    });
+    setSelectedId(mentor.id_user); // gunakan id_user
+    setEditMode(true);
+    setShowModal(true);
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!selectedId) return alert("ID tidak ditemukan.");
     try {
       const dataToSend = { ...formData };
-      if (!formData.password) delete dataToSend.password;
+      if (!formData.password) {
+        delete dataToSend.password; // jangan kirim password jika kosong
+      }
 
-      await Api.put(`/peserta/${selectedId}`, dataToSend);
-      alert("Peserta berhasil diperbarui.");
+      await Api.put(`/mentor/${selectedId}`, dataToSend);
+      alert("Data mentor berhasil diperbarui!");
       setShowModal(false);
       setEditMode(false);
       setFormData({ nama: "", email: "", password: "" });
-      fetchUsers();
+      fetchMentorData();
     } catch (error) {
-      console.error("Gagal memperbarui peserta:", error);
-      alert("Gagal memperbarui peserta.");
+      console.error("Gagal memperbarui mentor:", error);
+      alert("Gagal memperbarui mentor.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin ingin menghapus mentor ini?")) return;
+    try {
+      await Api.delete(`/mentor/${id}`);
+      alert("Mentor berhasil dihapus.");
+      fetchMentorData();
+    } catch (error) {
+      console.error("Gagal menghapus mentor:", error);
+      alert("Gagal menghapus mentor.");
     }
   };
 
   const renderTableRows = () =>
     filteredData.map((user, index) => (
       <tr key={index} className="bg-gray-100">
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r border-l capitalize">
+        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l capitalize">
           {user.nama}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
           {user.email}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
           {user.kode_pemulihan || "-"}
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
@@ -144,7 +150,7 @@ const PesertaPage = () => {
       />
       <img
         src={garisKanan}
-        className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 z-0"
+        className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />
       <Header />
@@ -157,8 +163,8 @@ const PesertaPage = () => {
             placeholder="Search"
             className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
           />
-          <h1 className="text-xl font-bold text-center sm:text-left w-full sm:w-auto">
-            Peserta Ukai Syndrome
+          <h1 className="flex justify-center items-center text-xl font-bold sm:text-left w-full sm:w-auto">
+            Mentor Ukai Syndrome
           </h1>
           <div className="flex justify-end w-full sm:w-1/4">
             <button
@@ -170,7 +176,7 @@ const PesertaPage = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg transition shadow-md flex items-center gap-2"
             >
               <AiOutlinePlus size={18} />
-              Tambah Peserta
+              Tambah Mentor
             </button>
           </div>
         </div>
@@ -201,7 +207,7 @@ const PesertaPage = () => {
           }}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -215,7 +221,7 @@ const PesertaPage = () => {
               <AiOutlineClose size={24} />
             </button>
             <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Data Peserta" : "Tambah Peserta Baru"}
+              {editMode ? "Edit Mentor" : "Tambah Mentor Baru"}
             </h2>
             <form
               className="space-y-4"
@@ -226,10 +232,10 @@ const PesertaPage = () => {
                 <input
                   type="text"
                   name="nama"
-                  placeholder="Nama Peserta"
                   value={formData.nama}
                   onChange={handleChange}
                   required
+                  placeholder="Nama Mentor"
                   className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -238,10 +244,10 @@ const PesertaPage = () => {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Email Peserta"
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  placeholder="Email Mentor"
                   className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
@@ -254,13 +260,13 @@ const PesertaPage = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  required={!editMode}
                   placeholder={
                     editMode
                       ? "Biarkan kosong jika tidak ingin diubah"
                       : "Password"
                   }
                   className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  required={!editMode}
                 />
               </div>
               <div className="text-right">
@@ -279,4 +285,4 @@ const PesertaPage = () => {
   );
 };
 
-export default PesertaPage;
+export default DaftarMentor;

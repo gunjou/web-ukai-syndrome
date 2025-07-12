@@ -27,12 +27,12 @@ const HomeAdmin = () => {
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/");
   };
 
   const menus = [
     {
-      label: "Peserta",
+      label: "PESERTA",
       link: "/peserta",
       icon: <FaUsers className="text-[#0680DC] text-sm" />,
     },

@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import homepage_img from "../../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
+import Api from "../../utils/Api.jsx"; // Axios instance
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     {
@@ -18,6 +20,7 @@ const Header = () => {
         { name: "Settings", href: "/peserta/settings" },
       ],
     },
+    { name: "Mentor", href: "/daftar-mentor", dropdown: [] },
     {
       name: "Soal",
       href: "/soal",
@@ -48,9 +51,21 @@ const Header = () => {
     );
   };
 
+  const handleLogout = async () => {
+    try {
+      await Api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
   return (
     <header className="bg-white py-4 px-8 shadow flex justify-between items-center rounded-b-[40px] sticky top-0 z-50">
-      <Link to="/dashboard">
+      <Link to="/home-admin">
         <img src={homepage_img} alt="Logo" className="h-10 cursor-pointer" />
       </Link>
 
@@ -72,7 +87,6 @@ const Header = () => {
                   ? "bg-blue-500 text-white"
                   : "text-gray-700 hover:bg-gray-200"
               }`}
-              aria-label={item.name}
             >
               {item.name}
               {item.dropdown.length > 0 && (
@@ -86,7 +100,7 @@ const Header = () => {
                   <Link
                     key={subIndex}
                     to={subItem.href}
-                    className={`block px-4 py-2  transition-colors duration-200 ${
+                    className={`block px-4 py-2 transition-colors duration-200 ${
                       location.pathname === subItem.href
                         ? "bg-blue-500 text-white"
                         : "text-gray-700 hover:bg-blue-100"
@@ -103,12 +117,12 @@ const Header = () => {
 
       {/* Logout Button Desktop */}
       <div className="flex items-center gap-2 ml-auto hidden md:flex">
-        <Link
-          to="/"
+        <button
+          onClick={handleLogout}
           className="py-1 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full"
         >
           Logout
-        </Link>
+        </button>
       </div>
 
       {/* Mobile Menu */}
@@ -162,12 +176,12 @@ const Header = () => {
             </li>
           ))}
           <li>
-            <Link
-              to="/"
+            <button
+              onClick={handleLogout}
               className="py-2 px-4 bg-blue-500 text-white w-full text-center rounded-md"
             >
               Logout
-            </Link>
+            </button>
           </li>
         </ul>
       </div>

@@ -17,6 +17,7 @@ import PaketPage from "./pages/admin/PaketPage.jsx";
 import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
 import LaporanPage from "./pages/admin/LaporanPage.jsx";
 import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
+import DaftarMentor from "./pages/admin/DaftarMentor.jsx";
 
 // Import authentication pages
 import LoginPage from "./pages/LoginPage";
@@ -42,6 +43,7 @@ function App() {
         <Route path="/home-admin" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
         <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
+        <Route path="/daftar-mentor" element={<DaftarMentor />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />
