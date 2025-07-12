@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import homepage_img from "../../assets/logo.png";
+import homepage_img from "../../assets/ukai-logo.svg";
 import icon_file from "../../assets/icon_file.svg";
 import icon_folder from "../../assets/icon_folder.svg";
 import icon_pesan from "../../assets/icon_pesan.svg";
@@ -8,8 +8,8 @@ import icon_video from "../../assets/icon_video.svg";
 const Sidebar = () => {
   return (
     <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
-      <div className="p-6 text-2xl font-bold text-blue-600">
-        <a className="flex justify-center" href="/home">
+      <div className="p-6 pl-4 text-2xl font-bold text-blue-600">
+        <a className="flex justify-left" href="/home">
           <img
             src={homepage_img}
             alt="Homepage Logo"

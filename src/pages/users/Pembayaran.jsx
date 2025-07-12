@@ -60,7 +60,7 @@ const Pembayaran = () => {
               <span>: Rp. 3.500.000</span>
             </div>
 
-            <div className="text-center mt-6">
+            <div className="text-left pt-8">
               <button
                 className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-medium"
                 onClick={() => setShowModal(true)} // <-- Tampilkan modal

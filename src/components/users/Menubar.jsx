@@ -1,11 +1,24 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import Api from "../../utils/Api"; // sesuaikan jika path berbeda
 
 const MenuBar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await Api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   return (
     <div className="bg-white text-white flex justify-between items-center p-4 sticky top-0 z-10">
-      {/* Dashboard Title */}
-      <div className="text-xl font-semibold">Dashboard</div>
-
       {/* Search Bar in the Center */}
       <div className="flex-1 flex justify-center">
         <div className="relative w-full max-w-md">
@@ -37,7 +50,10 @@ const MenuBar = () => {
 
       {/* Logout Button */}
       <div className="space-x-4">
-        <button className="bg-blue-600 px-4 py-1 rounded-[20px] hover:bg-blue-500">
+        <button
+          className="bg-blue-600 px-4 py-1 rounded-[20px] hover:bg-blue-500"
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </div>

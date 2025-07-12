@@ -1,37 +1,48 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ukai from "../assets/loginRegister/bg_ukai_new.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import Api from "../utils/Api"; // import instance axios
+import ukai from "../assets/loginRegister/bg_ukai_new.svg";
 import ukaibawah from "../assets/loginRegister/bg_samping_login.png";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Static email and password for demo
-  const users = [
-    { email: "admin@coba.com", password: "123", role: "admin" },
-    { email: "user@coba.com", password: "456", role: "user" },
-  ];
-
-  // Handle form submission
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    const foundUser = users.find(
-      (user) => user.email === email && user.password === password
-    );
+    try {
+      const response = await Api.post("/auth/login", {
+        email,
+        password,
+      });
 
-    if (foundUser) {
-      // Check user role and navigate accordingly
-      if (foundUser.role === "admin") {
-        // Redirect to admin home
+      const {
+        access_token,
+        id_user,
+        nama,
+        email: userEmail,
+        role,
+      } = response.data;
+
+      // Simpan token dan user info di localStorage
+      localStorage.setItem("token", access_token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ id_user, nama, email: userEmail, role })
+      );
+
+      // Navigasi berdasarkan role
+      if (role === "admin") {
         navigate("/home-admin");
       } else {
-        // Redirect to user dashboard
         navigate("/home");
       }
-    } else {
+    } catch (error) {
+      console.error("Login failed:", error);
       alert("Email atau password salah!");
     }
   };
@@ -61,14 +72,22 @@ const LoginPage = () => {
               <label className="block text-sm font-medium text-gray-600">
                 Password
               </label>
-              <input
-                type="password"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                placeholder="Masukkan password anda"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 pr-10"
+                  placeholder="Masukkan password anda"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <div
+                  className="absolute right-3 top-2.5 text-gray-600 cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </div>
+              </div>
             </div>
             <div className="flex justify-center items-center">
               <button

@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import ukai from "../assets/loginRegister/bg_ukai_new.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import Api from "../utils/Api";
+import ukai from "../assets/loginRegister/bg_ukai_new.svg";
 import ukaibawah from "../assets/loginRegister/bg_samping_login.png";
 
 const RegisterPage = () => {
@@ -9,16 +11,42 @@ const RegisterPage = () => {
     nama: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Sementara: tidak validasi backend, langsung arahkan
-    navigate("/dashboard");
+
+    if (form.password !== form.confirmPassword) {
+      alert("Password dan konfirmasi password tidak sama.");
+      return;
+    }
+
+    try {
+      const payload = {
+        nama: form.nama,
+        email: form.email,
+        password: form.password,
+      };
+
+      await Api.post("/auth/register", payload);
+
+      alert("Registrasi berhasil! Silakan login.");
+      navigate("/login");
+    } catch (error) {
+      console.error("Register error:", error);
+      alert(
+        error?.response?.data?.message ||
+          "Registrasi gagal. Pastikan data benar atau email belum terdaftar."
+      );
+    }
   };
 
   return (
@@ -64,29 +92,45 @@ const RegisterPage = () => {
               <label className="block text-sm font-medium text-gray-600">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Masukkan password anda"
-                required
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Masukkan password anda"
+                  required
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 pr-10"
+                />
+                <div
+                  className="absolute right-3 top-2.5 text-gray-600 cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Konfirmasi Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Masukkan password anda"
-                required
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Masukkan ulang password"
+                  required
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 pr-10"
+                />
+                <div
+                  className="absolute right-3 top-2.5 text-gray-600 cursor-pointer"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                </div>
+              </div>
             </div>
             <div className="flex justify-center items-center pt-4">
               <button

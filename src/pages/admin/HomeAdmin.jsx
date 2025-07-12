@@ -5,9 +5,10 @@ import {
   FaVideo,
   FaFileAlt,
   FaClipboardList,
-} from "react-icons/fa"; // import relevant icons
-import { Link } from "react-router-dom"; // import Link for routing
+} from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 
+import Api from "../../utils/Api"; // Pastikan path ini benar
 import logo from "../../assets/logo.png";
 import homepage_img from "../../assets/hompage_img.png";
 import garisKanan from "../../assets/garis-kanan.png";
@@ -15,42 +16,55 @@ import bgmaps from "../../assets/maps.png";
 
 const HomeAdmin = () => {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await Api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   const menus = [
     {
       label: "USER",
       link: "/user",
-      icon: <FaUsers className="text-[#0680DC] text-sm" />, // User icon
+      icon: <FaUsers className="text-[#0680DC] text-sm" />,
     },
     {
       label: "SOAL",
       link: "/soal",
-      icon: <FaQuestionCircle className="text-[#0680DC] text-sm" />, // Soal icon
+      icon: <FaQuestionCircle className="text-[#0680DC] text-sm" />,
     },
     {
       label: "MATERI",
       link: "/materi",
-      icon: <FaFileAlt className="text-[#0680DC] text-sm" />, // Materi icon
+      icon: <FaFileAlt className="text-[#0680DC] text-sm" />,
     },
     {
       label: "VIDEO",
       link: "/video",
-      icon: <FaVideo className="text-[#0680DC] text-sm" />, // Video icon
+      icon: <FaVideo className="text-[#0680DC] text-sm" />,
     },
     {
       label: "PAKET",
       link: "/paket",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Paket icon
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
     },
     {
       label: "PENDAFTARAN",
       link: "/pendaftaran",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Pendaftaran icon
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
     },
     {
       label: "LAPORAN",
       link: "/laporan",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />, // Laporan icon
+      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
     },
   ];
 
@@ -69,11 +83,14 @@ const HomeAdmin = () => {
       <img
         src={garisKanan}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
+        alt="garis kanan"
       />
       <img
         src={garisKanan}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto rotate-180 transform opacity-70"
+        alt="garis kiri"
       />
+
       {/* Header */}
       <div className="w-full flex items-center px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
         <div className="flex items-center space-x-2">
@@ -82,7 +99,10 @@ const HomeAdmin = () => {
         <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-semibold text-biru-gelap m-0">
           Selamat Datang
         </h1>
-        <button className="ml-auto bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-600">
+        <button
+          onClick={handleLogout}
+          className="ml-auto bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700 transition"
+        >
           Logout
         </button>
       </div>
@@ -102,7 +122,6 @@ const HomeAdmin = () => {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10 py-4 sticky z-10">
             {menus.map((item, idx) => (
               <div key={idx} className="relative">
-                {/* Main Menu Button */}
                 <Link to={item.link || "#"}>
                   <div
                     onClick={() => toggleSubmenu(idx)}
@@ -116,7 +135,7 @@ const HomeAdmin = () => {
                     </div>
 
                     {/* Right Text */}
-                    <div className="lg:w-[70%] lg:w-[60%] flex flex-col justify-center pl-3 pr-2">
+                    <div className="lg:w-[70%] flex flex-col justify-center pl-3 pr-2">
                       <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f]">
                         {item.label}
                       </div>
@@ -127,9 +146,9 @@ const HomeAdmin = () => {
             ))}
           </div>
         </div>
-
-        {/* Left Image absolute bottom left */}
       </div>
+
+      {/* Bottom Image */}
       <img
         src={homepage_img}
         alt="welcome"

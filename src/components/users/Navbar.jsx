@@ -1,49 +1,62 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-import logo from "../../assets/logo.png";
-import { Link as RouterLink } from "react-router-dom";
 import { MdOutlineArrowDropDown } from "react-icons/md";
+import logo from "../../assets/logo.png";
+import Api from "../../utils/Api";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await Api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   return (
     <nav className="bg-custom-bg fixed top-0 w-full z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
-        <RouterLink to="/home" className="flex items-center space-x-2">
+        <Link to="/home" className="flex items-center space-x-2">
           <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto" />
-        </RouterLink>
+        </Link>
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex space-x-6 items-center text-gray-700">
           <li>
-            <RouterLink
+            <Link
               to="/home"
               className="flex items-center space-x-1 hover:text-blue-600"
             >
               Home
-            </RouterLink>
+            </Link>
           </li>
-
           <li>
-            <RouterLink to="/pembayaran" className="hover:text-blue-600">
+            <Link to="/pembayaran" className="hover:text-blue-600">
               Pembayaran
-            </RouterLink>
+            </Link>
           </li>
-
           <li>
-            <RouterLink to="/dashboard/materi" className="hover:text-blue-600">
+            <Link to="/dashboard/materi" className="hover:text-blue-600">
               Kelas Saya
-            </RouterLink>
+            </Link>
           </li>
 
-          <RouterLink
-            to="/"
-            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-1 rounded-[20px] hover:bg-blue-700 transition"
           >
             Logout
-          </RouterLink>
+          </button>
         </ul>
 
         {/* Mobile Menu Button */}
@@ -66,23 +79,26 @@ const Navbar = () => {
           </button>
         </div>
         <ul className="flex flex-col space-y-4 px-6 text-gray-700">
-          <RouterLink to="/home" onClick={() => setIsOpen(false)}>
+          <Link to="/home" onClick={() => setIsOpen(false)}>
             Home
-          </RouterLink>
-          <RouterLink to="/pembayaran" onClick={() => setIsOpen(false)}>
+          </Link>
+          <Link to="/pembayaran" onClick={() => setIsOpen(false)}>
             Pembayaran
-          </RouterLink>
-          <RouterLink to="/dashboard/materi" onClick={() => setIsOpen(false)}>
+          </Link>
+          <Link to="/dashboard/materi" onClick={() => setIsOpen(false)}>
             Kelas Saya
-          </RouterLink>
+          </Link>
 
-          <RouterLink
-            to="/"
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              handleLogout();
+            }}
             className="bg-blue-600 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
-            onClick={() => setIsOpen(false)}
           >
             Logout
-          </RouterLink>
+          </button>
         </ul>
       </div>
 
