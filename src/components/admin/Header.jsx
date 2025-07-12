@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom"; // Import Link dan useLocation
+import { Link, useLocation } from "react-router-dom";
 import homepage_img from "../../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -7,13 +7,30 @@ import { FiMenu, FiX } from "react-icons/fi";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(null); // State untuk menu aktif
-  const location = useLocation(); // Hook untuk mendapatkan lokasi aktif
+  const location = useLocation();
 
   const navItems = [
-    { name: "User", href: "/user", dropdown: ["Profile", "Settings"] },
-    { name: "Soal", href: "/soal", dropdown: ["Category 1", "Category 2"] },
-    { name: "Materi", href: "/materi", dropdown: ["Upload"] },
+    {
+      name: "Peserta",
+      href: "/peserta",
+      dropdown: [
+        { name: "Peserta Kelas", href: "/peserta/peserta-kelas" },
+        { name: "Settings", href: "/peserta/settings" },
+      ],
+    },
+    {
+      name: "Soal",
+      href: "/soal",
+      dropdown: [
+        { name: "Kategori 1", href: "/soal/kategori1" },
+        { name: "Kategori 2", href: "/soal/kategori2" },
+      ],
+    },
+    {
+      name: "Materi",
+      href: "/materi",
+      dropdown: [{ name: "Upload", href: "/materi/upload" }],
+    },
     { name: "Video", href: "/video", dropdown: [] },
     { name: "Paket", href: "/paket", dropdown: [] },
     { name: "Pendaftaran", href: "/pendaftaran", dropdown: [] },
@@ -21,45 +38,40 @@ const Header = () => {
   ];
 
   const toggleDropdown = (index) => {
-    if (activeDropdown === index) {
-      setActiveDropdown(null);
-    } else {
-      setActiveDropdown(index);
-    }
+    setActiveDropdown(activeDropdown === index ? null : index);
   };
 
-  // Memperbarui menu aktif sebelum navigasi
-  const handleMenuClick = (index) => {
-    setActiveMenu(index);
+  const isMenuActive = (item) => {
+    return (
+      location.pathname === item.href ||
+      item.dropdown.some((sub) => location.pathname === sub.href)
+    );
   };
 
   return (
     <header className="bg-white py-4 px-8 shadow flex justify-between items-center rounded-b-[40px] sticky top-0 z-50">
-      <a href="/dashboard">
-        <img
-          src={homepage_img}
-          alt="Homepage Logo"
-          className="h-10 cursor-pointer"
-        />
-      </a>
+      <Link to="/dashboard">
+        <img src={homepage_img} alt="Logo" className="h-10 cursor-pointer" />
+      </Link>
 
+      {/* Mobile Menu Button */}
       <div className="md:hidden ml-auto">
-        <button onClick={() => setIsOpen(!isOpen)} className="ml-auto">
+        <button onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
       </div>
 
+      {/* Desktop Menu */}
       <nav className="flex-grow flex justify-center font-semibold space-x-6 hidden md:flex">
         {navItems.map((item, index) => (
           <div key={item.name} className="relative group z-20">
             <Link
               to={item.href}
-              className={`text-gray-700 rounded-md p-2 flex items-center gap-2 transition-colors duration-200 ${
-                activeMenu === index || location.pathname === item.href
-                  ? "bg-blue-500 text-white" // Menambahkan kondisi untuk item yang aktif
-                  : "hover:bg-gray-200"
+              className={`rounded-md p-2 flex items-center gap-2 transition-colors duration-200 ${
+                isMenuActive(item)
+                  ? "bg-blue-500 text-white"
+                  : "text-gray-700 hover:bg-gray-200"
               }`}
-              onClick={() => handleMenuClick(index)} // Mengubah menu aktif
               aria-label={item.name}
             >
               {item.name}
@@ -69,14 +81,18 @@ const Header = () => {
             </Link>
 
             {item.dropdown.length > 0 && (
-              <div className="absolute left-0 hidden pt-2 space-y-2 bg-white shadow-lg rounded-lg group-hover:block w-40">
-                {item.dropdown.map((subItem, index) => (
+              <div className="absolute left-0 hidden pt-2 space-y-2 bg-white shadow-lg group-hover:block w-48 z-40">
+                {item.dropdown.map((subItem, subIndex) => (
                   <Link
-                    key={index}
-                    to="#"
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                    key={subIndex}
+                    to={subItem.href}
+                    className={`block px-4 py-2  transition-colors duration-200 ${
+                      location.pathname === subItem.href
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-700 hover:bg-blue-100"
+                    }`}
                   >
-                    {subItem}
+                    {subItem.name}
                   </Link>
                 ))}
               </div>
@@ -85,15 +101,17 @@ const Header = () => {
         ))}
       </nav>
 
+      {/* Logout Button Desktop */}
       <div className="flex items-center gap-2 ml-auto hidden md:flex">
         <Link
-          to="/" // Arahkan ke halaman utama (root)
-          className="py-2 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full"
+          to="/"
+          className="py-1 px-4 bg-blue-600 text-white flex items-center justify-center rounded-full"
         >
           Logout
         </Link>
       </div>
 
+      {/* Mobile Menu */}
       <div
         className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 z-40 ${
           isOpen ? "translate-x-0" : "translate-x-full"
@@ -110,7 +128,11 @@ const Header = () => {
               <div>
                 <button
                   onClick={() => toggleDropdown(index)}
-                  className="flex items-center gap-2 text-gray-700 hover:bg-gray-200 rounded-md p-2"
+                  className={`flex items-center gap-2 p-2 w-full text-left ${
+                    isMenuActive(item)
+                      ? "bg-blue-500 text-white"
+                      : "text-gray-700 hover:bg-gray-200"
+                  }`}
                 >
                   {item.name}
                   {item.dropdown.length > 0 && (
@@ -122,10 +144,15 @@ const Header = () => {
                     {item.dropdown.map((subItem, subIndex) => (
                       <li key={subIndex}>
                         <Link
-                          to="#"
-                          className="block px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg"
+                          to={subItem.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`block px-4 py-2 transition-colors duration-200 ${
+                            location.pathname === subItem.href
+                              ? "bg-blue-500 text-white"
+                              : "text-gray-700 hover:bg-blue-100"
+                          }`}
                         >
-                          {subItem}
+                          {subItem.name}
                         </Link>
                       </li>
                     ))}
@@ -145,6 +172,7 @@ const Header = () => {
         </ul>
       </div>
 
+      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-30 z-30"

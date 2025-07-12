@@ -32,8 +32,8 @@ const HomeAdmin = () => {
 
   const menus = [
     {
-      label: "USER",
-      link: "/user",
+      label: "Peserta",
+      link: "/peserta",
       icon: <FaUsers className="text-[#0680DC] text-sm" />,
     },
     {

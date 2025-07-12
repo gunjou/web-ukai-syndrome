@@ -9,13 +9,14 @@ import LandingPage from "./pages/LandingPage";
 
 // Import admin pages
 import HomeAdmin from "./pages/admin/HomeAdmin.jsx";
-import UserPage from "./pages/admin/UserPage";
+import PesertaPage from "./pages/admin/PesertaPage.jsx";
 import SoalPage from "./pages/admin/SoalPage";
 import MateriPage from "./pages/admin/MateriPage";
 import VideoPage from "./pages/admin/VideoPage";
 import PaketPage from "./pages/admin/PaketPage.jsx";
 import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
 import LaporanPage from "./pages/admin/LaporanPage.jsx";
+import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
 
 // Import authentication pages
 import LoginPage from "./pages/LoginPage";
@@ -39,7 +40,8 @@ function App() {
         <Route path="/homepage" element={<HomePage />} />
         {/* Routes for admin dashboard */}
         <Route path="/home-admin" element={<HomeAdmin />} />
-        <Route path="/user" element={<UserPage />} />
+        <Route path="/peserta" element={<PesertaPage />} />
+        <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />
