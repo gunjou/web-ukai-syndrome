@@ -31,6 +31,8 @@ import About from "./components/About";
 import User from "./User"; // Import User component
 import Pembayaran from "./pages/users/Pembayaran.jsx";
 import DaftarBatch from "./pages/admin/DaftarBatch.jsx";
+import MentorKelas from "./pages/admin/MentorKelas.jsx";
+import UserBatch from "./pages/admin/UserBatch.jsx";
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
         <Route path="/daftar-mentor" element={<DaftarMentor />} />
         <Route path="/daftar-kelas" element={<DaftarKelas />} />
         <Route path="/daftar-batch" element={<DaftarBatch />} />
+        <Route path="/daftar-batch/peserta-batch" element={<UserBatch />} />
+        <Route path="/daftar-mentor/mentor-kelas" element={<MentorKelas />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />

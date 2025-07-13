@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { href, Link, useLocation, useNavigate } from "react-router-dom";
 import homepage_img from "../../assets/logo.png";
 import { FaCaretDown } from "react-icons/fa";
 import { FiMenu, FiX } from "react-icons/fi";
@@ -15,13 +15,20 @@ const Header = () => {
     {
       name: "Peserta",
       href: "/peserta",
+      dropdown: [{ name: "Peserta Kelas", href: "/peserta/peserta-kelas" }],
+    },
+    {
+      name: "Mentor",
+      href: "/daftar-mentor",
+      dropdown: [{ name: "Mentor Kelas", href: "/daftar-mentor/mentor-kelas" }],
+    },
+    {
+      name: "Batch",
+      href: "/daftar-batch",
       dropdown: [
-        { name: "Peserta Kelas", href: "/peserta/peserta-kelas" },
-        { name: "Settings", href: "/peserta/settings" },
+        { name: "Peserta Batch", href: "/daftar-batch/peserta-batch" },
       ],
     },
-    { name: "Mentor", href: "/daftar-mentor", dropdown: [] },
-    { name: "Batch", href: "/daftar-batch", dropdown: [] },
     { name: "Kelas", href: "/daftar-kelas", dropdown: [] },
     {
       name: "Soal",

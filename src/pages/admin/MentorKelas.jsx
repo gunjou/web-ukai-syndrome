@@ -2,68 +2,68 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/admin/Header.jsx";
 import { MdClose } from "react-icons/md";
 import { LuPencil } from "react-icons/lu";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
-const PesertaPage = () => {
+const MentorKelas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
-  const [formData, setFormData] = useState({
-    nama: "",
-    email: "",
-    password: "",
-  });
+  const [mentorList, setMentorList] = useState([]);
+  const [kelasList, setKelasList] = useState([]);
+  const [formData, setFormData] = useState({ id_user: "", id_paketkelas: "" });
   const [selectedId, setSelectedId] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-
+  const [isEdit, setIsEdit] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchUsers();
+    fetchMentor();
+    fetchKelas();
   }, []);
 
   const fetchUsers = async () => {
     setIsLoading(true);
     setError("");
     try {
-      const response = await Api.get("/peserta");
-      setUserData(response.data);
+      const response = await Api.get("/mentor-kelas");
+      setUserData(response.data.data);
     } catch (err) {
-      setError("Gagal mengambil data peserta.");
+      setError("Gagal mengambil data mentor kelas.");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const fetchMentor = async () => {
+    try {
+      const res = await Api.get("/mentor");
+      setMentorList(res.data || []);
+    } catch (err) {
+      console.error("Gagal mengambil data mentor", err);
+      setMentorList([]);
+    }
+  };
+
+  const fetchKelas = async () => {
+    try {
+      const res = await Api.get("/paket-kelas");
+      setKelasList(res.data.data || []);
+    } catch (err) {
+      console.error("Gagal mengambil data kelas", err);
+      setKelasList([]);
+    }
+  };
+
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const filteredData = userData.filter((user) =>
-    user.nama.toLowerCase().includes(searchTerm.toLowerCase())
+    user.nama_mentor?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleEdit = (user) => {
-    setFormData({ nama: user.nama, email: user.email, password: "" });
-    setSelectedId(user.id_user);
-    setEditMode(true);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus peserta ini?")) return;
-    try {
-      await Api.delete(`/peserta/${id}`);
-      alert("Peserta berhasil dihapus.");
-      fetchUsers();
-    } catch (error) {
-      console.error("Gagal menghapus peserta:", error);
-      alert("Gagal menghapus peserta.");
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,10 +71,8 @@ const PesertaPage = () => {
   };
 
   const validateForm = () => {
-    const { nama, email, password } = formData;
-    if (!nama || !email || (!editMode && !password)) {
-      return "Harap isi semua field.";
-    }
+    const { id_user, id_paketkelas } = formData;
+    if (!id_user || !id_paketkelas) return "Harap isi semua field.";
     return null;
   };
 
@@ -85,40 +83,47 @@ const PesertaPage = () => {
 
     setIsSubmitting(true);
     try {
-      await Api.post("/peserta", formData);
-      alert("Peserta berhasil ditambahkan.");
+      if (isEdit && selectedId) {
+        await Api.put(`/mentor-kelas/${selectedId}`, formData);
+        alert("Mentor kelas berhasil diperbarui.");
+      } else {
+        await Api.post("/mentor-kelas", formData);
+        alert("Mentor kelas berhasil ditambahkan.");
+      }
       setShowModal(false);
-      setFormData({ nama: "", email: "", password: "" });
+      setFormData({ id_user: "", id_paketkelas: "" });
+      setIsEdit(false);
+      setSelectedId(null);
       fetchUsers();
-    } catch (error) {
-      console.error("Gagal menambahkan peserta:", error);
-      alert("Gagal menambahkan peserta.");
+    } catch (err) {
+      console.error("Gagal menyimpan:", err);
+      alert("Gagal menyimpan data.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    const validationError = validateForm();
-    if (validationError) return alert(validationError);
+  const handleEdit = (user) => {
+    setFormData({
+      id_user: user.id_user,
+      id_paketkelas: user.id_paketkelas,
+    });
+    setSelectedId(user.id_mentorkelas);
+    setIsEdit(true);
+    setShowModal(true);
+  };
 
-    setIsSubmitting(true);
+  const handleDelete = async (id) => {
+    const confirm = window.confirm("Yakin ingin menghapus mentor ini?");
+    if (!confirm) return;
+
     try {
-      const dataToSend = { ...formData };
-      if (!formData.password) delete dataToSend.password;
-
-      await Api.put(`/peserta/${selectedId}`, dataToSend);
-      alert("Peserta berhasil diperbarui.");
-      setShowModal(false);
-      setEditMode(false);
-      setFormData({ nama: "", email: "", password: "" });
+      await Api.delete(`/mentor-kelas/${id}`);
+      alert("Mentor berhasil dihapus.");
       fetchUsers();
-    } catch (error) {
-      console.error("Gagal memperbarui peserta:", error);
-      alert("Gagal memperbarui peserta.");
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      console.error("Gagal menghapus mentor:", err);
+      alert("Gagal menghapus mentor.");
     }
   };
 
@@ -126,11 +131,26 @@ const PesertaPage = () => {
     filteredData.map((user, index) => (
       <tr key={index} className="bg-gray-100">
         <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
-          {user.nama}
+          {user.nama_mentor}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.kode_pemulihan || "-"}
+        <td className="px-4 py-2 text-xs sm:text-sm border">{user.email}</td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
+          <div
+            className={`inline-block px-3 py-1 text-white rounded-full
+              ${
+                user.nama_kelas === "Premium"
+                  ? "bg-[#CD7F32]"
+                  : user.nama_kelas === "Gold"
+                  ? "bg-yellow-500"
+                  : user.nama_kelas === "Silver"
+                  ? "bg-gray-400"
+                  : user.nama_kelas === "Diamond"
+                  ? "bg-blue-700"
+                  : "bg-gray-300"
+              }`}
+          >
+            {user.nama_kelas}
+          </div>
         </td>
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
@@ -148,7 +168,7 @@ const PesertaPage = () => {
         <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
             <button
-              onClick={() => handleDelete(user.id_user)}
+              onClick={() => handleDelete(user.id_mentorkelas)}
               className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
             >
               Hapus
@@ -158,8 +178,7 @@ const PesertaPage = () => {
             </button>
           </div>
         </td>
-        {/* </td>
-        <td className="px-4 py-2 text-xs sm:text-sm text-center border">
+        {/* <td className="px-4 py-2 text-xs sm:text-sm text-center border">
           <button
             onClick={() => handleEdit(user)}
             className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
@@ -170,9 +189,9 @@ const PesertaPage = () => {
             </div>
           </button>
         </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border text-center">
+        <td className="px-4 py-2 text-xs sm:text-sm text-center border">
           <button
-            onClick={() => handleDelete(user.id_user)}
+            onClick={() => handleDelete(user.id_mentorkelas)}
             className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
           >
             Hapus
@@ -203,21 +222,22 @@ const PesertaPage = () => {
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Cari peserta..."
+            placeholder="Cari mentor..."
             className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
           />
           <h1 className="text-xl font-bold text-center sm:text-left">
-            Peserta Ukai Syndrome
+            Mentor Kelas
           </h1>
           <button
             onClick={() => {
+              setFormData({ id_user: "", id_paketkelas: "" });
+              setIsEdit(false);
+              setSelectedId(null);
               setShowModal(true);
-              setEditMode(false);
-              setFormData({ nama: "", email: "", password: "" });
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-xl shadow-md flex items-center gap-2"
           >
-            <AiOutlinePlus size={18} /> Tambah Peserta
+            <AiOutlinePlus size={18} /> Tambah Mentor
           </button>
         </div>
 
@@ -227,14 +247,14 @@ const PesertaPage = () => {
           <p className="text-center text-red-500 mt-4">{error}</p>
         ) : (
           <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white border">
-              <thead className="bg-white sticky top-0 z-10">
+            <table className="min-w-full bg-white">
+              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-2 text-sm ">Nama</th>
-                  <th className="px-4 py-2 text-sm ">Email</th>
-                  <th className="px-4 py-2 text-sm ">Kode Pemulihan</th>
-                  <th className="px-4 py-2 text-sm ">Edit</th>
-                  <th className="px-4 py-2 text-sm ">Hapus</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Nama Mentor</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Email</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Kelas</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
                 </tr>
               </thead>
               <tbody>{renderTableRows()}</tbody>
@@ -243,13 +263,15 @@ const PesertaPage = () => {
         )}
       </div>
 
+      {/* Modal Form Tambah/Edit */}
       {showModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
           onClick={() => {
             setShowModal(false);
-            setEditMode(false);
-            setFormData({ nama: "", email: "", password: "" });
+            setFormData({ id_user: "", id_paketkelas: "" });
+            setIsEdit(false);
+            setSelectedId(null);
           }}
         >
           <div
@@ -259,59 +281,58 @@ const PesertaPage = () => {
             <button
               onClick={() => {
                 setShowModal(false);
-                setEditMode(false);
-                setFormData({ nama: "", email: "", password: "" });
+                setFormData({ id_user: "", id_paketkelas: "" });
+                setIsEdit(false);
+                setSelectedId(null);
               }}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
             <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Data Peserta" : "Tambah Peserta Baru"}
+              {isEdit ? "Edit Mentor Kelas" : "Tambah Mentor Kelas"}
             </h2>
-            <form
-              className="space-y-4"
-              onSubmit={editMode ? handleUpdate : handleSubmit}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label className="block text-sm font-medium mb-1">Nama</label>
-                <input
-                  type="text"
-                  name="nama"
-                  placeholder="Nama Peserta"
-                  value={formData.nama}
+                <label className="block text-sm font-medium mb-1">
+                  Nama Mentor
+                </label>
+                <select
+                  name="id_user"
+                  value={formData.id_user}
                   onChange={handleChange}
                   className="w-full border rounded-md px-3 py-2"
                   required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Peserta"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
+                >
+                  <option value="">Pilih Mentor</option>
+                  {mentorList.map((mentor) => (
+                    <option key={mentor.id_user} value={mentor.id_user}>
+                      {mentor.nama} ({mentor.email})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Password
+                  Nama Kelas
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder={
-                    editMode ? "Kosongkan jika tidak diubah" : "Password"
-                  }
-                  value={formData.password}
+                <select
+                  name="id_paketkelas"
+                  value={formData.id_paketkelas}
                   onChange={handleChange}
                   className="w-full border rounded-md px-3 py-2"
-                  required={!editMode}
-                />
+                  required
+                >
+                  <option value="">Pilih Kelas</option>
+                  {kelasList.map((kelas) => (
+                    <option
+                      key={kelas.id_paketkelas}
+                      value={kelas.id_paketkelas}
+                    >
+                      {kelas.nama_kelas}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="text-right">
                 <button
@@ -334,4 +355,4 @@ const PesertaPage = () => {
   );
 };
 
-export default PesertaPage;
+export default MentorKelas;
