@@ -18,16 +18,25 @@ const PesertaPage = () => {
   const [editMode, setEditMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
+    setIsLoading(true);
+    setError("");
     try {
       const response = await Api.get("/peserta");
       setUserData(response.data);
-    } catch (error) {
-      console.error("Gagal mengambil data:", error);
+    } catch (err) {
+      setError("Gagal mengambil data peserta.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,8 +70,20 @@ const PesertaPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateForm = () => {
+    const { nama, email, password } = formData;
+    if (!nama || !email || (!editMode && !password)) {
+      return "Harap isi semua field.";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationError = validateForm();
+    if (validationError) return alert(validationError);
+
+    setIsSubmitting(true);
     try {
       await Api.post("/peserta", formData);
       alert("Peserta berhasil ditambahkan.");
@@ -72,12 +93,17 @@ const PesertaPage = () => {
     } catch (error) {
       console.error("Gagal menambahkan peserta:", error);
       alert("Gagal menambahkan peserta.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!selectedId) return alert("ID tidak ditemukan.");
+    const validationError = validateForm();
+    if (validationError) return alert(validationError);
+
+    setIsSubmitting(true);
     try {
       const dataToSend = { ...formData };
       if (!formData.password) delete dataToSend.password;
@@ -91,46 +117,42 @@ const PesertaPage = () => {
     } catch (error) {
       console.error("Gagal memperbarui peserta:", error);
       alert("Gagal memperbarui peserta.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const renderTableRows = () =>
     filteredData.map((user, index) => (
       <tr key={index} className="bg-gray-100">
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r border-l capitalize">
+        <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
           {user.nama}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border-b border-r">
-          {user.email}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.kode_pemulihan || "-"}
         </td>
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleEdit(user)}
-              className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-            >
-              Edit
-              <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+        <td className="px-4 py-2 text-xs sm:text-sm text-center border">
+          <button
+            onClick={() => handleEdit(user)}
+            className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
+          >
+            Edit
+            <div className="bg-blue-500 rounded-r-full px-2 py-2">
+              <LuPencil className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleDelete(user.id_user)}
-              className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-            >
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+        <td className="px-4 py-2 text-xs sm:text-sm border text-center">
+          <button
+            onClick={() => handleDelete(user.id_user)}
+            className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
+          >
+            Hapus
+            <div className="bg-red-500 rounded-r-full px-2 py-2">
+              <MdClose className="text-white font-extrabold" />
+            </div>
+          </button>
         </td>
       </tr>
     ));
@@ -148,47 +170,50 @@ const PesertaPage = () => {
         alt=""
       />
       <Header />
-      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
+      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
+        <div className="flex flex-col sm:flex-row justify-between items-center py-2 px-8 gap-4">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Search"
+            placeholder="Cari peserta..."
             className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
           />
-          <h1 className="text-xl font-bold text-center sm:text-left w-full sm:w-auto">
+          <h1 className="text-xl font-bold text-center sm:text-left">
             Peserta Ukai Syndrome
           </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
-            <button
-              onClick={() => {
-                setShowModal(true);
-                setEditMode(false);
-                setFormData({ nama: "", email: "", password: "" });
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg transition shadow-md flex items-center gap-2"
-            >
-              <AiOutlinePlus size={18} />
-              Tambah Peserta
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setShowModal(true);
+              setEditMode(false);
+              setFormData({ nama: "", email: "", password: "" });
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-xl shadow-md flex items-center gap-2"
+          >
+            <AiOutlinePlus size={18} /> Tambah Peserta
+          </button>
         </div>
 
-        <div className="overflow-x-auto max-h-[70vh]">
-          <table className="min-w-full bg-white">
-            <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-2 text-xs sm:text-sm">Nama</th>
-                <th className="px-2 py-2 text-xs sm:text-sm">Email</th>
-                <th className="px-2 py-2 text-xs sm:text-sm">Kode Pemulihan</th>
-                <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
-                <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
-              </tr>
-            </thead>
-            <tbody>{renderTableRows()}</tbody>
-          </table>
-        </div>
+        {isLoading ? (
+          <p className="text-center text-gray-500 mt-4">Memuat data...</p>
+        ) : error ? (
+          <p className="text-center text-red-500 mt-4">{error}</p>
+        ) : (
+          <div className="overflow-x-auto max-h-[70vh]">
+            <table className="min-w-full bg-white border">
+              <thead className="bg-white sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-sm ">Nama</th>
+                  <th className="px-4 py-2 text-sm ">Email</th>
+                  <th className="px-4 py-2 text-sm ">Kode Pemulihan</th>
+                  <th className="px-4 py-2 text-sm ">Edit</th>
+                  <th className="px-4 py-2 text-sm ">Hapus</th>
+                </tr>
+              </thead>
+              <tbody>{renderTableRows()}</tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {showModal && (
@@ -229,8 +254,8 @@ const PesertaPage = () => {
                   placeholder="Nama Peserta"
                   value={formData.nama}
                   onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2"
                   required
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <div>
@@ -241,8 +266,8 @@ const PesertaPage = () => {
                   placeholder="Email Peserta"
                   value={formData.email}
                   onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2"
                   required
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
               <div>
@@ -252,23 +277,26 @@ const PesertaPage = () => {
                 <input
                   type="password"
                   name="password"
+                  placeholder={
+                    editMode ? "Kosongkan jika tidak diubah" : "Password"
+                  }
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder={
-                    editMode
-                      ? "Biarkan kosong jika tidak ingin diubah"
-                      : "Password"
-                  }
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full border rounded-md px-3 py-2"
                   required={!editMode}
                 />
               </div>
               <div className="text-right">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                  disabled={isSubmitting}
+                  className={`px-4 py-2 rounded-md text-white ${
+                    isSubmitting
+                      ? "bg-gray-400"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
-                  Simpan
+                  {isSubmitting ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>

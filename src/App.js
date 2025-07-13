@@ -18,6 +18,7 @@ import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
 import LaporanPage from "./pages/admin/LaporanPage.jsx";
 import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
 import DaftarMentor from "./pages/admin/DaftarMentor.jsx";
+import DaftarKelas from "./pages/admin/DaftarKelas.jsx";
 
 // Import authentication pages
 import LoginPage from "./pages/LoginPage";
@@ -29,6 +30,7 @@ import HomePageUser from "./pages/users/HomePage.jsx";
 import About from "./components/About";
 import User from "./User"; // Import User component
 import Pembayaran from "./pages/users/Pembayaran.jsx";
+import DaftarBatch from "./pages/admin/DaftarBatch.jsx";
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
         <Route path="/peserta" element={<PesertaPage />} />
         <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
         <Route path="/daftar-mentor" element={<DaftarMentor />} />
+        <Route path="/daftar-kelas" element={<DaftarKelas />} />
+        <Route path="/daftar-batch" element={<DaftarBatch />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />

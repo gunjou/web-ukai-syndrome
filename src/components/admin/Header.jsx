@@ -21,6 +21,8 @@ const Header = () => {
       ],
     },
     { name: "Mentor", href: "/daftar-mentor", dropdown: [] },
+    { name: "Batch", href: "/daftar-batch", dropdown: [] },
+    { name: "Kelas", href: "/daftar-kelas", dropdown: [] },
     {
       name: "Soal",
       href: "/soal",

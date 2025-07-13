@@ -62,7 +62,7 @@ const PesertaKelas = () => {
         <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
           <div className="flex justify-center gap-2">
             <button className="flex justify-center bg-gray-200  pl-2 rounded-full hover:bg-gray-500 hover:text-white items-center gap-2">
-              Detail
+              Edit
               <div className="bg-gray-500 rounded-r-full px-2 py-2">
                 <LuPencil className="text-white font-extrabold" />
               </div>
@@ -125,7 +125,7 @@ const PesertaKelas = () => {
               <tr>
                 <th className="px-4 py-2 text-xs sm:text-sm">Nama</th>
                 <th className="px-4 py-2 text-xs sm:text-sm">Paket</th>
-                <th className="px-4 py-2 text-xs sm:text-sm">Detail</th>
+                <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
                 <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
               </tr>
             </thead>
