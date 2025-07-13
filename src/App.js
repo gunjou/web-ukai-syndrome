@@ -19,6 +19,8 @@ import LaporanPage from "./pages/admin/LaporanPage.jsx";
 import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
 import DaftarMentor from "./pages/admin/DaftarMentor.jsx";
 import DaftarKelas from "./pages/admin/DaftarKelas.jsx";
+import DaftarModul from "./pages/admin/DaftarModul.jsx";
+import DaftarMateri from "./pages/admin/DaftarMateri.jsx";
 
 // Import authentication pages
 import LoginPage from "./pages/LoginPage";
@@ -52,6 +54,8 @@ function App() {
         <Route path="/daftar-batch" element={<DaftarBatch />} />
         <Route path="/daftar-batch/peserta-batch" element={<UserBatch />} />
         <Route path="/daftar-mentor/mentor-kelas" element={<MentorKelas />} />
+        <Route path="/daftar-modul" element={<DaftarModul />} />
+        <Route path="/daftar-materi" element={<DaftarMateri />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />

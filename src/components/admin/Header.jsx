@@ -30,6 +30,9 @@ const Header = () => {
       ],
     },
     { name: "Kelas", href: "/daftar-kelas", dropdown: [] },
+    { name: "Modul", href: "/daftar-modul", dropdown: [] },
+    { name: "Materi", href: "/daftar-materi", dropdown: [] },
+
     {
       name: "Soal",
       href: "/soal",
@@ -38,11 +41,7 @@ const Header = () => {
         { name: "Kategori 2", href: "/soal/kategori2" },
       ],
     },
-    {
-      name: "Materi",
-      href: "/materi",
-      dropdown: [{ name: "Upload", href: "/materi/upload" }],
-    },
+
     { name: "Video", href: "/video", dropdown: [] },
     { name: "Paket", href: "/paket", dropdown: [] },
     { name: "Pendaftaran", href: "/pendaftaran", dropdown: [] },
@@ -86,7 +85,7 @@ const Header = () => {
       </div>
 
       {/* Desktop Menu */}
-      <nav className="flex-grow flex justify-center font-semibold space-x-6 hidden md:flex">
+      <nav className="flex-grow flex justify-center font-semibold space-x-2 hidden md:flex">
         {navItems.map((item, index) => (
           <div key={item.name} className="relative group z-20">
             <Link
