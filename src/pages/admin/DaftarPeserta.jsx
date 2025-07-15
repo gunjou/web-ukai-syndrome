@@ -6,7 +6,7 @@ import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
-const PesertaPage = () => {
+const DaftarPeserta = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
   const [formData, setFormData] = useState({
@@ -334,4 +334,4 @@ const PesertaPage = () => {
   );
 };
 
-export default PesertaPage;
+export default DaftarPeserta;

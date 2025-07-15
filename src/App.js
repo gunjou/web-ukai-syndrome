@@ -9,7 +9,7 @@ import LandingPage from "./pages/LandingPage";
 
 // Import admin pages
 import HomeAdmin from "./pages/admin/HomeAdmin.jsx";
-import PesertaPage from "./pages/admin/PesertaPage.jsx";
+import PesertaPage from "./pages/admin/DaftarPeserta.jsx";
 import SoalPage from "./pages/admin/SoalPage";
 import MateriPage from "./pages/admin/MateriPage";
 import VideoPage from "./pages/admin/VideoPage";
@@ -49,25 +49,19 @@ function App() {
         <Route path="/home-admin" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
         <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
-        <Route path="/daftar-mentor" element={<DaftarMentor />} />
-        <Route path="/daftar-kelas" element={<DaftarKelas />} />
-        <Route path="/daftar-batch" element={<DaftarBatch />} />
-        <Route path="/daftar-batch/peserta-batch" element={<UserBatch />} />
-        <Route path="/daftar-mentor/mentor-kelas" element={<MentorKelas />} />
-        <Route path="/daftar-modul" element={<DaftarModul />} />
-        <Route path="/daftar-materi" element={<DaftarMateri />} />
+        <Route path="/mentor" element={<DaftarMentor />} />
+        <Route path="/kelas" element={<DaftarKelas />} />
+        <Route path="/batch" element={<DaftarBatch />} />
+        <Route path="/batch/peserta-batch" element={<UserBatch />} />
+        <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
+        <Route path="/modul" element={<DaftarModul />} />
+        <Route path="/materi" element={<DaftarMateri />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
         <Route path="/laporan" element={<LaporanPage />} />
-        {/* Routes for features and modules */}
-        <Route path="/features" element={<Features />} />
-        <Route path="/modul" element={<Modul />} />
-        <Route path="/mentor" element={<Mentor />} />
-        {/* About page */}
-        <Route path="/about" element={<About />} />
         {/* Routes for user */}
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />

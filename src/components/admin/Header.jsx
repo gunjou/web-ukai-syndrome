@@ -19,19 +19,17 @@ const Header = () => {
     },
     {
       name: "Mentor",
-      href: "/daftar-mentor",
-      dropdown: [{ name: "Mentor Kelas", href: "/daftar-mentor/mentor-kelas" }],
+      href: "/mentor",
+      dropdown: [{ name: "Mentor Kelas", href: "/mentor/mentor-kelas" }],
     },
     {
       name: "Batch",
-      href: "/daftar-batch",
-      dropdown: [
-        { name: "Peserta Batch", href: "/daftar-batch/peserta-batch" },
-      ],
+      href: "/batch",
+      dropdown: [{ name: "Peserta Batch", href: "/batch/peserta-batch" }],
     },
-    { name: "Kelas", href: "/daftar-kelas", dropdown: [] },
-    { name: "Modul", href: "/daftar-modul", dropdown: [] },
-    { name: "Materi", href: "/daftar-materi", dropdown: [] },
+    { name: "Kelas", href: "/kelas", dropdown: [] },
+    { name: "Modul", href: "/modul", dropdown: [] },
+    { name: "Materi", href: "/materi", dropdown: [] },
 
     {
       name: "Soal",

@@ -184,9 +184,9 @@ const DaftarModul = () => {
           <table className="min-w-full bg-white">
             <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
               <tr>
+                <th className="px-4 py-2 text-sm">Urutan</th>
                 <th className="px-4 py-2 text-sm capitalize">Judul</th>
                 <th className="px-4 py-2 text-sm capitalize">Deskripsi</th>
-                <th className="px-4 py-2 text-sm">Urutan</th>
                 <th className="px-4 py-2 text-sm">Nama Kelas</th>
                 <th className="px-4 py-2 text-sm">Edit</th>
                 <th className="px-4 py-2 text-sm">Hapus</th>
@@ -195,15 +195,30 @@ const DaftarModul = () => {
             <tbody>
               {filteredData.map((modul, index) => (
                 <tr key={index} className="bg-gray-100">
+                  <td className="px-4 py-2 text-sm border">
+                    {modul.urutan_modul}
+                  </td>
                   <td className="px-4 py-2 text-sm border">{modul.judul}</td>
                   <td className="px-4 py-2 text-sm border">
                     {modul.deskripsi}
                   </td>
-                  <td className="px-4 py-2 text-sm border">
-                    {modul.urutan_modul}
-                  </td>
-                  <td className="px-4 py-2 text-sm border">
-                    {modul.nama_kelas}
+                  <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+                    <div
+                      className={`inline-block px-3 py-1 text-white rounded-full
+              ${
+                modul.nama_kelas === "Premium"
+                  ? "bg-[#CD7F32]"
+                  : modul.nama_kelas === "Gold"
+                  ? "bg-yellow-500"
+                  : modul.nama_kelas === "Silver"
+                  ? "bg-gray-400"
+                  : modul.nama_kelas === "Diamond"
+                  ? "bg-blue-700"
+                  : "bg-gray-300"
+              }`}
+                    >
+                      {modul.nama_kelas}
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
                     <div className="flex justify-center gap-2">

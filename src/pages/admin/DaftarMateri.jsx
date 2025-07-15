@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/admin/Header.jsx";
 import { MdClose } from "react-icons/md";
 import { LuPencil } from "react-icons/lu";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { AiOutlinePlus, AiOutlineClose, AiOutlineEye } from "react-icons/ai";
+import { AiOutlinePlayCircle, AiOutlineFile } from "react-icons/ai";
+
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 
@@ -220,15 +222,51 @@ const DaftarMateri = () => {
                   <td className="px-4 py-2 text-sm border">
                     {materi.tipe_materi}
                   </td>
-                  <td className="px-4 py-2 text-sm border">
-                    <a
-                      href={materi.url_file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline"
-                    >
-                      Lihat File
-                    </a>
+                  {/* <td className="px-4 py-2 text-sm border">
+                    <div className="flex justify-center gap-2">
+                      <a
+                        href={materi.url_file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2 py-1 px-3"
+                      >
+                        <div className="bg-blue-500 rounded-full px-2 py-2">
+                          <AiOutlineEye className="text-white font-extrabold" />
+                        </div>
+                        Lihat File
+                      </a>
+                    </div>
+                  </td> */}
+                  <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+                    <div className="flex justify-center gap-2">
+                      <a
+                        href={materi.url_file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex justify-center bg-gray-200 pl-2 rounded-full items-center gap-2 
+                        ${
+                          materi.tipe_materi === "video"
+                            ? "hover:bg-red-500 hover:text-white"
+                            : "hover:bg-blue-500 hover:text-white"
+                        }`}
+                      >
+                        Lihat
+                        <div
+                          className={`rounded-r-full px-2 py-2 ${
+                            materi.tipe_materi === "video"
+                              ? "bg-red-500"
+                              : "bg-blue-500"
+                          }`}
+                        >
+                          {/* Kondisi untuk menentukan ikon berdasarkan tipe materi */}
+                          {materi.tipe_materi === "video" ? (
+                            <AiOutlinePlayCircle className="text-white" />
+                          ) : (
+                            <AiOutlineFile className="text-white" />
+                          )}
+                        </div>
+                      </a>
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-sm border">
                     {materi.judul_modul}
@@ -247,15 +285,17 @@ const DaftarMateri = () => {
                     </div>
                   </td>
                   <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                    <button
-                      onClick={() => handleDelete(materi.id_materi)}
-                      className="flex justify-center bg-gray-200 rounded-full hover:bg-red-500 hover:text-white items-center gap-2"
-                    >
-                      Hapus
-                      <div className="bg-red-500 rounded-r-full px-2 py-2">
-                        <AiOutlineClose className="text-white" />
-                      </div>
-                    </button>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => handleDelete(materi.id_materi)}
+                        className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white items-center gap-2"
+                      >
+                        Hapus
+                        <div className="bg-red-500 rounded-r-full px-2 py-2">
+                          <AiOutlineClose className="text-white" />
+                        </div>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -290,14 +330,16 @@ const DaftarMateri = () => {
                 onChange={handleChange}
                 className="w-full border rounded-md px-3 py-2"
               />
-              <input
-                type="text"
+              <select
                 name="tipe_materi"
-                placeholder="Tipe Materi (misal: video, pdf)"
                 value={formData.tipe_materi}
                 onChange={handleChange}
                 className="w-full border rounded-md px-3 py-2"
-              />
+              >
+                <option value="">-- Pilih Tipe Materi --</option>
+                <option value="video">Video</option>
+                <option value="document">Document</option>
+              </select>
               <input
                 type="text"
                 name="url_file"
