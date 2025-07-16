@@ -1,110 +1,92 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-const videoDatabase = {
-  obat: [
-    {
-      id: 1,
-      title: "Cara Kerja Obat di Dalam Tubuh",
-      description: "Mekanisme kerja obat di sistem tubuh manusia.",
-      thumbnail: "https://img.youtube.com/vi/K4TOrB7at0Y/0.jpg",
-    },
-    {
-      id: 2,
-      title: "Jenis-Jenis Obat dan Fungsinya",
-      description: "Klasifikasi obat dan kegunaannya.",
-      thumbnail: "https://img.youtube.com/vi/eIrMbAQSU34/0.jpg",
-    },
-  ],
-  cpob: [
-    {
-      id: 1,
-      title: "Apa itu CPOB?",
-      description: "Penjelasan dasar Cara Pembuatan Obat yang Baik.",
-      thumbnail: "https://img.youtube.com/vi/BtN-goy9VOY/0.jpg",
-    },
-    {
-      id: 2,
-      title: "Standar Produksi Obat Modern",
-      description: "Penerapan prinsip CPOB di industri farmasi.",
-      thumbnail: "https://img.youtube.com/vi/3fumBcKC6RE/0.jpg",
-    },
-  ],
-  "ilmu-resep": [
-    {
-      id: 1,
-      title: "Dasar Ilmu Resep",
-      description: "Apa itu resep? Bagaimana menuliskannya dengan benar?",
-      thumbnail: "https://img.youtube.com/vi/2Vv-BfVoq4g/0.jpg",
-    },
-  ],
-  suntik: [
-    {
-      id: 1,
-      title: "Teknik Suntik Aman",
-      description: "Cara menyuntik dengan benar sesuai standar medis.",
-      thumbnail: "https://img.youtube.com/vi/SQ94-kdFJzE/0.jpg",
-    },
-  ],
-  infeksi: [
-    {
-      id: 1,
-      title: "Jenis-Jenis Infeksi dan Obatnya",
-      description: "Infeksi bakteri, virus, jamur, dan obat yang digunakan.",
-      thumbnail: "https://img.youtube.com/vi/tgbNymZ7vqY/0.jpg",
-    },
-  ],
-  "covid-19": [
-    {
-      id: 1,
-      title: "COVID-19 dan Imunisasi",
-      description: "Pentingnya vaksinasi dan obat pendukung selama pandemi.",
-      thumbnail: "https://img.youtube.com/vi/7QUtEmBT_-w/0.jpg",
-    },
-  ],
-  demam: [
-    {
-      id: 1,
-      title: "Menangani Demam Secara Tepat",
-      description: "Obat penurun panas dan kapan harus ke dokter.",
-      thumbnail: "https://img.youtube.com/vi/y6120QOlsfU/0.jpg",
-    },
-  ],
-  senku: [
-    {
-      id: 1,
-      title: "Ilmuwan Gila & Obat di Anime Dr. Stone",
-      description: "Cara Senku membuat obat dari nol!",
-      thumbnail: "https://i3.ytimg.com/vi/uNhI52RWwDk/hqdefault.jpg",
-    },
-  ],
-};
+import Api from "../../utils/Api";
+import { MdClose } from "react-icons/md";
 
 const VideoListContent = () => {
   const { folder } = useParams();
-  const videoList = videoDatabase[folder] || [];
+  const [videoList, setVideoList] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [materiRes, modulRes] = await Promise.all([
+          Api.get("/materi/user"),
+          Api.get("/modul/user"),
+        ]);
+
+        const materiData = materiRes.data.data || [];
+        const modulData = modulRes.data.data || [];
+
+        const selectedModul = modulData.find((modul) => {
+          const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
+          return slug === folder;
+        });
+
+        if (!selectedModul) {
+          setVideoList([]);
+          setError("Modul tidak ditemukan.");
+          setLoading(false);
+          return;
+        }
+
+        const filtered = materiData.filter(
+          (item) =>
+            item.id_modul === selectedModul.id_modul &&
+            item.tipe_materi === "video"
+        );
+
+        setVideoList(filtered);
+      } catch (err) {
+        console.error(err);
+        setError("Gagal memuat video.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [folder]);
+
+  const getEmbedUrl = (url) => {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
+    return url;
+  };
 
   return (
-    <div className="p-2">
-      <h2 className="text-2xl font-semibold mb-2 capitalize">{folder}</h2>
+    <div className="p-2 relative">
+      <h2 className="text-2xl font-semibold mb-2 capitalize">
+        {folder?.replace(/-/g, " ")}
+      </h2>
       <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
-        {videoList.length > 0 ? (
+        {loading ? (
+          <p className="text-gray-500">Memuat...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : videoList.length > 0 ? (
           videoList.map((video) => (
             <div
-              key={video.id}
-              className="flex flex-col sm:flex-row gap-4 bg-white shadow rounded-lg overflow-hidden max-h-[180px]"
+              key={video.id_materi}
+              onClick={() => setSelectedVideo(video)}
+              className="flex flex-col sm:flex-row gap-4 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
               <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="w-full sm:w-60 h-40 object-cover rounded-lg sm:rounded-lg sm:rounded-lg"
+                src="https://i3.ytimg.com/vi/uNhI52RWwDk/hqdefault.jpg"
+                alt={video.judul}
+                className="w-full sm:w-60 h-40 object-cover rounded-lg"
               />
-              <div className="flex flex-col  p-4 overflow-hidden">
+              <div className="flex flex-col p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate">
-                  {video.title}
+                  {video.judul}
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {video.description}
+                  Klik untuk menonton video
                 </p>
               </div>
             </div>
@@ -113,6 +95,41 @@ const VideoListContent = () => {
           <p className="text-gray-500">Belum ada video untuk folder ini.</p>
         )}
       </div>
+
+      {/* Modal Video */}
+      {selectedVideo && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex justify-center items-center"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {selectedVideo.judul}
+              </h3>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="text-gray-600 hover:text-red-600"
+              >
+                <MdClose size={24} />
+              </button>
+            </div>
+
+            <div
+              className="border rounded-lg overflow-hidden select-none"
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <iframe
+                title={selectedVideo.judul}
+                src={getEmbedUrl(selectedVideo.url_file)}
+                className="w-full h-[500px] border-none"
+                allow="autoplay"
+                sandbox="allow-same-origin allow-scripts allow-popups"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -104,7 +104,7 @@ const MateriListContent = () => {
       {/* Modal */}
       {selectedMateri && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center"
+          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex justify-center items-center"
           onContextMenu={(e) => e.preventDefault()} // Blok klik kanan di seluruh layar
         >
           <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">

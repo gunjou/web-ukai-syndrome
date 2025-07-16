@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import icon_folder from "../../assets/icon_folder.svg";
 import {
@@ -9,40 +9,55 @@ import {
   useLocation,
 } from "react-router-dom";
 import VideoListContent from "./VideoListContent";
-
-const menuItems = [
-  "Senku",
-  "CPOB",
-  "Ilmu Resep",
-  "Obat",
-  "Suntik",
-  "Infeksi",
-  "Covid-19",
-  "Demam",
-];
+import Api from "../../utils/Api";
 
 // Komponen untuk daftar folder
-const VideoList = ({ onFolderClick }) => (
-  <div className="flex flex-wrap gap-6 p-4">
-    {menuItems.map((item) => (
-      <div
-        key={item}
-        className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10"
-        onClick={() => onFolderClick(item)}
-      >
-        <img
-          src={icon_folder}
-          alt="Folder Icon"
-          className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
-        />
-        <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
-          <span className="text-gray-700 font-medium text-base">{item}</span>
-        </div>
-      </div>
-    ))}
-  </div>
-);
+const VideoList = ({ onFolderClick }) => {
+  const [modulItems, setModulItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
+  useEffect(() => {
+    const fetchModul = async () => {
+      try {
+        const response = await Api.get("/modul/user");
+        setModulItems(response.data.data || []);
+      } catch (err) {
+        setError("Gagal memuat modul.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModul();
+  }, []);
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+
+  return (
+    <div className="flex flex-wrap gap-6 p-4">
+      {modulItems.map((modul, idx) => (
+        <div
+          key={idx}
+          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10"
+          onClick={() => onFolderClick(modul.judul)}
+        >
+          <img
+            src={icon_folder}
+            alt="Folder Icon"
+            className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
+          />
+          <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
+            <span className="text-gray-700 font-medium text-base">
+              {modul.judul}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 // Komponen untuk isi folder
 const FolderContent = () => {
   return <VideoListContent />;
