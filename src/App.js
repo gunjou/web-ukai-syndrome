@@ -25,7 +25,7 @@ import DaftarMateri from "./pages/admin/DaftarMateri.jsx";
 // Import authentication pages
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import HomePage from "./pages/HomePage";
+
 import HomePageUser from "./pages/users/HomePage.jsx";
 
 // Import components
@@ -44,9 +44,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/homepage" element={<HomePage />} />
         {/* Routes for admin dashboard */}
-        <Route path="/home-admin" element={<HomeAdmin />} />
+        <Route path="/homepage" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
         <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
         <Route path="/mentor" element={<DaftarMentor />} />

@@ -7,6 +7,7 @@ import Video from "./pages/users/Video";
 import Materi from "./pages/users/Materi";
 import SoalTO from "./pages/users/SoalTO";
 import HasilTO from "./pages/users/HasilTO";
+import Modul from "./pages/users/Modul";
 
 const User = () => {
   return (
@@ -22,6 +23,7 @@ const User = () => {
             {/* Route induk untuk video dengan nested routing */}
             <Route path="/video/*" element={<Video />} />
             <Route path="/materi/*" element={<Materi />} />
+            <Route path="/modul/*" element={<Modul />} />
           </Routes>
         </div>
       </div>

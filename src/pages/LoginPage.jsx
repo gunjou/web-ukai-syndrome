@@ -37,7 +37,9 @@ const LoginPage = () => {
 
       // Navigasi berdasarkan role
       if (role === "admin") {
-        navigate("/home-admin");
+        navigate("/homepage");
+      } else if (role === "mentor") {
+        navigate("/homepage");
       } else {
         navigate("/home");
       }

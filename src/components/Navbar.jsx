@@ -32,7 +32,7 @@ const Navbar = () => {
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Capaian <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Capaian
             </Link>
           </li>
           <li>
@@ -42,7 +42,7 @@ const Navbar = () => {
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Mentor <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Mentor
             </Link>
           </li>
           <li>
@@ -52,7 +52,7 @@ const Navbar = () => {
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Modul <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Modul
             </Link>
           </li>
           <li>
@@ -62,7 +62,7 @@ const Navbar = () => {
               offset={-70}
               className="flex items-center space-x-1 hover:text-blue-600"
             >
-              Program <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              Program
             </Link>
           </li>
           <li>
@@ -72,7 +72,7 @@ const Navbar = () => {
               offset={-70}
               className="flex items-center hover:text-blue-600 space-x-1"
             >
-              About <MdOutlineArrowDropDown className="ml-1 text-lg" />
+              About
             </Link>
           </li>
 
