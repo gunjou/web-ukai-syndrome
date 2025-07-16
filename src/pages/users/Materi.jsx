@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import icon_folder from "../../assets/icon_folder.svg";
 import {
@@ -9,53 +9,70 @@ import {
   useLocation,
 } from "react-router-dom";
 import MateriListContent from "./MateriListContent";
+import Api from "../../utils/Api"; // menggunakan instance axios
 
-const menuItems = [
-  "Farmasi",
-  "Kimia",
-  "Biologi",
-  "Fisika",
-  "Matematika",
-  "Anatomi",
-  "Fisiologi",
-  "Etika Profesi",
-];
+// Komponen untuk daftar folder modul
+const MateriList = ({ onFolderClick }) => {
+  const [modulItems, setModulItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-const MateriList = ({ onFolderClick }) => (
-  <div className="flex flex-wrap gap-6 p-4">
-    {menuItems.map((item) => (
-      <div
-        key={item}
-        className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10"
-        onClick={() => onFolderClick(item)}
-      >
-        <img
-          src={icon_folder}
-          alt="Folder Icon"
-          className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
-        />
-        <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
-          <span className="text-gray-700 font-medium text-base">{item}</span>
+  useEffect(() => {
+    const fetchModul = async () => {
+      try {
+        const response = await Api.get("/modul/user");
+        setModulItems(response.data.data || []);
+      } catch (err) {
+        setError("Gagal memuat modul.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModul();
+  }, []);
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+
+  return (
+    <div className="flex flex-wrap gap-6 p-4">
+      {modulItems.map((modul, idx) => (
+        <div
+          key={idx}
+          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10"
+          onClick={() => onFolderClick(modul.judul)}
+        >
+          <img
+            src={icon_folder}
+            alt="Folder Icon"
+            className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
+          />
+          <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
+            <span className="text-gray-700 font-medium text-base">
+              {modul.judul}
+            </span>
+          </div>
         </div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
+};
 
+// Komponen untuk menampilkan konten materi
 const FolderContent = () => {
   return <MateriListContent />;
 };
 
+// Komponen utama
 const Materi = () => {
-  const [backStack, setBackStack] = React.useState([]);
-  const [forwardStack, setForwardStack] = React.useState([]);
-
+  const [backStack, setBackStack] = useState([]);
+  const [forwardStack, setForwardStack] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { folder } = useParams();
 
   const basePath = "/dashboard/materi";
-
   const pathSegments = location.pathname
     .replace(basePath, "")
     .split("/")
@@ -84,7 +101,7 @@ const Materi = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Materi Explorer</h1>
 
-          {/* Navigation Arrows */}
+          {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
@@ -150,7 +167,7 @@ const Materi = () => {
           ))}
         </div>
 
-        {/* Route Content */}
+        {/* Konten berdasarkan Route */}
         <Routes>
           <Route
             path="/"

@@ -20,7 +20,7 @@ const Sidebar = () => {
       <nav className="">
         <ul className="space-y-2 px-4">
           <li>
-            <NavLink
+            {/* <NavLink
               to="/dashboard/modul"
               className={({ isActive }) =>
                 `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
@@ -33,7 +33,7 @@ const Sidebar = () => {
             >
               <img src={icon_folder} alt="Modul" className="h-auto w-7" />
               <span>Modul</span>
-            </NavLink>
+            </NavLink> */}
           </li>
           <li>
             <NavLink

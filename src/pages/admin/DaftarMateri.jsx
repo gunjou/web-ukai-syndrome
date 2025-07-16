@@ -158,6 +158,23 @@ const DaftarMateri = () => {
     }
   };
 
+  const handleVisibilityChange = async (id, newStatus) => {
+    try {
+      await Api.put(`/materi/${id}/visibility`, { visibility: newStatus });
+      // Update lokal
+      setMateriData((prev) =>
+        prev.map((materi) =>
+          materi.id_materi === id
+            ? { ...materi, visibility: newStatus }
+            : materi
+        )
+      );
+    } catch (error) {
+      console.error("Gagal mengubah visibility:", error);
+      alert("Gagal mengubah status modul.");
+    }
+  };
+
   return (
     <div className="user bg-custom-bg min-h-screen relative px-4">
       <img
@@ -211,6 +228,7 @@ const DaftarMateri = () => {
                 <th className="px-4 py-2 text-sm">Tipe</th>
                 <th className="px-4 py-2 text-sm">URL</th>
                 <th className="px-4 py-2 text-sm">Modul</th>
+                <th className="px-4 py-2 text-sm">Status</th>
                 <th className="px-4 py-2 text-sm">Edit</th>
                 <th className="px-4 py-2 text-sm">Hapus</th>
               </tr>
@@ -270,6 +288,35 @@ const DaftarMateri = () => {
                   </td>
                   <td className="px-4 py-2 text-sm border">
                     {materi.judul_modul}
+                  </td>
+                  <td className="px-4 py-2 text-sm border flex justify-center">
+                    <select
+                      value={materi.visibility}
+                      onChange={(e) =>
+                        handleVisibilityChange(materi.id_materi, e.target.value)
+                      }
+                      className={`capitalize font-semibold rounded-md px-2 py-1
+      ${
+        materi.visibility === "open"
+          ? "text-green-600"
+          : materi.visibility === "hold"
+          ? "text-yellow-600"
+          : materi.visibility === "close"
+          ? "text-red-600"
+          : "text-gray-600"
+      }
+    `}
+                    >
+                      <option className="text-green-600" value="open">
+                        Open
+                      </option>
+                      <option className="text-yellow-600" value="hold">
+                        Hold
+                      </option>
+                      <option className="text-red-600" value="close">
+                        Close
+                      </option>
+                    </select>
                   </td>
                   <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
                     <div className="flex justify-center gap-2">
