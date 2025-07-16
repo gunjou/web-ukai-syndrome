@@ -3,14 +3,16 @@ import { useParams } from "react-router-dom";
 import { HiDocumentText } from "react-icons/hi";
 import { MdClose } from "react-icons/md";
 import Api from "../../utils/Api";
+import { pdfjs } from "react-pdf";
 
 const MateriListContent = () => {
   const { folder } = useParams();
   const [materiList, setMateriList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [selectedMateri, setSelectedMateri] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pdfUrl, setPdfUrl] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +39,7 @@ const MateriListContent = () => {
 
         const filtered = materiData.filter(
           (item) =>
-            item.id_modul == selectedModul.id_modul &&
+            item.id_modul === selectedModul.id_modul &&
             item.tipe_materi === "document"
         );
 
@@ -61,6 +63,10 @@ const MateriListContent = () => {
     return url;
   };
 
+  const loadPdf = (url) => {
+    setPdfUrl(getEmbedUrl(url));
+  };
+
   return (
     <div className="p-2 relative">
       <h2 className="text-2xl font-semibold mb-4 capitalize">
@@ -76,7 +82,10 @@ const MateriListContent = () => {
           {materiList.map((materi) => (
             <div
               key={materi.id_materi}
-              onClick={() => setSelectedMateri(materi)}
+              onClick={() => {
+                setSelectedMateri(materi);
+                loadPdf(materi.url_file);
+              }}
               className="flex items-start gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
             >
               <HiDocumentText className="text-blue-500 text-3xl flex-shrink-0 mt-1" />
@@ -111,18 +120,20 @@ const MateriListContent = () => {
               </button>
             </div>
 
-            {/* Dokumen tertanam, tanpa tombol link */}
+            {/* PDF.js Document Viewer */}
             <div
               className="border rounded-lg overflow-hidden select-none"
               onContextMenu={(e) => e.preventDefault()}
             >
-              <iframe
-                title={selectedMateri.judul}
-                src={getEmbedUrl(selectedMateri.url_file)}
-                className="w-full h-[500px] border-none"
-                allow="autoplay"
-                sandbox="allow-same-origin allow-scripts allow-popups"
-              />
+              {pdfUrl && (
+                <iframe
+                  title={selectedMateri.judul}
+                  src={pdfUrl}
+                  className="w-full h-[500px] border-none"
+                  allow="autoplay"
+                  sandbox="allow-same-origin allow-scripts allow-popups"
+                />
+              )}
             </div>
           </div>
         </div>
