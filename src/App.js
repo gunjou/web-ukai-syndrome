@@ -36,6 +36,9 @@ import DaftarBatch from "./pages/admin/DaftarBatch.jsx";
 import MentorKelas from "./pages/admin/MentorKelas.jsx";
 import UserBatch from "./pages/admin/UserBatch.jsx";
 
+// mentor
+import MentorJs from "./Mentor.js";
+
 function App() {
   return (
     <Router>
@@ -45,7 +48,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         {/* Routes for admin dashboard */}
-        <Route path="/homepage" element={<HomeAdmin />} />
+        <Route path="/admin-home" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
         <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
         <Route path="/mentor" element={<DaftarMentor />} />
@@ -61,12 +64,14 @@ function App() {
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
         <Route path="/laporan" element={<LaporanPage />} />
+        {/* Routes for mentor */}
         {/* Routes for user */}
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
         {/* Route for User Dashboard */}
         <Route path="/dashboard/*" element={<User />} />{" "}
         {/* Add '/user-dashboard/*' as the route */}
+        <Route path="/mentor-dashboard/*" element={<MentorJs />} />{" "}
       </Routes>
     </Router>
   );
