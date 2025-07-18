@@ -4,6 +4,9 @@ import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
 
 const VideoListContent = () => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const currentUserId = storedUser?.id_user;
+
   const { folder } = useParams();
   const [videoList, setVideoList] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -257,8 +260,9 @@ const VideoListContent = () => {
                       className="bg-gray-100 p-3 rounded shadow-sm"
                     >
                       <p className="font-semibold text-sm capitalize">
-                        {comment.nama}
+                        {comment?.nama || "Pengguna"}
                       </p>
+
                       <p
                         className={`text-sm ${
                           comment.is_deleted
@@ -282,20 +286,25 @@ const VideoListContent = () => {
                           >
                             Balas
                           </button>
-                          <button
-                            onClick={() => handleEdit(comment)}
-                            className="text-yellow-600 hover:text-yellow-800"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteComment(comment.id_komentarmateri)
-                            }
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            Hapus
-                          </button>
+
+                          {comment.id_user === currentUserId && (
+                            <>
+                              <button
+                                onClick={() => handleEdit(comment)}
+                                className="text-yellow-600 hover:text-yellow-800"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteComment(comment.id_komentarmateri)
+                                }
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                Hapus
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
 
@@ -342,104 +351,119 @@ const VideoListContent = () => {
                       )}
 
                       {/* Replies */}
-                      {comment.replies.length > 0 && (
-                        <ul className="ml-6 mt-3 space-y-2">
-                          {comment.replies.map((reply) => (
-                            <li
-                              key={reply.id_komentarmateri}
-                              className="bg-gray-50 p-2 rounded"
-                            >
-                              <p className="font-semibold text-sm capitalize">
-                                {reply.nama}
-                              </p>
-                              <p
-                                className={`text-sm ${
-                                  reply.is_deleted
-                                    ? "italic text-gray-400"
-                                    : "text-gray-800"
-                                }`}
-                              >
-                                {reply.is_deleted
-                                  ? "Komentar telah dihapus"
-                                  : reply.isi_komentar}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {new Date(reply.created_at).toLocaleString()}
-                              </p>
-                              {!reply.is_deleted && (
-                                <div className="flex gap-2 mt-1 text-xs">
-                                  <button
-                                    onClick={() => handleReplyToComment(reply)}
-                                    className="text-blue-600 hover:text-blue-800"
-                                  >
-                                    Balas
-                                  </button>
-                                  <button
-                                    onClick={() => handleEdit(reply)}
-                                    className="text-yellow-600 hover:text-yellow-800"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteComment(
-                                        reply.id_komentarmateri
-                                      )
-                                    }
-                                    className="text-red-600 hover:text-red-800"
-                                  >
-                                    Hapus
-                                  </button>
-                                </div>
-                              )}
-
-                              {/* Textarea edit/reply reply */}
-                              {(editingComment?.id_komentarmateri ===
-                                reply.id_komentarmateri ||
-                                replyingTo?.id_komentarmateri ===
-                                  reply.id_komentarmateri) && (
-                                <form
-                                  onSubmit={
-                                    editingComment
-                                      ? handleEditComment
-                                      : handleAddComment
-                                  }
-                                  className="mt-2"
+                      {Array.isArray(comment.replies) &&
+                        comment.replies.length > 0 && (
+                          <ul className="ml-6 mt-3 space-y-2">
+                            {comment.replies
+                              .filter(
+                                (reply) => reply && typeof reply === "object"
+                              )
+                              .map((reply) => (
+                                <li
+                                  key={reply.id_komentarmateri}
+                                  className="bg-gray-50 p-2 rounded"
                                 >
-                                  <textarea
-                                    rows={1}
-                                    className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
-                                    placeholder="Tulis komentar..."
-                                    value={newComment}
-                                    onChange={(e) =>
-                                      setNewComment(e.target.value)
-                                    }
-                                  />
-                                  <div className="flex gap-2 mt-1">
-                                    <button
-                                      type="submit"
-                                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                  <p className="font-semibold text-sm capitalize">
+                                    {reply.nama || "Pengguna"}
+                                  </p>
+
+                                  <p
+                                    className={`text-sm ${
+                                      reply.is_deleted
+                                        ? "italic text-gray-400"
+                                        : "text-gray-800"
+                                    }`}
+                                  >
+                                    {reply.is_deleted
+                                      ? "Komentar telah dihapus"
+                                      : reply.isi_komentar}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {new Date(
+                                      reply.created_at
+                                    ).toLocaleString()}
+                                  </p>
+
+                                  {!reply.is_deleted && (
+                                    <div className="flex gap-2 mt-1 text-xs">
+                                      <button
+                                        onClick={() =>
+                                          handleReplyToComment(reply)
+                                        }
+                                        className="text-blue-600 hover:text-blue-800"
+                                      >
+                                        Balas
+                                      </button>
+
+                                      {reply.id_user === currentUserId && (
+                                        <>
+                                          <button
+                                            onClick={() => handleEdit(reply)}
+                                            className="text-yellow-600 hover:text-yellow-800"
+                                          >
+                                            Edit
+                                          </button>
+                                          <button
+                                            onClick={() =>
+                                              handleDeleteComment(
+                                                reply.id_komentarmateri
+                                              )
+                                            }
+                                            className="text-red-600 hover:text-red-800"
+                                          >
+                                            Hapus
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {(editingComment?.id_komentarmateri ===
+                                    reply.id_komentarmateri ||
+                                    replyingTo?.id_komentarmateri ===
+                                      reply.id_komentarmateri) && (
+                                    <form
+                                      onSubmit={
+                                        editingComment
+                                          ? handleEditComment
+                                          : handleAddComment
+                                      }
+                                      className="mt-2"
                                     >
-                                      Kirim
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setNewComment("");
-                                        setEditingComment(null);
-                                        setReplyingTo(null);
-                                      }}
-                                      className="text-gray-600 hover:underline text-sm"
-                                    >
-                                      Batal
-                                    </button>
-                                  </div>
-                                </form>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                                      <textarea
+                                        rows={1}
+                                        className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
+                                        placeholder="Tulis komentar..."
+                                        value={newComment}
+                                        onChange={(e) =>
+                                          setNewComment(e.target.value)
+                                        }
+                                      />
+                                      <div className="flex gap-2 mt-1">
+                                        <button
+                                          type="submit"
+                                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                        >
+                                          Kirim
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setNewComment("");
+                                            setEditingComment(null);
+                                            setReplyingTo(null);
+                                          }}
+                                          className="text-gray-600 hover:underline text-sm"
+                                        >
+                                          Batal
+                                        </button>
+                                      </div>
+                                    </form>
+                                  )}
+                                </li>
+                              ))}
+                          </ul>
+                        )}
                     </li>
                   ))}
                 </ul>
