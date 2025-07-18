@@ -135,7 +135,17 @@ const Materi = () => {
     const fetchKelasOptions = async () => {
       try {
         const response = await Api.get("/paket-kelas");
-        setKelasOptions(response.data.data || []);
+        const allKelas = response.data.data || [];
+
+        const user = JSON.parse(localStorage.getItem("user"));
+        const idMentor = user?.id_user;
+
+        // Filter hanya kelas yang diampu oleh mentor ini
+        const kelasMentor = allKelas.filter(
+          (kelas) => kelas.id_user === idMentor // Pastikan ini sesuai dengan struktur data backend
+        );
+
+        setKelasOptions(kelasMentor);
       } catch (error) {
         console.error("Gagal mengambil daftar kelas:", error);
       }
@@ -230,6 +240,7 @@ const Materi = () => {
       alert("Gagal mengubah status modul.");
     }
   };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     if (
@@ -275,7 +286,17 @@ const Materi = () => {
           {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                if (kelasOptions.length === 0) {
+                  alert("Anda belum memiliki kelas yang diampu.");
+                  return;
+                }
+                setEditFolder({ id_paketkelas: kelasOptions[0].id_paketkelas }); // set default
+                setShowAddModal(true);
+                setNewFolderName("");
+                setNewDescription("");
+                setNewOrder(0);
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm"
             >
               + Tambah Modul
@@ -363,6 +384,74 @@ const Materi = () => {
         </Routes>
       </div>
 
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
+            <form onSubmit={handleAddSubmit}>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Judul Modul"
+              />
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Deskripsi"
+              />
+              <input
+                type="number"
+                value={newOrder}
+                onChange={(e) => setNewOrder(parseInt(e.target.value))}
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                placeholder="Urutan Modul"
+              />
+              <select
+                value={editFolder?.id_paketkelas || ""}
+                onChange={(e) =>
+                  setEditFolder({
+                    ...editFolder,
+                    id_paketkelas: e.target.value,
+                  })
+                }
+                className="w-full p-2 border border-gray-300 rounded-md mb-4"
+              >
+                <option value="">-- Pilih Kelas --</option>
+                {kelasOptions.map((kelas) => (
+                  <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
+                    {kelas.nama_kelas}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-md mr-2"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-md ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white"
+                  }`}
+                >
+                  {loading ? "Loading..." : "Simpan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Edit Modal */}
       {editFolder && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
@@ -436,73 +525,6 @@ const Materi = () => {
                   ) : (
                     "Submit"
                   )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
-            <form onSubmit={handleAddSubmit}>
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Judul Modul"
-              />
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Deskripsi"
-              />
-              <input
-                type="number"
-                value={newOrder}
-                onChange={(e) => setNewOrder(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Urutan Modul"
-              />
-              <select
-                value={editFolder?.id_paketkelas || ""}
-                onChange={(e) =>
-                  setEditFolder({
-                    ...editFolder,
-                    id_paketkelas: e.target.value,
-                  })
-                }
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              >
-                <option value="">-- Pilih Kelas --</option>
-                {kelasOptions.map((kelas) => (
-                  <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
-                    {kelas.nama_kelas}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded-md mr-2"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`px-4 py-2 rounded-md ${
-                    loading
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 text-white"
-                  }`}
-                >
-                  {loading ? "Loading..." : "Simpan"}
                 </button>
               </div>
             </form>

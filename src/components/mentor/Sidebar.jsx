@@ -99,6 +99,22 @@ const Sidebar = () => {
               <span>Hasil TO</span>
             </NavLink>
           </li>
+          {/* <li>
+            <NavLink
+              to="/mentor-dashboard/settings"
+              className={({ isActive }) =>
+                `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-600"
+                    : "hover:bg-gray-200 text-gray-700"
+                }`
+              }
+            >
+              <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
+              <span>Settings</span>
+            </NavLink>
+          </li> */}
         </ul>
       </nav>
     </aside>

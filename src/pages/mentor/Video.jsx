@@ -20,7 +20,7 @@ const VideoList = ({ onFolderClick }) => {
   useEffect(() => {
     const fetchModul = async () => {
       try {
-        const response = await Api.get("/modul/user");
+        const response = await Api.get("/modul");
         setModulItems(response.data.data || []);
       } catch (err) {
         setError("Gagal memuat modul.");
@@ -71,7 +71,7 @@ const Video = () => {
   const location = useLocation();
   const { folder } = useParams();
 
-  const basePath = "/dashboard/video";
+  const basePath = "/mentor-dashboard/video";
 
   const pathSegments = location.pathname
     .replace(basePath, "")
