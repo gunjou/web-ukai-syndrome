@@ -43,6 +43,9 @@ const MateriListContent = () => {
             item.tipe_materi === "document"
         );
 
+        // Debug untuk lihat isi visibility
+        console.log("Filtered materi:", filtered);
+
         setMateriList(filtered);
       } catch (err) {
         console.error(err);
@@ -67,6 +70,24 @@ const MateriListContent = () => {
     setPdfUrl(getEmbedUrl(url));
   };
 
+  const handleVisibilityChange = async (id_materi, newVisibility) => {
+    try {
+      await Api.put(`/materi/${id_materi}/visibility`, {
+        visibility: newVisibility,
+      });
+      setMateriList((prev) =>
+        prev.map((materi) =>
+          materi.id_materi === id_materi
+            ? { ...materi, visibility: newVisibility }
+            : materi
+        )
+      );
+    } catch (error) {
+      console.error("Gagal mengubah visibility:", error);
+      alert("Gagal mengubah status materi.");
+    }
+  };
+
   return (
     <div className="p-2 relative">
       <h2 className="text-2xl font-semibold mb-4 capitalize">
@@ -89,10 +110,41 @@ const MateriListContent = () => {
               className="flex items-start gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
             >
               <HiDocumentText className="text-blue-500 text-3xl flex-shrink-0 mt-1" />
-              <div className="flex flex-col">
+              <div className="flex flex-col flex-1">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 capitalize">
                   {materi.judul}
                 </h3>
+
+                {/* Dropdown visibility */}
+                <div className="mt-1">
+                  <select
+                    value={materi.visibility}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) =>
+                      handleVisibilityChange(materi.id_materi, e.target.value)
+                    }
+                    className={`text-sm px-2 py-1 rounded-md font-medium border mt-1
+    ${
+      materi.visibility === "open"
+        ? "text-green-600 border-green-400"
+        : materi.visibility === "hold"
+        ? "text-yellow-600 border-yellow-400"
+        : materi.visibility === "close"
+        ? "text-red-600 border-red-400"
+        : "text-gray-400 border-gray-300"
+    }`}
+                  >
+                    <option value="open" className="text-green-600">
+                      Open
+                    </option>
+                    <option value="hold" className="text-yellow-600">
+                      Hold
+                    </option>
+                    <option value="close" className="text-red-600">
+                      Close
+                    </option>
+                  </select>
+                </div>
               </div>
             </div>
           ))}
