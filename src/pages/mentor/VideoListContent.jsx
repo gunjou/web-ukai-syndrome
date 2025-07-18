@@ -448,7 +448,7 @@ const VideoListContent = () => {
           </div>
 
           {/* Sidebar Daftar Video */}
-          <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-auto">
+          <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-full">
             <h3 className="text-lg font-semibold mb-3">Daftar Video</h3>
             {videoList.length > 0 ? (
               videoList.map((video) => (

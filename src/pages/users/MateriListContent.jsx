@@ -18,7 +18,7 @@ const MateriListContent = () => {
     const fetchData = async () => {
       try {
         const [materiRes, modulRes] = await Promise.all([
-          Api.get("/materi/user"),
+          Api.get("/materi/peserta"),
           Api.get("/modul/user"),
         ]);
 
