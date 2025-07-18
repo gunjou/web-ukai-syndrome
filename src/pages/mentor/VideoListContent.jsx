@@ -96,6 +96,14 @@ const VideoListContent = () => {
     }
   };
 
+  const getTotalKomentar = () => {
+    let total = 0;
+    comments.forEach((comment) => {
+      total += 1 + comment.replies.length;
+    });
+    return total;
+  };
+
   const handleReplyToComment = (comment) => {
     setReplyingTo(comment);
     setNewComment("");
@@ -106,39 +114,60 @@ const VideoListContent = () => {
     setNewComment(comment.isi_komentar);
   };
 
-  const handleDeleteComment = (id) => {
-    const updated = comments.filter((c) => c.id_komentarmateri !== id);
-    setComments(updated);
+  const handleDeleteComment = async (id_komentarmateri) => {
+    const konfirmasi = window.confirm("Yakin ingin menghapus komentar ini?");
+    if (!konfirmasi) return;
+
+    try {
+      await Api.delete(`/komentar/${id_komentarmateri}`);
+      if (selectedVideo) {
+        await fetchKomentar(selectedVideo.id_materi); // Reload komentar
+      }
+    } catch (err) {
+      console.error("Gagal menghapus komentar:", err);
+      alert("Terjadi kesalahan saat menghapus komentar.");
+    }
   };
 
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault();
 
-    if (newComment.trim() === "") return;
+    if (!newComment.trim() || !selectedVideo) return;
 
-    const newItem = {
-      id_komentarmateri: Date.now(),
-      nama: "User Sementara",
-      isi_komentar: newComment,
-      is_deleted: false,
-      created_at: new Date().toISOString(),
-      replies: [],
-      parent_id: replyingTo ? replyingTo.id_komentarmateri : null,
-    };
+    try {
+      const payload = {
+        isi_komentar: newComment,
+        parent_id: replyingTo ? replyingTo.id_komentarmateri : null,
+        id_materi: selectedVideo.id_materi,
+      };
 
-    if (replyingTo) {
-      const updated = comments.map((c) =>
-        c.id_komentarmateri === replyingTo.id_komentarmateri
-          ? { ...c, replies: [...c.replies, newItem] }
-          : c
+      const response = await Api.post(
+        `/komentar/${selectedVideo.id_materi}/komentar`,
+        payload
       );
-      setComments(updated);
-    } else {
-      setComments([newItem, ...comments]);
-    }
 
-    setNewComment("");
-    setReplyingTo(null);
+      const newKomentar = response.data.data;
+
+      if (replyingTo) {
+        // Tambahkan reply ke parent
+        const updated = comments.map((c) =>
+          c.id_komentarmateri === replyingTo.id_komentarmateri
+            ? { ...c, replies: [...c.replies, newKomentar] }
+            : c
+        );
+        setComments(updated);
+      } else {
+        // Komentar utama
+        setComments([{ ...newKomentar, replies: [] }, ...comments]);
+      }
+
+      setNewComment("");
+      setReplyingTo(null);
+      await fetchKomentar(selectedVideo.id_materi);
+    } catch (err) {
+      console.error("Gagal menambahkan komentar:", err);
+      alert("Gagal menambahkan komentar.");
+    }
   };
 
   const handleEditComment = (e) => {
@@ -186,25 +215,26 @@ const VideoListContent = () => {
                 sandbox="allow-same-origin allow-scripts allow-popups"
               />
             </div>
-            <h2 className="text-xl font-semibold mb-2">
+            <h2 className="text-xl font-semibold mb-2 capitalize">
               {selectedVideo.judul}
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p>{selectedVideo.des}</p>
+            {/* <p className="text-gray-600 mb-4">
               Pemutaran video dari modul:{" "}
               <strong>{folder.replace(/-/g, " ")}</strong>
-            </p>
+            </p> */}
 
             {/* Kolom Komentar */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2">Komentar</h3>
+              <h3 className="text-lg font-semibold mb-1">Komentar</h3>
+              <p className="text-sm text-gray-500 mb-3">
+                💬 {getTotalKomentar()} Komentar
+              </p>
 
-              <form
-                onSubmit={editingComment ? handleEditComment : handleAddComment}
-                className="mb-4"
-              >
+              <form onSubmit={handleAddComment} className="mb-4">
                 <textarea
                   className="w-full border rounded p-2 focus:outline-none focus:ring"
-                  rows={3}
+                  rows={2}
                   placeholder="Tulis komentar..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
@@ -226,7 +256,9 @@ const VideoListContent = () => {
                       key={comment.id_komentarmateri}
                       className="bg-gray-100 p-3 rounded shadow-sm"
                     >
-                      <p className="font-semibold text-sm">{comment.nama}</p>
+                      <p className="font-semibold text-sm capitalize">
+                        {comment.nama}
+                      </p>
                       <p
                         className={`text-sm ${
                           comment.is_deleted
@@ -241,6 +273,7 @@ const VideoListContent = () => {
                       <p className="text-xs text-gray-500 mt-1">
                         {new Date(comment.created_at).toLocaleString()}
                       </p>
+
                       {!comment.is_deleted && (
                         <div className="flex gap-2 mt-2 text-xs">
                           <button
@@ -266,6 +299,49 @@ const VideoListContent = () => {
                         </div>
                       )}
 
+                      {/* Textarea edit/reply komentar utama */}
+                      {(editingComment?.id_komentarmateri ===
+                        comment.id_komentarmateri ||
+                        replyingTo?.id_komentarmateri ===
+                          comment.id_komentarmateri) && (
+                        <form
+                          onSubmit={
+                            editingComment
+                              ? handleEditComment
+                              : handleAddComment
+                          }
+                          className="mt-3"
+                        >
+                          <textarea
+                            rows={1}
+                            className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
+                            placeholder="Tulis balasan..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                          />
+                          <div className="flex gap-2 mt-1">
+                            <button
+                              type="submit"
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                            >
+                              Kirim
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewComment("");
+                                setEditingComment(null);
+                                setReplyingTo(null);
+                              }}
+                              className="text-gray-600 hover:underline text-sm"
+                            >
+                              Batal
+                            </button>
+                          </div>
+                        </form>
+                      )}
+
+                      {/* Replies */}
                       {comment.replies.length > 0 && (
                         <ul className="ml-6 mt-3 space-y-2">
                           {comment.replies.map((reply) => (
@@ -273,7 +349,7 @@ const VideoListContent = () => {
                               key={reply.id_komentarmateri}
                               className="bg-gray-50 p-2 rounded"
                             >
-                              <p className="font-semibold text-sm">
+                              <p className="font-semibold text-sm capitalize">
                                 {reply.nama}
                               </p>
                               <p
@@ -316,6 +392,50 @@ const VideoListContent = () => {
                                   </button>
                                 </div>
                               )}
+
+                              {/* Textarea edit/reply reply */}
+                              {(editingComment?.id_komentarmateri ===
+                                reply.id_komentarmateri ||
+                                replyingTo?.id_komentarmateri ===
+                                  reply.id_komentarmateri) && (
+                                <form
+                                  onSubmit={
+                                    editingComment
+                                      ? handleEditComment
+                                      : handleAddComment
+                                  }
+                                  className="mt-2"
+                                >
+                                  <textarea
+                                    rows={1}
+                                    className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
+                                    placeholder="Tulis komentar..."
+                                    value={newComment}
+                                    onChange={(e) =>
+                                      setNewComment(e.target.value)
+                                    }
+                                  />
+                                  <div className="flex gap-2 mt-1">
+                                    <button
+                                      type="submit"
+                                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                                    >
+                                      Kirim
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setNewComment("");
+                                        setEditingComment(null);
+                                        setReplyingTo(null);
+                                      }}
+                                      className="text-gray-600 hover:underline text-sm"
+                                    >
+                                      Batal
+                                    </button>
+                                  </div>
+                                </form>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -328,7 +448,7 @@ const VideoListContent = () => {
           </div>
 
           {/* Sidebar Daftar Video */}
-          <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto max-h-[80vh]">
+          <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-auto">
             <h3 className="text-lg font-semibold mb-3">Daftar Video</h3>
             {videoList.length > 0 ? (
               videoList.map((video) => (
@@ -350,7 +470,7 @@ const VideoListContent = () => {
                     className="w-28 h-16 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <p className="font-medium text-gray-800 truncate">
+                    <p className="font-medium text-gray-800 truncate capitalize">
                       {video.judul}
                     </p>
                     <p className="text-xs text-gray-500">Klik untuk putar</p>
@@ -392,7 +512,7 @@ const VideoListContent = () => {
                 className="w-full sm:w-60 h-40 object-cover rounded-lg"
               />
               <div className="flex flex-col p-4 overflow-hidden">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
                   {video.judul}
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2">

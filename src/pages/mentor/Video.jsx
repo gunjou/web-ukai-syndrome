@@ -11,8 +11,13 @@ import {
 import VideoListContent from "./VideoListContent";
 import Api from "../../utils/Api";
 
-// Komponen untuk daftar folder
-const VideoList = ({ onFolderClick }) => {
+// Komponen daftar folder
+const VideoList = ({
+  onFolderClick,
+  onEditClick,
+  onChangeVisibility,
+  onUpdate,
+}) => {
   const [modulItems, setModulItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,9 +33,8 @@ const VideoList = ({ onFolderClick }) => {
         setLoading(false);
       }
     };
-
     fetchModul();
-  }, []);
+  }, [onUpdate]);
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
@@ -53,26 +57,61 @@ const VideoList = ({ onFolderClick }) => {
               {modul.judul}
             </span>
           </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditClick(modul);
+            }}
+            className="absolute top-2 right-2 text-xs text-blue-500"
+          >
+            Edit
+          </button>
+
+          <div className="mt-1">
+            <select
+              value={modul.visibility}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) =>
+                onChangeVisibility(modul.id_modul, e.target.value)
+              }
+              className={`text-sm px-2 py-1 rounded-md font-medium border ${
+                modul.visibility === "open"
+                  ? "text-green-600 border-green-400"
+                  : modul.visibility === "hold"
+                  ? "text-yellow-600 border-yellow-400"
+                  : "text-red-600 border-red-400"
+              }`}
+            >
+              <option value="open">Open</option>
+              <option value="hold">Hold</option>
+              <option value="close">Close</option>
+            </select>
+          </div>
         </div>
       ))}
     </div>
   );
 };
-// Komponen untuk isi folder
+
 const FolderContent = () => {
   return <VideoListContent />;
 };
 
 const Video = () => {
-  const [backStack, setBackStack] = React.useState([]);
-  const [forwardStack, setForwardStack] = React.useState([]);
-
+  const [backStack, setBackStack] = useState([]);
+  const [forwardStack, setForwardStack] = useState([]);
+  const [modulItems, setModulItems] = useState([]);
+  const [editFolder, setEditFolder] = useState(null);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newOrder, setNewOrder] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { folder } = useParams();
-
   const basePath = "/mentor-dashboard/video";
-
   const pathSegments = location.pathname
     .replace(basePath, "")
     .split("/")
@@ -80,29 +119,94 @@ const Video = () => {
 
   const handleFolderClick = (folderName) => {
     const slug = folderName.toLowerCase().replace(/\s+/g, "-");
-    setBackStack((prev) => [...prev, location.pathname]); // simpan riwayat
-    setForwardStack([]); // reset forward saat navigasi baru
+    setBackStack((prev) => [...prev, location.pathname]);
+    setForwardStack([]);
     navigate(`${basePath}/${slug}`);
   };
 
   const handleBreadcrumbClick = (index) => {
-    if (index === -1) {
-      navigate(basePath);
-    } else {
+    if (index === -1) navigate(basePath);
+    else {
       const to = `${basePath}/${pathSegments.slice(0, index + 1).join("/")}`;
       navigate(to);
+    }
+  };
+
+  const handleModulUpdate = async () => {
+    try {
+      const res = await Api.get("/modul");
+      setModulItems(res.data.data || []);
+    } catch (err) {
+      console.error("Gagal memuat modul.");
+    }
+  };
+
+  const handleEditClick = (folder) => {
+    setEditFolder(folder);
+    setNewFolderName(folder.judul);
+    setNewDescription(folder.deskripsi || "");
+    setNewOrder(folder.urutan_modul || 0);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!newFolderName) return;
+
+    setLoading(true);
+    const payload = {
+      id_paketkelas: editFolder.id_paketkelas,
+      judul: newFolderName,
+      deskripsi: newDescription,
+      urutan_modul: newOrder,
+    };
+
+    try {
+      await Api.put(`/modul/${editFolder.id_modul}`, payload);
+      await handleModulUpdate();
+      setEditFolder(null);
+      setNewFolderName("");
+      setNewDescription("");
+      setNewOrder(0);
+    } catch (err) {
+      console.error("Gagal update modul.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVisibilityChange = async (id_modul, newVisibility) => {
+    try {
+      await Api.put(`/modul/${id_modul}/visibility`, {
+        visibility: newVisibility,
+      });
+      setModulItems((prev) =>
+        prev.map((modul) =>
+          modul.id_modul === id_modul
+            ? { ...modul, visibility: newVisibility }
+            : modul
+        )
+      );
+    } catch (error) {
+      console.error("Gagal mengubah visibility.");
     }
   };
 
   return (
     <div className="bg-white w-full h-auto h-p-6">
       <div className="w-full bg-gray-100 p-4 rounded-[20px]">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Video Explorer</h1>
 
-          {/* Navigation Arrows */}
           <div className="flex items-center gap-3">
+            {location.pathname === basePath && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                + Tambah Modul
+              </button>
+            )}
+
             <button
               onClick={() => {
                 if (backStack.length > 0) {
@@ -113,9 +217,9 @@ const Video = () => {
                 }
               }}
               disabled={backStack.length === 0}
-              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
+              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] ${
                 backStack.length === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-gray-300 text-gray-500"
                   : "bg-blue-500 text-white hover:bg-blue-600"
               }`}
             >
@@ -133,9 +237,9 @@ const Video = () => {
                 }
               }}
               disabled={forwardStack.length === 0}
-              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
+              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] ${
                 forwardStack.length === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-gray-300 text-gray-500"
                   : "bg-blue-500 text-white hover:bg-blue-600"
               }`}
             >
@@ -145,7 +249,6 @@ const Video = () => {
           </div>
         </div>
 
-        {/* Breadcrumb Path */}
         <div className="text-sm text-gray-700 mb-6 flex items-center flex-wrap">
           <span className="font-semibold mr-2">Path:</span>
           <button
@@ -167,15 +270,114 @@ const Video = () => {
           ))}
         </div>
 
-        {/* Route Content */}
         <Routes>
           <Route
             path="/"
-            element={<VideoList onFolderClick={handleFolderClick} />}
+            element={
+              <VideoList
+                onFolderClick={handleFolderClick}
+                onEditClick={handleEditClick}
+                onChangeVisibility={handleVisibilityChange}
+                onUpdate={handleModulUpdate}
+              />
+            }
           />
           <Route path=":folder" element={<FolderContent />} />
         </Routes>
       </div>
+
+      {/* Modal Edit */}
+      {editFolder && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Edit Modul</h3>
+            <form onSubmit={handleEditSubmit}>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Judul"
+              />
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Deskripsi"
+              />
+              <input
+                type="number"
+                value={newOrder}
+                onChange={(e) => setNewOrder(parseInt(e.target.value))}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Urutan"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditFolder(null)}
+                  className="px-4 py-2 bg-gray-200 rounded mr-2"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Simpan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah (opsional jika dibutuhkan nanti) */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
+            <form onSubmit={handleEditSubmit}>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Judul"
+              />
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Deskripsi"
+              />
+              <input
+                type="number"
+                value={newOrder}
+                onChange={(e) => setNewOrder(parseInt(e.target.value))}
+                className="w-full p-2 border mb-4 rounded"
+                placeholder="Urutan"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded mr-2"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

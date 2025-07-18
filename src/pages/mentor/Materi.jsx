@@ -274,12 +274,14 @@ const Materi = () => {
           <h1 className="text-2xl font-semibold">Materi Explorer</h1>
           {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm"
-            >
-              + Tambah Modul
-            </button>
+            {location.pathname === basePath && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                + Tambah Modul
+              </button>
+            )}
 
             <button
               onClick={() => {
