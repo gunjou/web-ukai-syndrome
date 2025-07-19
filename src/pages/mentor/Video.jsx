@@ -44,7 +44,7 @@ const VideoList = ({
       {modulItems.map((modul, idx) => (
         <div
           key={idx}
-          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10"
+          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
           onClick={() => onFolderClick(modul.judul)}
         >
           <img
@@ -53,7 +53,7 @@ const VideoList = ({
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />
           <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
-            <span className="text-gray-700 font-medium text-base">
+            <span className="text-gray-700 font-medium text-base capitalize">
               {modul.judul}
             </span>
           </div>
@@ -264,7 +264,9 @@ const Video = () => {
                 onClick={() => handleBreadcrumbClick(index)}
                 className="text-blue-600 hover:underline"
               >
-                {seg.replace(/-/g, " ")}
+                {seg
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (char) => char.toUpperCase())}
               </button>
             </span>
           ))}

@@ -195,6 +195,14 @@ const VideoListContent = () => {
     setEditingComment(null);
   };
 
+  const getThumbnailUrl = (url) => {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}`;
+    }
+    return "https://via.placeholder.com/150"; // fallback image
+  };
+
   if (selectedVideo) {
     return (
       <div className="p-4 min-h-screen bg-gray-100">
@@ -489,10 +497,14 @@ const VideoListContent = () => {
                   }`}
                 >
                   <img
-                    src="https://i3.ytimg.com/vi/uNhI52RWwDk/hqdefault.jpg"
+                    src={getThumbnailUrl(video.url_file)}
+                    onError={(e) =>
+                      (e.target.src = "https://via.placeholder.com/150")
+                    }
                     alt={video.judul}
                     className="w-28 h-16 object-cover rounded"
                   />
+
                   <div className="flex-1">
                     <p className="font-medium text-gray-800 truncate capitalize">
                       {video.judul}
@@ -528,13 +540,17 @@ const VideoListContent = () => {
                 setSelectedVideo(video);
                 fetchKomentar(video.id_materi);
               }}
-              className="flex flex-col sm:flex-row gap-4 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
+              className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
               <img
-                src="https://i3.ytimg.com/vi/uNhI52RWwDk/hqdefault.jpg"
+                src={getThumbnailUrl(video.url_file)}
+                onError={(e) =>
+                  (e.target.src = "https://via.placeholder.com/150")
+                }
                 alt={video.judul}
-                className="w-full sm:w-60 h-40 object-cover rounded-lg"
+                className="w-28 h-22 object-cover rounded"
               />
+
               <div className="flex flex-col p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
                   {video.judul}

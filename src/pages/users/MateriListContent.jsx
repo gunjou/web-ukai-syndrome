@@ -109,7 +109,7 @@ const MateriListContent = () => {
         >
           <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xl font-semibold text-gray-800">
+              <h3 className="text-xl font-semibold text-gray-800 capitalize">
                 {selectedMateri.judul}
               </h3>
               <button

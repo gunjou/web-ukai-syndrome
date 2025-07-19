@@ -8,7 +8,7 @@ import Mentor from "./components/Mentor";
 import LandingPage from "./pages/LandingPage";
 
 // Import admin pages
-import HomeAdmin from "./pages/admin/HomeAdmin.jsx";
+import HomeAdmin from "./pages/admin/HomeAdmin";
 import PesertaPage from "./pages/admin/DaftarPeserta.jsx";
 import SoalPage from "./pages/admin/SoalPage";
 import MateriPage from "./pages/admin/MateriPage";
