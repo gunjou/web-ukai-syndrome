@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
@@ -13,11 +13,19 @@ const VideoListContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // State untuk komentar
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [openReplies, setOpenReplies] = useState({});
+  const commentRefs = useRef({});
+
+  // Helper function to check if a comment can be edited
+  const canEditComment = (createdAt) => {
+    const timeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const currentTime = Date.now();
+    return currentTime - new Date(createdAt).getTime() <= timeLimit;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,12 +69,20 @@ const VideoListContent = () => {
     fetchData();
   }, [folder]);
 
+  useEffect(() => {
+    commentRefs.current = {};
+  }, [comments]);
+
   const getEmbedUrl = (url) => {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-      return `https://drive.google.com/file/d/${match[1]}/preview`;
-    }
-    return url;
+    return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+  };
+
+  const getThumbnailUrl = (url) => {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match
+      ? `https://drive.google.com/thumbnail?id=${match[1]}`
+      : "https://via.placeholder.com/150";
   };
 
   const fetchKomentar = async (id_materi) => {
@@ -83,11 +99,9 @@ const VideoListContent = () => {
 
       rawKomentar.forEach((item) => {
         if (item.parent_id) {
-          if (komentarMap[item.parent_id]) {
-            komentarMap[item.parent_id].replies.push(
-              komentarMap[item.id_komentarmateri]
-            );
-          }
+          komentarMap[item.parent_id]?.replies.push(
+            komentarMap[item.id_komentarmateri]
+          );
         } else {
           rootKomentar.push(komentarMap[item.id_komentarmateri]);
         }
@@ -99,17 +113,26 @@ const VideoListContent = () => {
     }
   };
 
-  const getTotalKomentar = () => {
-    let total = 0;
-    comments.forEach((comment) => {
-      total += 1 + comment.replies.length;
-    });
-    return total;
-  };
+  const getTotalKomentar = () =>
+    comments.reduce((total, comment) => total + 1 + comment.replies.length, 0);
 
   const handleReplyToComment = (comment) => {
     setReplyingTo(comment);
     setNewComment("");
+
+    const el = commentRefs.current[comment.id_komentarmateri];
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  };
+
+  const toggleReplies = (id) => {
+    setOpenReplies((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   const handleEdit = (comment) => {
@@ -118,14 +141,11 @@ const VideoListContent = () => {
   };
 
   const handleDeleteComment = async (id_komentarmateri) => {
-    const konfirmasi = window.confirm("Yakin ingin menghapus komentar ini?");
-    if (!konfirmasi) return;
+    if (!window.confirm("Yakin ingin menghapus komentar ini?")) return;
 
     try {
       await Api.delete(`/komentar/${id_komentarmateri}`);
-      if (selectedVideo) {
-        await fetchKomentar(selectedVideo.id_materi); // Reload komentar
-      }
+      selectedVideo && fetchKomentar(selectedVideo.id_materi);
     } catch (err) {
       console.error("Gagal menghapus komentar:", err);
       alert("Terjadi kesalahan saat menghapus komentar.");
@@ -134,74 +154,145 @@ const VideoListContent = () => {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-
     if (!newComment.trim() || !selectedVideo) return;
 
     try {
       const payload = {
         isi_komentar: newComment,
-        parent_id: replyingTo ? replyingTo.id_komentarmateri : null,
+        parent_id: replyingTo?.id_komentarmateri || null,
         id_materi: selectedVideo.id_materi,
       };
 
-      const response = await Api.post(
-        `/komentar/${selectedVideo.id_materi}/komentar`,
-        payload
-      );
-
-      const newKomentar = response.data.data;
-
-      if (replyingTo) {
-        // Tambahkan reply ke parent
-        const updated = comments.map((c) =>
-          c.id_komentarmateri === replyingTo.id_komentarmateri
-            ? { ...c, replies: [...c.replies, newKomentar] }
-            : c
-        );
-        setComments(updated);
-      } else {
-        // Komentar utama
-        setComments([{ ...newKomentar, replies: [] }, ...comments]);
-      }
-
+      await Api.post(`/komentar/${selectedVideo.id_materi}/komentar`, payload);
       setNewComment("");
       setReplyingTo(null);
-      await fetchKomentar(selectedVideo.id_materi);
+      fetchKomentar(selectedVideo.id_materi);
     } catch (err) {
       console.error("Gagal menambahkan komentar:", err);
       alert("Gagal menambahkan komentar.");
     }
   };
 
-  const handleEditComment = (e) => {
+  const handleEditComment = async (e) => {
     e.preventDefault();
 
-    const updated = comments.map((comment) => {
-      if (comment.id_komentarmateri === editingComment.id_komentarmateri) {
-        return { ...comment, isi_komentar: newComment };
-      }
-      return {
-        ...comment,
-        replies: comment.replies.map((reply) =>
-          reply.id_komentarmateri === editingComment.id_komentarmateri
-            ? { ...reply, isi_komentar: newComment }
-            : reply
-        ),
-      };
-    });
+    try {
+      await Api.put(`/komentar/${editingComment.id_komentarmateri}`, {
+        isi_komentar: newComment,
+      });
 
-    setComments(updated);
-    setNewComment("");
-    setEditingComment(null);
-  };
-
-  const getThumbnailUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-      return `https://drive.google.com/thumbnail?id=${match[1]}`;
+      setNewComment("");
+      setEditingComment(null);
+      fetchKomentar(selectedVideo.id_materi);
+    } catch (err) {
+      console.error("Gagal mengedit komentar:", err);
+      alert("Terjadi kesalahan saat mengedit komentar.");
     }
-    return "https://via.placeholder.com/150"; // fallback image
   };
+
+  const renderComment = (comment, isReply = false) => (
+    <li
+      key={comment.id_komentarmateri}
+      ref={(el) => (commentRefs.current[comment.id_komentarmateri] = el)}
+      className={`${isReply ? "" : ""} px-2 py-1 rounded`}
+    >
+      <p className="font-semibold text-sm capitalize">
+        {comment.nama || "Pengguna"}
+      </p>
+      <p
+        className={`text-sm ${
+          comment.is_deleted ? "italic text-gray-400" : "text-gray-800"
+        }`}
+      >
+        {comment.is_deleted ? "Komentar telah dihapus" : comment.isi_komentar}
+      </p>
+      <p className="text-xs text-gray-500 mt-1">
+        {new Date(comment.created_at).toLocaleString()}
+      </p>
+
+      {!comment.is_deleted && (
+        <div className="flex gap-2 mt-2 text-xs">
+          <button
+            onClick={() => handleReplyToComment(comment)}
+            className="text-blue-600 hover:underline"
+          >
+            Balas
+          </button>
+          {comment.id_user === currentUserId &&
+            canEditComment(comment.created_at) && (
+              <>
+                <button
+                  onClick={() => handleEdit(comment)}
+                  className="text-yellow-600 hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteComment(comment.id_komentarmateri)}
+                  className="text-red-600 hover:underline"
+                >
+                  Hapus
+                </button>
+              </>
+            )}
+        </div>
+      )}
+
+      {(editingComment?.id_komentarmateri === comment.id_komentarmateri ||
+        replyingTo?.id_komentarmateri === comment.id_komentarmateri) && (
+        <form
+          onSubmit={editingComment ? handleEditComment : handleAddComment}
+          className="mt-3"
+        >
+          <textarea
+            rows={1}
+            className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
+            placeholder="Tulis balasan..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          />
+          <div className="flex gap-2 mt-1">
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-0.5 rounded-lg"
+            >
+              Kirim
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNewComment("");
+                setEditingComment(null);
+                setReplyingTo(null);
+              }}
+              className="text-gray-600 hover:underline text-sm"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Toggle replies */}
+      {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+        <div className="ml-1 mt-2">
+          <button
+            className="text-xs text-blue-600 hover:underline"
+            onClick={() => toggleReplies(comment.id_komentarmateri)}
+          >
+            {openReplies[comment.id_komentarmateri]
+              ? `Sembunyikan balasan (${comment.replies.length})`
+              : `Lihat balasan (${comment.replies.length})`}
+          </button>
+          {openReplies[comment.id_komentarmateri] && (
+            <ul className="ml-6 mt-3 space-y-2">
+              {comment.replies.map((reply) => renderComment(reply, true))}
+            </ul>
+          )}
+        </div>
+      )}
+    </li>
+  );
 
   if (selectedVideo) {
     return (
@@ -230,256 +321,46 @@ const VideoListContent = () => {
               {selectedVideo.judul}
             </h2>
             <p>{selectedVideo.des}</p>
-            {/* <p className="text-gray-600 mb-4">
-              Pemutaran video dari modul:{" "}
-              <strong>{folder.replace(/-/g, " ")}</strong>
-            </p> */}
 
-            {/* Kolom Komentar */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-1">Komentar</h3>
               <p className="text-sm text-gray-500 mb-3">
                 💬 {getTotalKomentar()} Komentar
               </p>
 
+              {/* Form komentar utama */}
               <form onSubmit={handleAddComment} className="mb-4">
                 <textarea
                   className="w-full border rounded p-2 focus:outline-none focus:ring"
                   rows={2}
                   placeholder="Tulis komentar..."
-                  value={newComment}
+                  value={replyingTo || editingComment ? "" : newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  onFocus={() => {
+                    setEditingComment(null);
+                    setReplyingTo(null);
+                  }}
                 />
                 <button
                   type="submit"
-                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg"
                 >
-                  {editingComment ? "Simpan Perubahan" : "Kirim"}
+                  Kirim
                 </button>
               </form>
 
+              {/* Daftar komentar */}
               {comments.length === 0 ? (
                 <p className="text-gray-500">Belum ada komentar.</p>
               ) : (
                 <ul className="space-y-3">
-                  {comments.map((comment) => (
-                    <li
-                      key={comment.id_komentarmateri}
-                      className="bg-gray-100 p-3 rounded shadow-sm"
-                    >
-                      <p className="font-semibold text-sm capitalize">
-                        {comment?.nama || "Pengguna"}
-                      </p>
-
-                      <p
-                        className={`text-sm ${
-                          comment.is_deleted
-                            ? "italic text-gray-400"
-                            : "text-gray-800"
-                        }`}
-                      >
-                        {comment.is_deleted
-                          ? "Komentar telah dihapus"
-                          : comment.isi_komentar}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(comment.created_at).toLocaleString()}
-                      </p>
-
-                      {!comment.is_deleted && (
-                        <div className="flex gap-2 mt-2 text-xs">
-                          <button
-                            onClick={() => handleReplyToComment(comment)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Balas
-                          </button>
-
-                          {comment.id_user === currentUserId && (
-                            <>
-                              <button
-                                onClick={() => handleEdit(comment)}
-                                className="text-yellow-600 hover:text-yellow-800"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteComment(comment.id_komentarmateri)
-                                }
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                Hapus
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Textarea edit/reply komentar utama */}
-                      {(editingComment?.id_komentarmateri ===
-                        comment.id_komentarmateri ||
-                        replyingTo?.id_komentarmateri ===
-                          comment.id_komentarmateri) && (
-                        <form
-                          onSubmit={
-                            editingComment
-                              ? handleEditComment
-                              : handleAddComment
-                          }
-                          className="mt-3"
-                        >
-                          <textarea
-                            rows={1}
-                            className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
-                            placeholder="Tulis balasan..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                          />
-                          <div className="flex gap-2 mt-1">
-                            <button
-                              type="submit"
-                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
-                            >
-                              Kirim
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setNewComment("");
-                                setEditingComment(null);
-                                setReplyingTo(null);
-                              }}
-                              className="text-gray-600 hover:underline text-sm"
-                            >
-                              Batal
-                            </button>
-                          </div>
-                        </form>
-                      )}
-
-                      {/* Replies */}
-                      {Array.isArray(comment.replies) &&
-                        comment.replies.length > 0 && (
-                          <ul className="ml-6 mt-3 space-y-2">
-                            {comment.replies
-                              .filter(
-                                (reply) => reply && typeof reply === "object"
-                              )
-                              .map((reply) => (
-                                <li
-                                  key={reply.id_komentarmateri}
-                                  className="bg-gray-50 p-2 rounded"
-                                >
-                                  <p className="font-semibold text-sm capitalize">
-                                    {reply.nama || "Pengguna"}
-                                  </p>
-
-                                  <p
-                                    className={`text-sm ${
-                                      reply.is_deleted
-                                        ? "italic text-gray-400"
-                                        : "text-gray-800"
-                                    }`}
-                                  >
-                                    {reply.is_deleted
-                                      ? "Komentar telah dihapus"
-                                      : reply.isi_komentar}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(
-                                      reply.created_at
-                                    ).toLocaleString()}
-                                  </p>
-
-                                  {!reply.is_deleted && (
-                                    <div className="flex gap-2 mt-1 text-xs">
-                                      <button
-                                        onClick={() =>
-                                          handleReplyToComment(reply)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800"
-                                      >
-                                        Balas
-                                      </button>
-
-                                      {reply.id_user === currentUserId && (
-                                        <>
-                                          <button
-                                            onClick={() => handleEdit(reply)}
-                                            className="text-yellow-600 hover:text-yellow-800"
-                                          >
-                                            Edit
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handleDeleteComment(
-                                                reply.id_komentarmateri
-                                              )
-                                            }
-                                            className="text-red-600 hover:text-red-800"
-                                          >
-                                            Hapus
-                                          </button>
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {(editingComment?.id_komentarmateri ===
-                                    reply.id_komentarmateri ||
-                                    replyingTo?.id_komentarmateri ===
-                                      reply.id_komentarmateri) && (
-                                    <form
-                                      onSubmit={
-                                        editingComment
-                                          ? handleEditComment
-                                          : handleAddComment
-                                      }
-                                      className="mt-2"
-                                    >
-                                      <textarea
-                                        rows={1}
-                                        className="w-full border rounded p-2 text-sm focus:outline-none focus:ring"
-                                        placeholder="Tulis komentar..."
-                                        value={newComment}
-                                        onChange={(e) =>
-                                          setNewComment(e.target.value)
-                                        }
-                                      />
-                                      <div className="flex gap-2 mt-1">
-                                        <button
-                                          type="submit"
-                                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
-                                        >
-                                          Kirim
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setNewComment("");
-                                            setEditingComment(null);
-                                            setReplyingTo(null);
-                                          }}
-                                          className="text-gray-600 hover:underline text-sm"
-                                        >
-                                          Batal
-                                        </button>
-                                      </div>
-                                    </form>
-                                  )}
-                                </li>
-                              ))}
-                          </ul>
-                        )}
-                    </li>
-                  ))}
+                  {comments.map((c) => renderComment(c))}
                 </ul>
               )}
             </div>
           </div>
 
-          {/* Sidebar Daftar Video */}
+          {/* Sidebar Video */}
           <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-full">
             <h3 className="text-lg font-semibold mb-3">Daftar Video</h3>
             {videoList.length > 0 ? (
@@ -504,7 +385,6 @@ const VideoListContent = () => {
                     alt={video.judul}
                     className="w-28 h-16 object-cover rounded"
                   />
-
                   <div className="flex-1">
                     <p className="font-medium text-gray-800 truncate capitalize">
                       {video.judul}
@@ -550,7 +430,6 @@ const VideoListContent = () => {
                 alt={video.judul}
                 className="w-28 h-22 object-cover rounded"
               />
-
               <div className="flex flex-col p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
                   {video.judul}
