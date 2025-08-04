@@ -5,7 +5,7 @@ import Sidebar from "./components/users/Sidebar";
 import MenuBar from "./components/users/Menubar";
 import Video from "./pages/users/Video";
 import Materi from "./pages/users/Materi";
-import SoalTO from "./pages/users/SoalTO";
+import TryOut from "./pages/users/TryOut";
 import HasilTO from "./pages/users/HasilTO";
 import Modul from "./pages/users/Modul";
 
@@ -17,7 +17,7 @@ const User = () => {
         <MenuBar />
         <div className="p-6">
           <Routes>
-            <Route path="/soal-to" element={<SoalTO />} />
+            <Route path="/tryout/*" element={<TryOut />} />
             <Route path="/hasil-to" element={<HasilTO />} />
 
             {/* Route induk untuk video dengan nested routing */}
