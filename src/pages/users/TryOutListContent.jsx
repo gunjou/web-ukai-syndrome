@@ -332,15 +332,30 @@ const TryoutListContent = () => {
 
           {/* KONTEN UJIAN */}
           <div className="bg-white rounded-xl p-8 w-full max-w-2xl shadow-lg relative select-none">
+            {/* Progress Bar Waktu */}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
+              <div
+                className={`h-3 transition-all duration-500 ${
+                  timer <= 300 ? "bg-red-600" : "bg-blue-500"
+                }`}
+                style={{
+                  width: `${(timer / (60 * 10)) * 100}%`, // 10 menit default
+                }}
+              ></div>
+            </div>
+
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-800 capitalize">
                 {selectedTryOut.judul}
               </h3>
               {/* Timer */}
-              <div className="text-lg font-mono bg-gray-100 px-4 py-1 rounded text-blue-700">
+              <div
+                className={`text-lg font-mono bg-gray-100 px-4 py-1 rounded ${
+                  timer <= 300 ? "text-red-600 font-bold" : "text-blue-700"
+                }`}
+              >
                 {formatTime(timer)}
               </div>
-              {/* Hapus tombol selesai merah */}
             </div>
             {!showResult ? (
               <>
