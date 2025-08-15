@@ -93,7 +93,7 @@ const MateriPage = () => {
   };
 
   return (
-    <div className="materi bg-custom-bg min-h-screen relative px-4">
+    <div className="materi bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       {/* <img
         src={bgmaps}
         alt="Background Image"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
-import icon_folder from "../../assets/icon_folder.svg";
+import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
   Route,
@@ -201,9 +201,9 @@ const Video = () => {
             {location.pathname === basePath && (
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm"
+                className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
-                + Tambah Modul
+                Tambah Modul
               </button>
             )}
 
@@ -220,7 +220,7 @@ const Video = () => {
               className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] ${
                 backStack.length === 0
                   ? "bg-gray-300 text-gray-500"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
               }`}
             >
               <HiArrowLeft className="text-lg" />
@@ -240,7 +240,7 @@ const Video = () => {
               className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] ${
                 forwardStack.length === 0
                   ? "bg-gray-300 text-gray-500"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
               }`}
             >
               Forward

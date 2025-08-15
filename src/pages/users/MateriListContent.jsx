@@ -88,7 +88,7 @@ const MateriListContent = () => {
               }}
               className="flex items-start gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
             >
-              <HiDocumentText className="text-blue-500 text-3xl flex-shrink-0 mt-1" />
+              <HiDocumentText className="text-red-500 text-3xl flex-shrink-0 mt-1" />
               <div className="flex flex-col">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 capitalize">
                   {materi.judul}

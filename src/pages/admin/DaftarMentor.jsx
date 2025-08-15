@@ -151,7 +151,7 @@ const DaftarMentor = () => {
     ));
 
   return (
-    <div className="user bg-custom-bg min-h-screen relative px-4">
+    <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
         src={garisKanan}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
@@ -182,7 +182,7 @@ const DaftarMentor = () => {
                 setEditMode(false);
                 setFormData({ nama: "", email: "", password: "" });
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-xl transition shadow-md flex items-center gap-2"
+              className="bg-yellow-500 hover:bg-yellow-700 text-white px-2 py-1 rounded-xl transition shadow-md flex items-center gap-2"
             >
               <AiOutlinePlus size={18} />
               Tambah Mentor

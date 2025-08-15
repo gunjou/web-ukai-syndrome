@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 
 import Api from "../../utils/Api"; // Pastikan path ini benar
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logo_syndrome_kuning.png";
 import homepage_img from "../../assets/hompage_img.png";
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
@@ -34,37 +34,37 @@ const HomeAdmin = () => {
     {
       label: "PESERTA",
       link: "/peserta",
-      icon: <FaUsers className="text-[#0680DC] text-sm" />,
+      icon: <FaUsers className="text-yellow-500 text-sm" />,
     },
     {
       label: "SOAL",
       link: "/soal",
-      icon: <FaQuestionCircle className="text-[#0680DC] text-sm" />,
+      icon: <FaQuestionCircle className="text-yellow-500 text-sm" />,
     },
     {
       label: "MATERI",
       link: "/materi",
-      icon: <FaFileAlt className="text-[#0680DC] text-sm" />,
+      icon: <FaFileAlt className="text-yellow-500 text-sm" />,
     },
     {
       label: "VIDEO",
       link: "/video",
-      icon: <FaVideo className="text-[#0680DC] text-sm" />,
+      icon: <FaVideo className="text-yellow-500 text-sm" />,
     },
     {
       label: "PAKET",
       link: "/paket",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
+      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
     },
     {
       label: "PENDAFTARAN",
       link: "/pendaftaran",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
+      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
     },
     {
       label: "LAPORAN",
       link: "/laporan",
-      icon: <FaClipboardList className="text-[#0680DC] text-sm" />,
+      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
     },
   ];
 
@@ -73,7 +73,7 @@ const HomeAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen w-auto bg-custom-bg flex flex-col items-center relative">
+    <div className="min-h-screen w-auto bg-gradient-to-r from-[#a11d1d] to-[#531d1d] flex flex-col items-center relative">
       <img
         src={bgmaps}
         alt="Background Image"
@@ -85,11 +85,11 @@ const HomeAdmin = () => {
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
         alt="garis kanan"
       />
-      <img
+      {/* <img
         src={garisKanan}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto rotate-180 transform opacity-70"
         alt="garis kiri"
-      />
+      /> */}
 
       {/* Header */}
       <div className="w-full flex items-center px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
@@ -101,7 +101,7 @@ const HomeAdmin = () => {
         </h1>
         <button
           onClick={handleLogout}
-          className="ml-auto bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700 transition"
+          className="ml-auto bg-red-600 text-white px-4 py-1 rounded-full text-sm hover:bg-red-700 transition"
         >
           Logout
         </button>
@@ -111,10 +111,10 @@ const HomeAdmin = () => {
       <div className="w-full max-w-6xl px-4 mt-12 relative min-h-auto flex flex-col lg:flex-row">
         {/* Right Menu */}
         <div className="w-full lg:w-3/4 ml-auto text-center lg:text-right">
-          <div className="text-3xl lg:text-6xl mt-1 font-bold lg:mt-6 text-biru-gelap mb-2">
+          <div className="text-3xl lg:text-6xl mt-1 font-bold lg:mt-6 text-white mb-2">
             SYNDROME UKAI
           </div>
-          <div className="text-lg text-black font-normal mb-2 sm:mb-8 min-w-md leading-[20px]">
+          <div className="text-lg text-white font-normal mb-2 sm:mb-8 min-w-md leading-[20px]">
             Platform penyedia layanan pendidikan farmasi berbasis teknologi
             terbaik dan ter-murah
           </div>
@@ -128,7 +128,7 @@ const HomeAdmin = () => {
                     className="flex w-full h-14 pr-8 rounded-lg overflow-hidden shadow-md bg-[#f9f9f9] hover:brightness-95 transition cursor-pointer"
                   >
                     {/* Left Icon */}
-                    <div className="lg:w-[30%] md:w-[40%] bg-[#0680DC] flex items-center justify-center">
+                    <div className="lg:w-[30%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
                       <div className="bg-white rounded-full p-3 mx-1.5">
                         {item.icon}
                       </div>

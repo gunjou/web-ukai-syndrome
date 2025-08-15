@@ -9,7 +9,7 @@ import Herocopy from "../components/Herocopy";
 
 const LandingPage = () => {
   return (
-    <div className="bg-custom-bg">
+    <div className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d]">
       <Navbar />
       <Hero />
       <Mentor />

@@ -11,12 +11,12 @@ import logo from "../assets/logo.png";
 
 const About = () => {
   return (
-    <section id="about" className="py-16 border-t border-white ">
+    <section id="about" className="py-16 border-t border-white text-white ">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* Kolom Kiri */}
         <div>
           <p className="font-bold text-lg">Syndrome Ukai</p>
-          <p className="text-sm mt-4 text-justify text-gray-700">
+          <p className="text-sm mt-4 text-justify text-white">
             Temukan revolusi dalam pendidikan farmasi dengan platform teknologi
             terdepan, kami menawarkan pengalaman belajar yang mudah, didukung
             oleh mentor-mentor terbaik dan kurikulum terbaru. Bergabunglah
@@ -57,14 +57,14 @@ const About = () => {
 
         {/* Kolom Tengah */}
         <div>
-          <h2 className="text-2xl font-semibold  mb-2">Layanan</h2>
-          <p className="text-sm text-gray-600 mb-2">Layanan 1</p>
-          <p className="text-sm text-gray-600 mb-2">Layanan 2</p>
-          <p className="text-sm text-gray-600 mb-2">Layanan 3</p>
-          <p className="text-sm text-gray-600 mb-2">Layanan 4</p>
+          <h2 className="text-2xl font-semibold text-white mb-2">Layanan</h2>
+          <p className="text-sm text-white mb-2">Layanan 1</p>
+          <p className="text-sm text-white mb-2">Layanan 2</p>
+          <p className="text-sm text-white mb-2">Layanan 3</p>
+          <p className="text-sm text-white mb-2">Layanan 4</p>
         </div>
         {/* Kolom Kanan */}
-        <div className="grid grid-cols-2 gap-6 text-sm text-gray-700">
+        <div className="grid grid-cols-2 gap-6 text-sm text-white">
           <div>
             <p className="mb-2">Blog</p>
             <p className="mb-2">Reward</p>
@@ -73,11 +73,11 @@ const About = () => {
           <div>
             <p className="mb-2 font-semibold">Hubungi Kami</p>
             <div className="flex items-center gap-2">
-              <FaEnvelope className="text-gray-700" />
+              <FaEnvelope className="text-white" />
               <p className="text-sm">disinemail </p>
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <FaPhoneAlt className="text-gray-700" />
+              <FaPhoneAlt className="text-white" />
               <p className="text-sm">disinihp</p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
-import icon_folder from "../../assets/icon_folder.svg";
+import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
   Route,

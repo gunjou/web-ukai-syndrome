@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-scroll"; // Menggunakan Link dari react-scroll
 import { FiMenu, FiX } from "react-icons/fi";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo_syndrome_kuning.png";
 import { MdOutlineArrowDropDown } from "react-icons/md";
 import { Link as RouterLink } from "react-router-dom"; // Import Link dari react-router-dom untuk Login
 
@@ -9,7 +9,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-custom-bg fixed top-0 w-full z-50 shadow-sm">
+    <nav className="bg-gradient-to-l from-[#a11d1d] to-[#531d1d] fixed top-0 w-full z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="home" smooth={true} className="flex items-center space-x-2">
@@ -24,13 +24,13 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Menu */}
-        <ul className="hidden md:flex space-x-6 items-center text-gray-700">
+        <ul className="hidden md:flex space-x-6 items-center text-white">
           <li>
             <Link
               to="capaian"
               smooth={true}
               offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
+              className="flex items-center space-x-1 hover:bg-yellow-500 hover:rounded-lg px-1.5"
             >
               Capaian
             </Link>
@@ -40,7 +40,7 @@ const Navbar = () => {
               to="mentor"
               smooth={true}
               offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
+              className="flex items-center space-x-1 hover:bg-yellow-500 hover:rounded-lg px-1.5"
             >
               Mentor
             </Link>
@@ -50,7 +50,7 @@ const Navbar = () => {
               to="modul"
               smooth={true}
               offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
+              className="flex items-center space-x-1 hover:bg-yellow-500 hover:rounded-lg px-1.5"
             >
               Modul
             </Link>
@@ -60,7 +60,7 @@ const Navbar = () => {
               to="program"
               smooth={true}
               offset={-70}
-              className="flex items-center space-x-1 hover:text-blue-600"
+              className="flex items-center space-x-1 hover:bg-yellow-500 hover:rounded-lg px-1.5"
             >
               Program
             </Link>
@@ -70,7 +70,7 @@ const Navbar = () => {
               to="about"
               smooth={true}
               offset={-70}
-              className="flex items-center hover:text-blue-600 space-x-1"
+              className="flex items-center hover:bg-yellow-500 hover:rounded-lg px-1.5"
             >
               About
             </Link>
@@ -79,7 +79,7 @@ const Navbar = () => {
           {/* Tombol Login tetap menggunakan RouterLink */}
           <RouterLink
             to="/login"
-            className="ml-4 bg-custom-biru text-white font-semibold px-6 py-1 rounded-[20px] hover:bg-blue-700 transition"
+            className="ml-4 bg-yellow-500 text-white font-semibold px-6 py-1 rounded-[20px] hover:bg-yellow-700 transition"
           >
             Login
           </RouterLink>
@@ -153,7 +153,7 @@ const Navbar = () => {
           {/* Tombol Login di mobile menu tetap menggunakan RouterLink */}
           <RouterLink
             to="/login"
-            className="ml-4 bg-blue-600 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-blue-700 transition"
+            className="ml-4 bg-yellow-600 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-yellow-700 transition"
           >
             Masuk
           </RouterLink>

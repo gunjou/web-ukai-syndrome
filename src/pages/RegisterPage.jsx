@@ -50,7 +50,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-custom-bg px-4 py-8">
+    <div className="flex min-h-screen bg-gradient-to-l from-[#a11d1d] to-[#531d1d] px-4 py-8">
       {/* Kiri: Form Registrasi */}
       <div className="flex items-center justify-center w-full md:w-1/2">
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md">
@@ -135,7 +135,7 @@ const RegisterPage = () => {
             <div className="flex justify-center items-center pt-4">
               <button
                 type="submit"
-                className="w-[10rem] bg-red-600 text-white py-2 font-bold rounded-lg hover:bg-red-700 transition"
+                className="w-[10rem] bg-yellow-500 text-white py-2 font-bold rounded-lg hover:bg-yellow-700 transition"
               >
                 Daftar
               </button>

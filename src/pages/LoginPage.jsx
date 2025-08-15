@@ -43,7 +43,6 @@ const LoginPage = () => {
       } else {
         navigate("/home");
       }
-      
     } catch (error) {
       console.error("Login failed:", error);
       alert("Email atau password salah!");
@@ -51,7 +50,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-custom-bg px-4 py-8">
+    <div className="flex min-h-screen bg-gradient-to-b from-[#a11d1d] to-[#531d1d] px-4 py-8">
       {/* Kiri: Form Login */}
       <div className="flex items-center justify-center w-full md:w-1/2">
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md">
@@ -95,7 +94,7 @@ const LoginPage = () => {
             <div className="flex justify-center items-center">
               <button
                 type="submit"
-                className="w-[100px] bg-red-600 text-white py-2 font-bold rounded-lg hover:bg-red-700 transition"
+                className="w-[100px] bg-yellow-500 text-white py-2 font-bold rounded-lg hover:bg-yellow-700 transition"
               >
                 Login
               </button>

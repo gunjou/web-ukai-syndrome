@@ -88,7 +88,7 @@ const LaporanPage = () => {
   };
 
   return (
-    <div className="list bg-custom-bg min-h-screen relative px-4">
+    <div className="list bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       {/* <img
         src={bgmaps}
         alt="Background Image"

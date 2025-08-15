@@ -43,7 +43,7 @@ const Modul = () => {
       {/* //<div className="bg-yellow-400 w-full h-[150px] rounded-b-[30px] z-0"></div> */}
       <div className="bg-biru-gelap relative rounded-[30px] px-4 py-8 mx-6 shadow-md sticky z-30 h-auto">
         {/* Floating Title */}
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-custom-biru text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
+        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
           Modul Terupdate
         </div>
 
