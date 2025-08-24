@@ -1,5 +1,5 @@
 // src/User.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/users/Sidebar";
 import MenuBar from "./components/users/Menubar";
@@ -10,6 +10,31 @@ import HasilTO from "./pages/users/HasilTO";
 import Modul from "./pages/users/Modul";
 
 const User = () => {
+  useEffect(() => {
+    // Proteksi aktif
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    const handleKeyDown = (e) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
+        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
+        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
+        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
+        (e.ctrlKey && (e.key === "X" || e.key === "x"))
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   return (
     <div className="flex">
       <Sidebar />

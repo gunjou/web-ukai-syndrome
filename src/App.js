@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 
@@ -40,6 +41,32 @@ import UserBatch from "./pages/admin/UserBatch.jsx";
 import MentorJs from "./Mentor.js";
 
 function App() {
+  useEffect(() => {
+    // Disable klik kanan
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+
+    // Disable shortcut tertentu
+    const handleKeyDown = (e) => {
+      if (
+        e.key === "F12" || // Inspect
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
+        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
+        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
+        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
+        (e.ctrlKey && (e.key === "X" || e.key === "x"))
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -64,14 +91,12 @@ function App() {
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
         <Route path="/laporan" element={<LaporanPage />} />
-        {/* Routes for mentor */}
         {/* Routes for user */}
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
         {/* Route for User Dashboard */}
-        <Route path="/dashboard/*" element={<User />} />{" "}
-        {/* Add '/user-dashboard/*' as the route */}
-        <Route path="/mentor-dashboard/*" element={<MentorJs />} />{" "}
+        <Route path="/dashboard/*" element={<User />} />
+        <Route path="/mentor-dashboard/*" element={<MentorJs />} />
       </Routes>
     </Router>
   );
