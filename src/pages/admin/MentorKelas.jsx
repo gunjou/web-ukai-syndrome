@@ -146,7 +146,7 @@ const MentorKelas = () => {
                   ? "bg-gray-400"
                   : user.nama_kelas === "Diamond"
                   ? "bg-blue-700"
-                  : "bg-gray-300"
+                  : "bg-[#CD7F32]"
               }`}
           >
             {user.nama_kelas}

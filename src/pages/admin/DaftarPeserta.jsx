@@ -125,6 +125,9 @@ const DaftarPeserta = () => {
   const renderTableRows = () =>
     filteredData.map((user, index) => (
       <tr key={index} className="bg-gray-100">
+        <td className="px-2 py-2 text-xs sm:text-sm border text-center capitalize">
+          {user.id_user}
+        </td>
         <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
           {user.nama}
         </td>
@@ -230,6 +233,7 @@ const DaftarPeserta = () => {
             <table className="min-w-full bg-white border">
               <thead className="bg-white sticky top-0 z-10">
                 <tr>
+                  <th className="px-1 py-2 text-sm ">ID Peserta</th>
                   <th className="px-4 py-2 text-sm ">Nama</th>
                   <th className="px-4 py-2 text-sm ">Email</th>
                   <th className="px-4 py-2 text-sm ">Kode Pemulihan</th>

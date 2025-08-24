@@ -1,13 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../components/users/Navbar";
 import garis from "../../assets/garis-kanan.png";
-import ModalMetode from "../../components/users/ModalMetode"; // <-- Tambahkan ini
+import ModalMetode from "../../components/users/ModalMetode";
+
+function capitalizeWords(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 const Pembayaran = () => {
-  const [showModal, setShowModal] = useState(false); // <-- Tambahkan state
+  const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [paket, setPaket] = useState(null);
+
+  useEffect(() => {
+    // Ambil data dari location.state dulu
+    if (location.state) {
+      setPaket(location.state);
+      localStorage.setItem("paketTerpilih", JSON.stringify(location.state));
+    } else {
+      // Kalau kosong, coba ambil dari localStorage
+      const saved = localStorage.getItem("paketTerpilih");
+      if (saved) {
+        setPaket(JSON.parse(saved));
+      }
+    }
+  }, [location.state]);
+
+  if (!paket) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white bg-gradient-to-r from-[#a11d1d] to-[#531d1d]">
+        <div>
+          <p className="mb-4">Tidak ada paket yang dipilih.</p>
+          <button
+            onClick={() => navigate("/")}
+            className="bg-yellow-500 px-4 py-2 rounded"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-custom-bg relative">
+    <div className="min-h-screen bg-gradient-to-r from-[#a11d1d] to-[#531d1d] relative">
       <Navbar />
       <img
         src={garis}
@@ -18,11 +62,11 @@ const Pembayaran = () => {
         className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1] transform z-0"
       />
 
-      {/* Card Putih di Kanan Bawah */}
+      {/* Card Putih */}
       <div className="fixed bottom-0 right-0 w-[80%] bg-white rounded-t-[60px] shadow-lg p-8 pl-[10%] z-10">
-        {/* Header Floating */}
+        {/* Header */}
         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-          <div className="bg-blue-500 text-white text-lg font-bold py-2 px-6 rounded-full shadow">
+          <div className="bg-yellow-500 text-white text-lg font-bold py-2 px-6 rounded-full shadow">
             Keranjang Anda
           </div>
         </div>
@@ -34,11 +78,11 @@ const Pembayaran = () => {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Jenis Paket</span>
-                <span>: Paket Diamond</span>
+                <span>: {paket.title}</span>
               </div>
               <div className="flex justify-between">
                 <span>Harga</span>
-                <span>: Rp. 3.500.000</span>
+                <span>: Rp {paket.harga.toLocaleString("id-ID")}</span>
               </div>
               <div className="flex justify-between">
                 <span>Diskon</span>
@@ -57,16 +101,29 @@ const Pembayaran = () => {
             </p>
             <div className="flex justify-between font-semibold text-base mt-4">
               <span>Subtotal</span>
-              <span>: Rp. 3.500.000</span>
+              <span>: Rp {paket.harga.toLocaleString("id-ID")}</span>
             </div>
 
             <div className="text-left pt-8">
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded font-medium"
-                onClick={() => setShowModal(true)} // <-- Tampilkan modal
+              <a
+                href={`https://wa.me/6281917250391?text=${encodeURIComponent(
+                  (() => {
+                    const user = JSON.parse(localStorage.getItem("user")) || {};
+                    return `Halo Admin, saya ingin memesan paket:\n\nID User: ${
+                      user.id_user || "-"
+                    }\nNama: ${capitalizeWords(user.nama)}\nJenis Paket: ${
+                      paket.title
+                    }\nHarga: Rp ${paket.harga.toLocaleString(
+                      "id-ID"
+                    )}\n\nMohon informasi lebih lanjut.`;
+                  })()
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-medium inline-block"
               >
-                Lanjutkan
-              </button>
+                Lanjutkan via WhatsApp
+              </a>
             </div>
           </div>
         </div>

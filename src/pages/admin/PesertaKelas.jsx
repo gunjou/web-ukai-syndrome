@@ -147,7 +147,7 @@ const PesertaKelas = () => {
                   ? "bg-gray-400"
                   : user.nama_kelas === "Diamond"
                   ? "bg-blue-700"
-                  : "bg-gray-300"
+                  : "bg-[#CD7F32]"
               }`}
           >
             {user.nama_kelas}
@@ -252,7 +252,7 @@ const PesertaKelas = () => {
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
                   <th className="px-4 py-2 text-xs sm:text-sm">Nama</th>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Paket</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Kelas</th>
                   <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
                   <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
                 </tr>

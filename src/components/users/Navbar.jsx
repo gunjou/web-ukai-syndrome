@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-import { MdOutlineArrowDropDown } from "react-icons/md";
 import logo from "../../assets/logo_syndrome_kuning.png";
 import Api from "../../utils/Api";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [hasPaket, setHasPaket] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // cek apakah ada paket terpilih di localStorage
+    const paket = localStorage.getItem("paketTerpilih");
+    if (paket) {
+      setHasPaket(true);
+    }
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -18,6 +26,7 @@ const Navbar = () => {
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("paketTerpilih"); // hapus paket juga saat logout
     navigate("/");
   };
 
@@ -39,11 +48,15 @@ const Navbar = () => {
               Home
             </Link>
           </li>
-          {/* <li>
-            <Link to="/pembayaran" className="hover:text-yellow-600">
-              Pembayaran
-            </Link>
-          </li> */}
+
+          {hasPaket && ( // hanya tampil kalau ada paket terpilih
+            <li>
+              <Link to="/pembayaran" className="hover:text-yellow-600">
+                Pembayaran
+              </Link>
+            </li>
+          )}
+
           <li>
             <Link to="/dashboard/materi" className="hover:text-yellow-600">
               Kelas Saya
@@ -78,13 +91,17 @@ const Navbar = () => {
             <FiX size={24} />
           </button>
         </div>
-        <ul className="flex flex-col space-y-4 px-6 text-white">
+        <ul className="flex flex-col space-y-4 px-6 text-gray-800">
           <Link to="/home" onClick={() => setIsOpen(false)}>
             Home
           </Link>
-          <Link to="/pembayaran" onClick={() => setIsOpen(false)}>
-            Pembayaran
-          </Link>
+
+          {hasPaket && (
+            <Link to="/pembayaran" onClick={() => setIsOpen(false)}>
+              Pembayaran
+            </Link>
+          )}
+
           <Link to="/dashboard/materi" onClick={() => setIsOpen(false)}>
             Kelas Saya
           </Link>

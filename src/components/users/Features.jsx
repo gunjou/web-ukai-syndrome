@@ -3,14 +3,17 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Features = () => {
+  const navigate = useNavigate();
+
   const programs = [
     {
       title: "Premium",
       highlight: "70x",
       description: "12x Intensif, 4–5 jam\n60x Online",
+      harga: 1500000,
       features: [
         "Free akses record sampai ukai",
         "Tryout CBT via website",
@@ -29,6 +32,7 @@ const Features = () => {
       title: "Gold",
       highlight: "73x",
       description: "12x Intensif, 4–5 jam\n60x Online",
+      harga: 2500000,
       tag: "Program Favorit",
       features: [
         "Free akses record sampai ukai",
@@ -48,6 +52,7 @@ const Features = () => {
       title: "Silver",
       highlight: "24x",
       description: "12x Intensif, 4–5 jam\n12x Online",
+      harga: 1000000,
       features: [
         "Free akses record sampai ukai",
         "Tryout CBT via website",
@@ -66,6 +71,7 @@ const Features = () => {
       title: "Diamond",
       highlight: "27x",
       description: "12x Intensif, 4–5 jam\n12x Online, 3x Kelas OSCE",
+      harga: 3500000,
       features: [
         "Free akses record sampai ukai",
         "Tryout CBT via website",
@@ -103,16 +109,15 @@ const Features = () => {
           Pilihan Program
         </div>
 
-        {/* Slider for Mobile and Grid for Desktop */}
+        {/* Grid Desktop */}
         <div className="max-w-7xl mx-auto px-8 mt-[2rem]">
           <div className="hidden md:block sm:block">
-            {/* Grid for Desktop */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {programs.map((program, index) => (
-                <Link
-                  to="/pembayaran"
+                <div
                   key={index}
-                  className={`block bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
+                  onClick={() => navigate("/pembayaran", { state: program })}
+                  className={`cursor-pointer block bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
                     program.title === "Gold"
                       ? "border border-red-700 relative"
                       : "border border-gray-300 mt-10"
@@ -131,7 +136,7 @@ const Features = () => {
                     {program.title}
                   </h4>
                   <p className="text-sm text-gray-500 mb-2">
-                    Deskripsi item {index + 1}.
+                    Rp {program.harga.toLocaleString("id-ID")}
                   </p>
                   <div className="text-4xl font-extrabold text-red-800 mb-1">
                     {program.highlight}
@@ -156,18 +161,19 @@ const Features = () => {
                       )
                     )}
                   </ul>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Slider for Mobile */}
+          {/* Slider Mobile */}
           <div className="lg:hidden">
             <Slider {...sliderSettings}>
               {programs.map((program, index) => (
                 <div
                   key={index}
-                  className={`bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
+                  onClick={() => navigate("/pembayaran", { state: program })}
+                  className={`cursor-pointer bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
                     program.title === "Gold"
                       ? "border-2 border-red-700 relative"
                       : "border border-gray-300 mt-10"
@@ -178,7 +184,6 @@ const Features = () => {
                       {program.tag}
                     </div>
                   )}
-
                   <h4
                     className={`text-xl font-bold text-red-800 mb-1 ${
                       program.title === "Gold" ? "mt-10" : ""
@@ -187,7 +192,7 @@ const Features = () => {
                     {program.title}
                   </h4>
                   <p className="text-sm text-gray-500 mb-2">
-                    Deskripsi item {index + 1}.
+                    Rp {program.harga.toLocaleString("id-ID")}
                   </p>
                   <div className="text-4xl font-extrabold text-red-800 mb-1">
                     {program.highlight}
