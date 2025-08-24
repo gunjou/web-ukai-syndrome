@@ -1,9 +1,9 @@
+// src/pages/users/MateriListContent.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { HiDocumentText } from "react-icons/hi";
 import { MdClose } from "react-icons/md";
 import Api from "../../utils/Api";
-import { pdfjs } from "react-pdf";
 
 const MateriListContent = () => {
   const { folder } = useParams();
@@ -11,9 +11,16 @@ const MateriListContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedMateri, setSelectedMateri] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const [pdfUrl, setPdfUrl] = useState("");
+  const [userName, setUserName] = useState("User"); // default
 
+  // Ambil nama user dari localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.nama) setUserName(user.nama);
+  }, []);
+
+  // Ambil data materi
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -101,11 +108,24 @@ const MateriListContent = () => {
         <p className="text-gray-500">Belum ada materi untuk folder ini.</p>
       )}
 
-      {/* Modal */}
+      {/* Modal PDF */}
       {selectedMateri && (
         <div
           className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex justify-center items-center"
-          onContextMenu={(e) => e.preventDefault()} // Blok klik kanan di seluruh layar
+          onContextMenu={(e) => e.preventDefault()} // blok klik kanan
+          onKeyDown={(e) => {
+            if (
+              (e.ctrlKey &&
+                (e.key === "c" || e.key === "u" || e.key === "s")) || // copy, source, save
+              (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || // inspect element
+              e.key === "F12" || // devtools
+              e.key === "PrintScreen"
+            ) {
+              e.preventDefault();
+              alert("Tindakan ini tidak diizinkan!");
+            }
+          }}
+          tabIndex={0} // supaya modal bisa menangkap keyboard
         >
           <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">
             <div className="flex justify-between items-center mb-2">
@@ -120,11 +140,26 @@ const MateriListContent = () => {
               </button>
             </div>
 
-            {/* PDF.js Document Viewer */}
             <div
-              className="border rounded-lg overflow-hidden select-none"
+              className="relative border rounded-lg overflow-hidden select-none"
               onContextMenu={(e) => e.preventDefault()}
             >
+              {/* Watermark overlay */}
+              <div
+                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
+                style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
+              >
+                {Array.from({ length: 80 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="text-gray-400 font-bold select-none m-6 whitespace-nowrap"
+                    style={{ fontSize: "2rem" }}
+                  >
+                    {userName}
+                  </span>
+                ))}
+              </div>
+
               {pdfUrl && (
                 <iframe
                   title={selectedMateri.judul}
@@ -132,6 +167,7 @@ const MateriListContent = () => {
                   className="w-full h-[500px] border-none"
                   allow="autoplay"
                   sandbox="allow-same-origin allow-scripts allow-popups"
+                  referrerPolicy="no-referrer"
                 />
               )}
             </div>
