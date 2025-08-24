@@ -1,9 +1,5 @@
+// src/pages/users/TryOutListContent.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { HiDocumentText } from "react-icons/hi";
-import { MdClose } from "react-icons/md";
-import Api from "../../utils/Api";
-import { pdfjs } from "react-pdf";
 
 // Dummy questions data
 const dummyQuestions = [
@@ -28,95 +24,109 @@ const dummyQuestions = [
   },
 ];
 
-const TryoutListContent = () => {
-  const { folder } = useParams();
-  const [TryoutList, setTryOutList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [selectedTryOut, setSelectedTryOut] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pdfUrl, setPdfUrl] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Tambahkan state untuk soal dan jawaban
+const TryoutListContent = ({ tryout, onBack }) => {
+  const [selectedTryOut, setSelectedTryOut] = useState(tryout);
   const [currentNumber, setCurrentNumber] = useState(0);
   const [answers, setAnswers] = useState(
     Array(dummyQuestions.length).fill(null)
   );
-  const [showResult, setShowResult] = useState(false);
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [timer, setTimer] = useState(60 * 10); // contoh: 10 menit (600 detik)
-  const [intervalId, setIntervalId] = useState(null);
-
-  // Tambahkan state doubts
   const [doubts, setDoubts] = useState(
     Array(dummyQuestions.length).fill(false)
   );
-
-  // Tambahkan state untuk warning ragu-ragu
+  const [showResult, setShowResult] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [showDoubtWarning, setShowDoubtWarning] = useState(false);
+  const [timer, setTimer] = useState(60 * 10); // 10 menit
+  const [intervalId, setIntervalId] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  // --- Kalkulator state ---
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [input, setInput] = useState("");
+  const [calcPos, setCalcPos] = useState({
+    x: window.innerWidth / 2 - 150,
+    y: 100,
+  });
+  const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [resizing, setResizing] = useState(false);
+  const [calcSize, setCalcSize] = useState(300);
+
+  const buttons = [
+    ["sin", "cos", "tan", "π"],
+    ["log", "ln", "√", "e"],
+    ["(", ")", "^", "%"],
+    ["7", "8", "9", "÷"],
+    ["4", "5", "6", "×"],
+    ["1", "2", "3", "-"],
+    ["0", ".", "C", "+"],
+    ["⌫", "="],
+  ];
+
+  const handlePress = (value) => {
+    if (value === "C") {
+      setInput("");
+    } else if (value === "⌫") {
+      setInput(input.slice(0, -1));
+    } else if (value === "=") {
       try {
-        const [materiRes, modulRes] = await Promise.all([
-          Api.get("/materi/peserta"),
-          Api.get("/modul/user"),
-        ]);
-
-        const materiData = materiRes.data.data || [];
-        const modulData = modulRes.data.data || [];
-
-        const selectedModul = modulData.find((modul) => {
-          const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
-          return slug === folder;
-        });
-
-        if (!selectedModul) {
-          setTryOutList([]);
-          setError("Modul tidak ditemukan.");
-          setLoading(false);
-          return;
-        }
-
-        const filtered = materiData.filter(
-          (item) =>
-            item.id_modul === selectedModul.id_modul &&
-            item.tipe_materi === "document"
-        );
-
-        setTryOutList(filtered);
-      } catch (err) {
-        console.error(err);
-        setError("Gagal memuat materi.");
-      } finally {
-        setLoading(false);
+        let expression = input
+          .replace(/π/g, Math.PI)
+          .replace(/e/g, Math.E)
+          .replace(/√/g, "Math.sqrt")
+          .replace(/sin/g, "Math.sin")
+          .replace(/cos/g, "Math.cos")
+          .replace(/tan/g, "Math.tan")
+          .replace(/log/g, "Math.log10")
+          .replace(/ln/g, "Math.log")
+          .replace(/\^/g, "**")
+          .replace(/×/g, "*")
+          .replace(/÷/g, "/");
+        setInput(eval(expression).toString());
+      } catch {
+        setInput("Error");
       }
-    };
-
-    fetchData();
-  }, [folder]);
-
-  const getEmbedUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-      return `https://drive.google.com/file/d/${match[1]}/preview`;
+    } else {
+      setInput(input + value);
     }
-    return url;
   };
 
-  const loadPdf = (url) => {
-    setPdfUrl(getEmbedUrl(url));
+  // --- Drag + Resize handler ---
+  const handleMouseDown = (e) => {
+    if (e.target.dataset.resize) {
+      setResizing(true);
+    } else {
+      setDragging(true);
+      setOffset({
+        x: e.clientX - calcPos.x,
+        y: e.clientY - calcPos.y,
+      });
+    }
   };
 
+  const handleMouseMove = (e) => {
+    if (dragging) {
+      setCalcPos({
+        x: e.clientX - offset.x,
+        y: e.clientY - offset.y,
+      });
+    }
+    if (resizing) {
+      setCalcSize(Math.max(250, e.clientX - calcPos.x));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDragging(false);
+    setResizing(false);
+  };
+
+  // --- Fullscreen detect ---
   useEffect(() => {
-    // Listener untuk deteksi keluar fullscreen
     const handleFullscreenChange = () => {
       const fsElement =
         document.fullscreenElement || document.webkitFullscreenElement;
       setIsFullscreen(!!fsElement);
-
-      // Jika keluar fullscreen saat ujian, tampilkan modal konfirmasi
       if (!fsElement && selectedTryOut) {
         setShowExitModal(true);
       }
@@ -149,31 +159,7 @@ const TryoutListContent = () => {
     }
   };
 
-  // Fungsi handle jawaban
-  const handleAnswer = (idx) => {
-    const newAnswers = [...answers];
-    newAnswers[currentNumber] = idx;
-    setAnswers(newAnswers);
-  };
-
-  // Fungsi toggle ragu-ragu
-  const toggleDoubt = (idx) => {
-    const newDoubts = [...doubts];
-    newDoubts[idx] = !newDoubts[idx];
-    setDoubts(newDoubts);
-  };
-
-  // Fungsi submit ujian
-  const handleFinish = () => {
-    if (doubts.some(Boolean)) {
-      setShowDoubtWarning(true);
-      return;
-    }
-    setShowResult(true);
-    //closeFullscreen();
-  };
-
-  // Timer countdown effect
+  // Timer countdown
   useEffect(() => {
     if (selectedTryOut && isFullscreen && !showResult) {
       const id = setInterval(() => {
@@ -190,14 +176,12 @@ const TryoutListContent = () => {
       setIntervalId(id);
       return () => clearInterval(id);
     }
-    // Reset timer jika keluar ujian
     if (!selectedTryOut || showResult) {
       setTimer(60 * 10);
       if (intervalId) clearInterval(intervalId);
     }
   }, [selectedTryOut, isFullscreen, showResult]);
 
-  // Format waktu mm:ss
   const formatTime = (sec) => {
     const m = Math.floor(sec / 60)
       .toString()
@@ -206,49 +190,29 @@ const TryoutListContent = () => {
     return `${m}:${s}`;
   };
 
-  useEffect(() => {
-    // Hilangkan tanda ragu-ragu saat soal dibuka
-    if (doubts[currentNumber]) {
-      const newDoubts = [...doubts];
-      newDoubts[currentNumber] = false;
-      setDoubts(newDoubts);
+  const handleAnswer = (idx) => {
+    const newAnswers = [...answers];
+    newAnswers[currentNumber] = idx;
+    setAnswers(newAnswers);
+  };
+
+  const toggleDoubt = (idx) => {
+    const newDoubts = [...doubts];
+    newDoubts[idx] = !newDoubts[idx];
+    setDoubts(newDoubts);
+  };
+
+  const handleFinish = () => {
+    if (doubts.some(Boolean)) {
+      setShowDoubtWarning(true);
+      return;
     }
-    // eslint-disable-next-line
-  }, [currentNumber]);
+    setShowResult(true);
+  };
 
   return (
     <div className="p-2 relative">
-      <h2 className="text-2xl font-semibold mb-4 capitalize">
-        {folder?.replace(/-/g, " ")}
-      </h2>
-
-      {loading ? (
-        <p className="text-gray-500">Memuat...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : TryoutList.length > 0 ? (
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {TryoutList.map((tryout) => (
-            <div
-              key={tryout.id_materi}
-              onClick={() => {
-                setSelectedTryOut(tryout);
-                loadPdf(tryout.url_file);
-              }}
-              className="flex items-start gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
-            >
-              <HiDocumentText className="text-blue-500 text-3xl flex-shrink-0 mt-1" />
-              <div className="flex flex-col">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1 capitalize">
-                  {tryout.judul}
-                </h3>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500">Belum ada materi untuk folder ini.</p>
-      )}
+      <h2 className="text-2xl font-semibold mb-4">{tryout?.title}</h2>
 
       {/* Modal Tryout Fullscreen */}
       {selectedTryOut && (
@@ -256,41 +220,16 @@ const TryoutListContent = () => {
           ref={(el) => {
             if (el && !isFullscreen) openFullscreen(el);
           }}
-          className="fixed inset-0 bg-black bg-opacity-95 z-[9999] flex items-center justify-center"
+          className="fixed inset-0 bg-gradient-to-r from-[#a11d1d] to-[#531d1d] z-[9999] flex items-center justify-center"
           tabIndex={-1}
           onContextMenu={(e) => e.preventDefault()}
-          onKeyDown={(e) => {
-            if (
-              e.key === "F11" ||
-              e.key === "Escape" ||
-              (e.ctrlKey &&
-                (e.key === "w" || e.key === "W" || e.key === "Tab")) ||
-              (e.altKey && e.key === "Tab")
-            ) {
-              e.preventDefault();
-              e.stopPropagation();
-              return false;
-            }
-          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
         >
-          {!isFullscreen && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded shadow-lg z-50">
-              Silakan kembali ke mode fullscreen untuk melanjutkan tryout.
-              <button
-                className="ml-4 bg-white text-red-600 px-2 py-1 rounded"
-                onClick={() =>
-                  openFullscreen(document.querySelector(".fixed.inset-0"))
-                }
-              >
-                Fullscreen
-              </button>
-            </div>
-          )}
-
-          {/* MAP SOAL KIRI ATAS */}
+          {/* Map Soal (kembali) */}
           <div className="absolute top-6 left-8 z-50 bg-white rounded-xl shadow-lg p-4 flex flex-col items-center">
             <div className="font-semibold mb-2 text-gray-700 text-sm">
-              Map Soal
+              Dafar Soal
             </div>
             <div className="grid grid-cols-5 gap-2 mb-4">
               {dummyQuestions.map((q, idx) => (
@@ -310,13 +249,9 @@ const TryoutListContent = () => {
                   title={doubts[idx] ? "Ragu-ragu" : ""}
                 >
                   {idx + 1}
-                  {doubts[idx] && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></span>
-                  )}
                 </button>
               ))}
             </div>
-            {/* Tombol Selesai Ujian di Map Soal */}
             <button
               className={`w-full px-4 py-2 rounded text-white text-sm font-semibold transition ${
                 answers.some((ans) => ans === null)
@@ -330,25 +265,31 @@ const TryoutListContent = () => {
             </button>
           </div>
 
+          {/* Tombol Kalkulator */}
+          <button
+            className="absolute top-4 right-4 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 z-[100000]"
+            onClick={() => setShowCalculator(true)}
+          >
+            Kalkulator
+          </button>
+
           {/* KONTEN UJIAN */}
           <div className="bg-white rounded-xl p-8 w-full max-w-2xl shadow-lg relative select-none">
-            {/* Progress Bar Waktu */}
+            {/* Progress bar */}
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
               <div
                 className={`h-3 transition-all duration-500 ${
                   timer <= 300 ? "bg-red-600" : "bg-blue-500"
                 }`}
-                style={{
-                  width: `${(timer / (60 * 10)) * 100}%`, // 10 menit default
-                }}
+                style={{ width: `${(timer / (60 * 10)) * 100}%` }}
               ></div>
             </div>
 
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-800 capitalize">
-                {selectedTryOut.judul}
+              <h3 className="text-xl font-semibold text-gray-800">
+                {selectedTryOut.title}
               </h3>
-              {/* Timer */}
               <div
                 className={`text-lg font-mono bg-gray-100 px-4 py-1 rounded ${
                   timer <= 300 ? "text-red-600 font-bold" : "text-blue-700"
@@ -357,50 +298,45 @@ const TryoutListContent = () => {
                 {formatTime(timer)}
               </div>
             </div>
+
             {!showResult ? (
               <>
-                {/* Soal */}
-                <div>
-                  <div className="mb-4 text-lg font-medium">
-                    {currentNumber + 1}.{" "}
-                    {dummyQuestions[currentNumber].question}
-                  </div>
-                  <div className="space-y-2">
-                    {dummyQuestions[currentNumber].options.map((opt, idx) => (
-                      <label
-                        key={idx}
-                        className={`block px-4 py-2 rounded border cursor-pointer ${
-                          answers[currentNumber] === idx
-                            ? "bg-blue-100 border-blue-500"
-                            : "bg-gray-50 border-gray-200"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`soal-${currentNumber}`}
-                          className="mr-2"
-                          checked={answers[currentNumber] === idx}
-                          onChange={() => handleAnswer(idx)}
-                        />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                  {/* Tombol ragu-ragu */}
-                  <button
-                    className={`mt-4 px-4 py-2 rounded text-sm font-semibold border ${
-                      doubts[currentNumber]
-                        ? "bg-yellow-400 text-white border-yellow-400"
-                        : "bg-white text-yellow-600 border-yellow-400"
-                    }`}
-                    onClick={() => toggleDoubt(currentNumber)}
-                  >
-                    {doubts[currentNumber]
-                      ? "Batalkan Ragu-ragu"
-                      : "Tandai Ragu-ragu"}
-                  </button>
+                <div className="mb-4 text-lg font-medium">
+                  {currentNumber + 1}. {dummyQuestions[currentNumber].question}
                 </div>
-                {/* Navigasi */}
+                <div className="space-y-2">
+                  {dummyQuestions[currentNumber].options.map((opt, idx) => (
+                    <label
+                      key={idx}
+                      className={`block px-4 py-2 rounded border cursor-pointer ${
+                        answers[currentNumber] === idx
+                          ? "bg-blue-100 border-blue-500"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`soal-${currentNumber}`}
+                        className="mr-2"
+                        checked={answers[currentNumber] === idx}
+                        onChange={() => handleAnswer(idx)}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className={`mt-4 px-4 py-2 rounded text-sm font-semibold border ${
+                    doubts[currentNumber]
+                      ? "bg-yellow-400 text-white border-yellow-400"
+                      : "bg-white text-yellow-600 border-yellow-400"
+                  }`}
+                  onClick={() => toggleDoubt(currentNumber)}
+                >
+                  {doubts[currentNumber]
+                    ? "Batalkan Ragu-ragu"
+                    : "Tandai Ragu-ragu"}
+                </button>
                 <div className="flex justify-between mt-6">
                   <button
                     className="px-4 py-2 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
@@ -440,7 +376,6 @@ const TryoutListContent = () => {
                 </div>
               </>
             ) : (
-              // Hasil Ujian
               <div className="text-center py-8">
                 <div className="text-2xl font-bold mb-4 text-green-600">
                   Ujian Selesai!
@@ -463,6 +398,8 @@ const TryoutListContent = () => {
                     setShowResult(false);
                     setCurrentNumber(0);
                     setAnswers(Array(dummyQuestions.length).fill(null));
+                    setDoubts(Array(dummyQuestions.length).fill(false));
+                    onBack();
                   }}
                 >
                   Tutup
@@ -470,77 +407,123 @@ const TryoutListContent = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Modal konfirmasi keluar fullscreen */}
-      {showExitModal && !showResult && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-[99999] flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 shadow-lg max-w-sm w-full text-center">
-            <div className="text-lg font-semibold mb-4 text-red-600">
-              Anda keluar dari mode fullscreen!
-            </div>
-            <div className="mb-6 text-gray-700">
-              Untuk melanjutkan ujian, silakan kembali ke mode fullscreen.
-              <br />
-              Atau akhiri ujian jika ingin keluar.
-            </div>
-            <div className="flex gap-4 justify-center">
-              <button
-                className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
-                onClick={() => {
-                  setShowExitModal(false);
-                  openFullscreen(document.querySelector(".fixed.inset-0"));
-                }}
+          {/* Kalkulator */}
+          {showCalculator && (
+            <div
+              className="absolute inset-0 bg-transparent z-[99999]"
+              onClick={() => setShowCalculator(false)}
+            >
+              <div
+                style={{ left: calcPos.x, top: calcPos.y, width: calcSize }}
+                className="absolute bg-gray-900 rounded-2xl p-4 shadow-xl cursor-move"
+                onMouseDown={handleMouseDown}
+                onClick={(e) => e.stopPropagation()}
               >
-                Kembali ke Fullscreen
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-red-600 text-white font-semibold"
-                onClick={() => {
-                  setShowExitModal(false);
-                  setSelectedTryOut(null);
-                  setShowResult(false);
-                  setCurrentNumber(0);
-                  setAnswers(Array(dummyQuestions.length).fill(null));
-                }}
-              >
-                Akhiri Ujian
-              </button>
+                <div className="bg-black text-green-400 text-xl p-3 rounded mb-4 text-right min-h-[50px] font-mono">
+                  {input || "0"}
+                </div>
+                {buttons.map((row, i) => (
+                  <div key={i} className="grid grid-cols-4 gap-2 mb-2">
+                    {row.map((btn) => (
+                      <button
+                        key={btn}
+                        onClick={() => handlePress(btn)}
+                        className={`p-3 rounded font-bold text-white ${
+                          btn === "="
+                            ? "bg-green-600"
+                            : btn === "C"
+                            ? "bg-red-600"
+                            : btn === "⌫"
+                            ? "bg-orange-500"
+                            : "bg-gray-700 hover:bg-gray-600"
+                        }`}
+                      >
+                        {btn}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                {/* Resize handle */}
+                <div
+                  data-resize
+                  onMouseDown={handleMouseDown}
+                  className="absolute bottom-2 right-2 w-4 h-4 bg-gray-500 cursor-se-resize rounded"
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Modal peringatan ragu-ragu */}
-      {showDoubtWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-[99999999] flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 shadow-lg max-w-sm w-full text-center">
-            <div className="text-lg font-semibold mb-4 text-yellow-600">
-              Masih ada jawaban yang ditandai ragu-ragu!
+          {/* Modal keluar fullscreen */}
+          {showExitModal && !showResult && (
+            <div className="absolute inset-0 bg-black bg-opacity-60 z-[99999] flex items-center justify-center">
+              <div className="bg-white rounded-xl p-6 shadow-lg max-w-sm w-full text-center">
+                <div className="text-lg font-semibold mb-4 text-red-600">
+                  Anda keluar dari mode fullscreen!
+                </div>
+                <div className="mb-6 text-gray-700">
+                  Untuk melanjutkan ujian, silakan kembali ke fullscreen atau
+                  akhiri ujian.
+                </div>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
+                    onClick={() => {
+                      setShowExitModal(false);
+                      openFullscreen(document.querySelector(".fixed.inset-0"));
+                    }}
+                  >
+                    Kembali ke Fullscreen
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded bg-red-600 text-white font-semibold"
+                    onClick={() => {
+                      setShowExitModal(false);
+                      setSelectedTryOut(null);
+                      setShowResult(false);
+                      setCurrentNumber(0);
+                      setAnswers(Array(dummyQuestions.length).fill(null));
+                      setDoubts(Array(dummyQuestions.length).fill(false));
+                      onBack();
+                    }}
+                  >
+                    Akhiri Ujian
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="mb-6 text-gray-700">
-              Apakah Anda yakin ingin menyelesaikan ujian?
+          )}
+
+          {/* Modal peringatan ragu-ragu */}
+          {showDoubtWarning && (
+            <div className="absolute inset-0 bg-black bg-opacity-60 z-[1000000] flex items-center justify-center">
+              <div className="bg-white rounded-xl p-6 shadow-lg max-w-sm w-full text-center">
+                <div className="text-lg font-semibold mb-4 text-yellow-600">
+                  Masih ada jawaban yang ditandai ragu-ragu!
+                </div>
+                <div className="mb-6 text-gray-700">
+                  Apakah Anda yakin ingin menyelesaikan ujian?
+                </div>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    className="px-4 py-2 rounded bg-green-600 text-white font-semibold"
+                    onClick={() => {
+                      setShowDoubtWarning(false);
+                      setShowResult(true);
+                    }}
+                  >
+                    Ya, Selesaikan
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded bg-gray-300 text-gray-800 font-semibold"
+                    onClick={() => setShowDoubtWarning(false)}
+                  >
+                    Kembali ke Ujian
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-4 justify-center">
-              <button
-                className="px-4 py-2 rounded bg-green-600 text-white font-semibold"
-                onClick={() => {
-                  setShowDoubtWarning(false);
-                  setShowResult(true);
-                  //closeFullscreen();
-                }}
-              >
-                Ya, Selesaikan
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-gray-300 text-gray-800 font-semibold"
-                onClick={() => setShowDoubtWarning(false)}
-              >
-                Kembali ke Ujian
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

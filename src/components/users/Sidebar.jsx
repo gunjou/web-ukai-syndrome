@@ -80,7 +80,7 @@ const Sidebar = () => {
               }
             >
               <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
-              <span>Soal TO</span>
+              <span>TryOut</span>
             </NavLink>
           </li>
           <li>
