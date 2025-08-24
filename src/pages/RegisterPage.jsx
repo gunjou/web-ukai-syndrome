@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import Api from "../utils/Api";
-import ukai from "../assets/loginRegister/bg_ukai_new.svg";
+import ukai from "../assets/logo_putih.png";
 import ukaibawah from "../assets/loginRegister/bg_samping_login.png";
 
 const RegisterPage = () => {
@@ -50,7 +50,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-l from-[#a11d1d] to-[#531d1d] px-4 py-8">
+    <div className="flex h-screen bg-gradient-to-l from-[#a11d1d] to-[#531d1d] px-4 py-8">
       {/* Kiri: Form Registrasi */}
       <div className="flex items-center justify-center w-full md:w-1/2">
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md">
@@ -152,8 +152,8 @@ const RegisterPage = () => {
 
       {/* Kanan: Gambar */}
       <div className="hidden md:flex flex-col justify-between items-end w-1/2 pl-8">
-        <img src={ukai} alt="Ukai atas" className="w-[600px] mb-2" />
-        <img src={ukaibawah} alt="Ukai bawah" className="w-[600px]" />
+        <img src={ukai} alt="Ukai atas" className="px-12 mb-2" />
+        <img src={ukaibawah} alt="Ukai bawah" className="px-12" />
       </div>
     </div>
   );
