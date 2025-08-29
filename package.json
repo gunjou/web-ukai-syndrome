@@ -27,6 +27,7 @@
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "tw-elements-react": "^1.0.0-alpha-end",
+    "video.js": "^8.23.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

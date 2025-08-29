@@ -12,14 +12,11 @@ const Header = () => {
   const navItems = [
     { name: "Peserta", href: "/peserta" },
     { name: "Peserta Kelas", href: "/peserta/peserta-kelas" },
-
+    { name: "Peserta Batch", href: "/batch/peserta-batch" },
+    { name: "Batch", href: "/batch" },
+    { name: "Kelas", href: "/kelas" },
     { name: "Mentor", href: "/mentor" },
     { name: "Mentor Kelas", href: "/mentor/mentor-kelas" },
-
-    { name: "Batch", href: "/batch" },
-    { name: "Peserta Batch", href: "/batch/peserta-batch" },
-
-    { name: "Kelas", href: "/kelas" },
     { name: "Modul", href: "/modul" },
     { name: "Materi", href: "/materi" },
     { name: "Laporan", href: "/laporan" },
