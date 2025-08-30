@@ -39,7 +39,10 @@ const Modul = () => {
   };
 
   return (
-    <section className="modul py-16 bg-white max-h-screen rounded-b-[30px] text-center px-4 font-poppins">
+    <section
+      id="modul"
+      className="modul py-16 bg-white max-h-screen rounded-b-[30px] text-center px-4 font-poppins"
+    >
       {/* //<div className="bg-yellow-400 w-full h-[150px] rounded-b-[30px] z-0"></div> */}
       <div className="bg-biru-gelap relative rounded-[30px] px-4 py-8 mx-6 shadow-md sticky z-30 h-auto">
         {/* Floating Title */}

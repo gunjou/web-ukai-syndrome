@@ -25,7 +25,7 @@ const About = () => {
           </p>
           <div className="flex gap-6 mt-6 text-xl">
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/syndrome_ukai/"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -56,29 +56,40 @@ const About = () => {
         </div>
 
         {/* Kolom Tengah */}
+        {/* Kolom Tengah */}
         <div>
           <h2 className="text-2xl font-semibold text-white mb-2">Layanan</h2>
-          <p className="text-sm text-white mb-2">Layanan 1</p>
-          <p className="text-sm text-white mb-2">Layanan 2</p>
-          <p className="text-sm text-white mb-2">Layanan 3</p>
-          <p className="text-sm text-white mb-2">Layanan 4</p>
+          <a
+            href="#capaian"
+            className="text-sm text-white mb-2 block cursor-pointer"
+          >
+            Capaian
+          </a>
+          <a
+            href="#mentor"
+            className="text-sm text-white mb-2 block cursor-pointer"
+          >
+            Mentor
+          </a>
+          <a
+            href="#modul"
+            className="text-sm text-white mb-2 block cursor-pointer"
+          >
+            Modul
+          </a>
         </div>
+
         {/* Kolom Kanan */}
-        <div className="grid grid-cols-2 gap-6 text-sm text-white">
-          <div>
-            <p className="mb-2">Blog</p>
-            <p className="mb-2">Reward</p>
-            <p className="mb-2">Showcase</p>
-          </div>
-          <div>
+        <div className="flex justify-end">
+          <div className="text-sm text-white">
             <p className="mb-2 font-semibold">Hubungi Kami</p>
             <div className="flex items-center gap-2">
               <FaEnvelope className="text-white" />
-              <p className="text-sm">disinemail </p>
+              <p className="text-sm">admin@ukaisyndrome.id</p>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <FaPhoneAlt className="text-white" />
-              <p className="text-sm">disinihp</p>
+              <p className="text-sm">+628213007505</p>
             </div>
           </div>
         </div>
