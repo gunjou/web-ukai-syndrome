@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
+import thumbnailDefault from "../../assets/thumnail_sementara.jpg";
 
 const VideoListContent = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -22,7 +23,7 @@ const VideoListContent = () => {
 
   // Helper function to check if a comment can be edited
   const canEditComment = (createdAt) => {
-    const timeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const timeLimit = 5 * 60 * 1000; // 5 minutes
     const currentTime = Date.now();
     return currentTime - new Date(createdAt).getTime() <= timeLimit;
   };
@@ -73,11 +74,7 @@ const VideoListContent = () => {
     commentRefs.current = {};
   }, [comments]);
 
-  const getEmbedUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
-  };
-
+  // Thumbnail generator (fallback ke placeholder kalau bukan gdrive)
   const getThumbnailUrl = (url) => {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     return match
@@ -308,14 +305,17 @@ const VideoListContent = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Video Player & Komentar */}
           <div className="flex-1 bg-white shadow rounded-lg p-4">
-            <div className="aspect-video w-full mb-4 rounded overflow-hidden">
-              <iframe
-                title={selectedVideo.judul}
-                src={getEmbedUrl(selectedVideo.url_file)}
-                className="w-full h-full border-none"
-                allow="autoplay"
-                sandbox="allow-same-origin allow-scripts allow-popups"
-              />
+            <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black flex items-center justify-center">
+              <video
+                key={selectedVideo.id_materi}
+                controls
+                controlsList="nodownload"
+                disablePictureInPicture
+                className="w-full h-full"
+                src={selectedVideo.url_file}
+              >
+                Browser Anda tidak mendukung pemutar video.
+              </video>
             </div>
             <h2 className="text-xl font-semibold mb-2 capitalize">
               {selectedVideo.judul}
@@ -378,13 +378,11 @@ const VideoListContent = () => {
                   }`}
                 >
                   <img
-                    src={getThumbnailUrl(video.url_file)}
-                    onError={(e) =>
-                      (e.target.src = "https://via.placeholder.com/150")
-                    }
+                    src={thumbnailDefault}
                     alt={video.judul}
                     className="w-28 h-16 object-cover rounded"
                   />
+
                   <div className="flex-1">
                     <p className="font-medium text-gray-800 truncate capitalize">
                       {video.judul}
@@ -423,13 +421,11 @@ const VideoListContent = () => {
               className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
               <img
-                src={getThumbnailUrl(video.url_file)}
-                onError={(e) =>
-                  (e.target.src = "https://via.placeholder.com/150")
-                }
+                src={thumbnailDefault}
                 alt={video.judul}
-                className="w-28 h-22 object-cover rounded"
+                className="w-28 h-16 object-cover rounded"
               />
+
               <div className="flex flex-col p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
                   {video.judul}
