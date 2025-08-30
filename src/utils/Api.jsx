@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const Api = axios.create({
-  baseURL: "https://api.ukaisyndrome.site", // Ganti ke baseURL API production
+  baseURL: process.env.REACT_APP_API_URL, // Ganti ke baseURL API production
   // baseURL: "http://127.0.0.1:5000",
   headers: { "Content-Type": "application/json" },
 });
