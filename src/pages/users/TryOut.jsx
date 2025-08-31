@@ -1,12 +1,11 @@
-// src/pages/users/TryOut.jsx
 import React, { useState } from "react";
-import { FiBookOpen } from "react-icons/fi"; // ✅ icon
+import { FiBookOpen } from "react-icons/fi";
 import TryoutListContent from "./TryOutListContent";
 
 const dummyTryouts = [
-  { id: 1, judul: "Tryout Matematika" },
-  { id: 2, judul: "Tryout Bahasa Indonesia" },
-  { id: 3, judul: "Tryout IPA" },
+  { id: 1, judul: "Tryout 1 (Tester)" },
+  { id: 2, judul: "Tryout 2 (Tester)" },
+  { id: 3, judul: "Tryout 3 (Tester)" },
 ];
 
 const Tryout = () => {
