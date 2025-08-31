@@ -41,31 +41,31 @@ import UserBatch from "./pages/admin/UserBatch.jsx";
 import MentorJs from "./Mentor.js";
 
 function App() {
-  useEffect(() => {
-    // Disable klik kanan
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
+  // useEffect(() => {
+  //   // Disable klik kanan
+  //   const handleContextMenu = (e) => e.preventDefault();
+  //   document.addEventListener("contextmenu", handleContextMenu);
 
-    // Disable shortcut tertentu
-    const handleKeyDown = (e) => {
-      if (
-        e.key === "F12" || // Inspect
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
-        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
-        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
-        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
-        (e.ctrlKey && (e.key === "X" || e.key === "x"))
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
+  //   // Disable shortcut tertentu
+  //   const handleKeyDown = (e) => {
+  //     if (
+  //       e.key === "F12" || // Inspect
+  //       (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
+  //       (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
+  //       (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
+  //       (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
+  //       (e.ctrlKey && (e.key === "X" || e.key === "x"))
+  //     ) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   document.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", handleContextMenu);
+  //     document.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, []);
 
   return (
     <Router>

@@ -39,6 +39,15 @@ Api.interceptors.response.use(
           window.location.replace("/login");
         }
       }
+
+      if (message === "Session invalid or expired") {
+        if (!isLogoutTriggered) {
+          isLogoutTriggered = true; // Set flag agar tidak berulang
+          alert("Sesi Anda telah berakhir. Silakan login ulang.");
+          localStorage.clear();
+          window.location.replace("/login");
+        }
+      }
     }
     return Promise.reject(error);
   }

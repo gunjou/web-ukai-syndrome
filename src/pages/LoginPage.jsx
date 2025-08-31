@@ -15,7 +15,7 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      const response = await Api.post("/auth/login", {
+      const response = await Api.post("/auth/login/web", {
         email,
         password,
       });
