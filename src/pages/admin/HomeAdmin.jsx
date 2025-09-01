@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import Api from "../../utils/Api"; // Pastikan path ini benar
 import logo from "../../assets/logo_syndrome_kuning.png";
-import homepage_img from "../../assets/hompage_img.png";
+import homepage_img from "../../assets/dokter_admin.png";
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
 
