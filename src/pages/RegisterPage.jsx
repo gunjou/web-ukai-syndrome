@@ -162,7 +162,6 @@ const RegisterPage = () => {
                 />
               </div>
 
-              {/* ✅ Tambahan No HP */}
               <div>
                 <label className="block text-sm font-medium text-gray-600">
                   Nomor HP
