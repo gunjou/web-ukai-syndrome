@@ -5,7 +5,6 @@ import Modul from "../components/Modul";
 import Features from "../components/Features";
 import Footer from "../components/Footer";
 import About from "../components/About";
-import Herocopy from "../components/Herocopy";
 
 const LandingPage = () => {
   return (

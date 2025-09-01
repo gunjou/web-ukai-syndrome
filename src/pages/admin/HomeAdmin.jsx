@@ -37,9 +37,34 @@ const HomeAdmin = () => {
       icon: <FaUsers className="text-yellow-500 text-sm" />,
     },
     {
-      label: "SOAL",
-      link: "/soal",
-      icon: <FaQuestionCircle className="text-yellow-500 text-sm" />,
+      label: "PESERTA KELAS",
+      link: "/peserta/peserta-kelas",
+      icon: <FaUsers className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "PESERTA BATCH",
+      link: "/batch/peserta-batch",
+      icon: <FaUsers className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "BATCH",
+      link: "/batch",
+      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "KELAS",
+      link: "/kelas",
+      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+    },
+    // {
+    //   label: "SOAL",
+    //   link: "/soal",
+    //   icon: <FaQuestionCircle className="text-yellow-500 text-sm" />,
+    // },
+    {
+      label: "MODUL",
+      link: "/modul",
+      icon: <FaFileAlt className="text-yellow-500 text-sm" />,
     },
     {
       label: "MATERI",
@@ -47,18 +72,13 @@ const HomeAdmin = () => {
       icon: <FaFileAlt className="text-yellow-500 text-sm" />,
     },
     {
-      label: "VIDEO",
-      link: "/video",
-      icon: <FaVideo className="text-yellow-500 text-sm" />,
-    },
-    {
-      label: "PAKET",
-      link: "/paket",
+      label: "MENTOR",
+      link: "/mentor",
       icon: <FaClipboardList className="text-yellow-500 text-sm" />,
     },
     {
-      label: "PENDAFTARAN",
-      link: "/pendaftaran",
+      label: "MENTOR KELAS",
+      link: "/mentor/mentor-kelas",
       icon: <FaClipboardList className="text-yellow-500 text-sm" />,
     },
     {
@@ -119,7 +139,7 @@ const HomeAdmin = () => {
             terbaik dan ter-murah
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-10 py-4 sticky z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-10 py-4 sticky z-10">
             {menus.map((item, idx) => (
               <div key={idx} className="relative">
                 <Link to={item.link || "#"}>
@@ -128,7 +148,7 @@ const HomeAdmin = () => {
                     className="flex w-full h-14 pr-8 rounded-lg overflow-hidden shadow-md bg-[#f9f9f9] hover:brightness-95 transition cursor-pointer"
                   >
                     {/* Left Icon */}
-                    <div className="lg:w-[30%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
+                    <div className="lg:w-[40%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
                       <div className="bg-white rounded-full p-3 mx-1.5">
                         {item.icon}
                       </div>

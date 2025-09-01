@@ -1,7 +1,7 @@
 // src/pages/users/HasilTO.js
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import imgDev from "../../assets/dokter.png"; // sesuaikan path gambarnya
+import imgDev from "../../assets/coba.png"; // sesuaikan path gambarnya
 
 const HasilTO = () => {
   const navigate = useNavigate();

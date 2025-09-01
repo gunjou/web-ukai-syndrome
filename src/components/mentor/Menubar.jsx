@@ -56,9 +56,9 @@ const MenuBar = () => {
   return (
     <div className="bg-white text-white flex justify-between items-center p-4 sticky top-0 z-10">
       {/* Kiri: Nama Paket */}
-      <div className="text-base font-normal text-white bg-yellow-500 rounded-2xl px-4 py-1">
+      {/* <div className="text-base font-normal text-white bg-yellow-500 rounded-2xl px-4 py-1">
         {namaPaket}
-      </div>
+      </div> */}
 
       {/* Tengah: Search */}
       <div className="flex-1 flex justify-center">

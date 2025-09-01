@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
+import thumbnailDefault from "../../assets/thumnail_sementara.jpg";
 
 const VideoListContent = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -20,9 +21,9 @@ const VideoListContent = () => {
   const [openReplies, setOpenReplies] = useState({});
   const commentRefs = useRef({});
 
-  // Helper function to check if a comment can be edited
+  // Cek apakah komentar masih bisa di-edit (<= 5 menit)
   const canEditComment = (createdAt) => {
-    const timeLimit = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const timeLimit = 5 * 60 * 1000;
     const currentTime = Date.now();
     return currentTime - new Date(createdAt).getTime() <= timeLimit;
   };
@@ -72,18 +73,6 @@ const VideoListContent = () => {
   useEffect(() => {
     commentRefs.current = {};
   }, [comments]);
-
-  const getEmbedUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
-  };
-
-  const getThumbnailUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return match
-      ? `https://drive.google.com/thumbnail?id=${match[1]}`
-      : "https://via.placeholder.com/150";
-  };
 
   const fetchKomentar = async (id_materi) => {
     try {
@@ -273,7 +262,6 @@ const VideoListContent = () => {
         </form>
       )}
 
-      {/* Toggle replies */}
       {Array.isArray(comment.replies) && comment.replies.length > 0 && (
         <div className="ml-1 mt-2">
           <button
@@ -308,27 +296,30 @@ const VideoListContent = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Video Player & Komentar */}
           <div className="flex-1 bg-white shadow rounded-lg p-4">
-            <div className="aspect-video w-full mb-4 rounded overflow-hidden">
-              <iframe
-                title={selectedVideo.judul}
-                src={getEmbedUrl(selectedVideo.url_file)}
-                className="w-full h-full border-none"
-                allow="autoplay"
-                sandbox="allow-same-origin allow-scripts allow-popups"
-              />
+            <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black flex items-center justify-center">
+              <video
+                key={selectedVideo.id_materi}
+                controls
+                controlsList="nodownload"
+                disablePictureInPicture
+                className="w-full h-full"
+                src={selectedVideo.url_file}
+              >
+                Browser Anda tidak mendukung pemutar video.
+              </video>
             </div>
             <h2 className="text-xl font-semibold mb-2 capitalize">
               {selectedVideo.judul}
             </h2>
             <p>{selectedVideo.des}</p>
 
+            {/* Komentar */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-1">Komentar</h3>
               <p className="text-sm text-gray-500 mb-3">
                 💬 {getTotalKomentar()} Komentar
               </p>
 
-              {/* Form komentar utama */}
               <form onSubmit={handleAddComment} className="mb-4">
                 <textarea
                   className="w-full border rounded p-2 focus:outline-none focus:ring"
@@ -349,7 +340,6 @@ const VideoListContent = () => {
                 </button>
               </form>
 
-              {/* Daftar komentar */}
               {comments.length === 0 ? (
                 <p className="text-gray-500">Belum ada komentar.</p>
               ) : (
@@ -378,13 +368,11 @@ const VideoListContent = () => {
                   }`}
                 >
                   <img
-                    src={getThumbnailUrl(video.url_file)}
-                    onError={(e) =>
-                      (e.target.src = "https://via.placeholder.com/150")
-                    }
+                    src={thumbnailDefault}
                     alt={video.judul}
                     className="w-28 h-16 object-cover rounded"
                   />
+
                   <div className="flex-1">
                     <p className="font-medium text-gray-800 truncate capitalize">
                       {video.judul}
@@ -423,13 +411,11 @@ const VideoListContent = () => {
               className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
               <img
-                src={getThumbnailUrl(video.url_file)}
-                onError={(e) =>
-                  (e.target.src = "https://via.placeholder.com/150")
-                }
+                src={thumbnailDefault}
                 alt={video.judul}
-                className="w-28 h-22 object-cover rounded"
+                className="w-28 h-16 object-cover rounded"
               />
+
               <div className="flex flex-col p-4 overflow-hidden">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
                   {video.judul}
