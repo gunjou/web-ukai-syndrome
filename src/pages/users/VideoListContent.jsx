@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
-import thumbnailDefault from "../../assets/thumnail_sementara.jpg";
+import thumbnailDefault from "../../assets/logo-1.svg";
 
 const VideoListContent = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -305,7 +305,8 @@ const VideoListContent = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Video Player & Komentar */}
           <div className="flex-1 bg-white shadow rounded-lg p-4">
-            <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black flex items-center justify-center">
+            {/* Video Player & Watermark */}
+            <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black relative">
               <video
                 key={selectedVideo.id_materi}
                 controls
@@ -316,7 +317,24 @@ const VideoListContent = () => {
               >
                 Browser Anda tidak mendukung pemutar video.
               </video>
+
+              {/* Watermark overlay */}
+              <div
+                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none select-none capitalize"
+                style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
+              >
+                {Array.from({ length: 50 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="text-white font-bold select-none m-6 whitespace-nowrap"
+                    style={{ fontSize: "2rem" }}
+                  >
+                    {storedUser?.nama || "User"}
+                  </span>
+                ))}
+              </div>
             </div>
+
             <h2 className="text-xl font-semibold mb-2 capitalize">
               {selectedVideo.judul}
             </h2>
@@ -380,7 +398,7 @@ const VideoListContent = () => {
                   <img
                     src={thumbnailDefault}
                     alt={video.judul}
-                    className="w-28 h-16 object-cover rounded"
+                    className="w-28 h-16 object-contain rounded"
                   />
 
                   <div className="flex-1">
@@ -423,7 +441,7 @@ const VideoListContent = () => {
               <img
                 src={thumbnailDefault}
                 alt={video.judul}
-                className="w-28 h-16 object-cover rounded"
+                className="w-28 h-16 object-contain rounded"
               />
 
               <div className="flex flex-col p-4 overflow-hidden">

@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import {
   FaUsers,
-  FaQuestionCircle,
-  FaVideo,
-  FaFileAlt,
+  FaChalkboardTeacher,
+  FaLayerGroup,
   FaClipboardList,
+  FaFileAlt,
+  FaBook,
+  FaUserTie,
+  FaRegChartBar,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
-import Api from "../../utils/Api"; // Pastikan path ini benar
+import Api from "../../utils/Api";
 import logo from "../../assets/logo_syndrome_kuning.png";
 import homepage_img from "../../assets/dokter_admin.png";
 import garisKanan from "../../assets/garis-kanan.png";
@@ -49,42 +52,37 @@ const HomeAdmin = () => {
     {
       label: "BATCH",
       link: "/batch",
-      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+      icon: <FaLayerGroup className="text-yellow-500 text-sm" />, // icon tumpukan
     },
     {
       label: "KELAS",
       link: "/kelas",
-      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+      icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // icon papan
     },
-    // {
-    //   label: "SOAL",
-    //   link: "/soal",
-    //   icon: <FaQuestionCircle className="text-yellow-500 text-sm" />,
-    // },
     {
       label: "MODUL",
       link: "/modul",
-      icon: <FaFileAlt className="text-yellow-500 text-sm" />,
+      icon: <FaBook className="text-yellow-500 text-sm" />, // icon buku
     },
     {
       label: "MATERI",
       link: "/materi",
-      icon: <FaFileAlt className="text-yellow-500 text-sm" />,
+      icon: <FaFileAlt className="text-yellow-500 text-sm" />, // icon file dokumen
     },
     {
       label: "MENTOR",
       link: "/mentor",
-      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+      icon: <FaUserTie className="text-yellow-500 text-sm" />, // icon orang berdasi
     },
     {
       label: "MENTOR KELAS",
       link: "/mentor/mentor-kelas",
-      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+      icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // sama kayak kelas
     },
     {
       label: "LAPORAN",
       link: "/laporan",
-      icon: <FaClipboardList className="text-yellow-500 text-sm" />,
+      icon: <FaRegChartBar className="text-yellow-500 text-sm" />, // icon laporan chart
     },
   ];
 
@@ -105,11 +103,6 @@ const HomeAdmin = () => {
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
         alt="garis kanan"
       />
-      {/* <img
-        src={garisKanan}
-        className="absolute bottom-0 left-0 pt-[90px] h-full w-auto rotate-180 transform opacity-70"
-        alt="garis kiri"
-      /> */}
 
       {/* Header */}
       <div className="w-full flex items-center px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
