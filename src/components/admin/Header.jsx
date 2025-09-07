@@ -11,15 +11,16 @@ const Header = () => {
 
   const navItems = [
     { name: "Peserta", href: "/peserta" },
-    { name: "Peserta Kelas", href: "/peserta/peserta-kelas" },
-    { name: "Peserta Batch", href: "/batch/peserta-batch" },
+    { name: "Mentor", href: "/mentor" },
     { name: "Batch", href: "/batch" },
     { name: "Kelas", href: "/kelas" },
-    { name: "Mentor", href: "/mentor" },
-    { name: "Mentor Kelas", href: "/mentor/mentor-kelas" },
     { name: "Modul", href: "/modul" },
     { name: "Materi", href: "/materi" },
+    { name: "Tryout", href: "/tryout" },
     { name: "Laporan", href: "/laporan" },
+    // { name: "Peserta Kelas", href: "/peserta/peserta-kelas" },
+    // { name: "Peserta Batch", href: "/batch/peserta-batch" },
+    // { name: "Mentor Kelas", href: "/mentor/mentor-kelas" },
   ];
 
   const isMenuActive = (item) => location.pathname === item.href;

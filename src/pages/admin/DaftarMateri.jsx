@@ -16,6 +16,7 @@ const DaftarMateri = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     judul: "",
@@ -26,8 +27,17 @@ const DaftarMateri = () => {
   });
 
   useEffect(() => {
-    fetchMateriData();
-    fetchModulOptions();
+    const fetchData = async () => {
+      try {
+        await fetchMateriData();
+        await fetchModulOptions();
+      } catch (err) {
+        console.error("Gagal fetch data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const fetchMateriData = async () => {
@@ -189,18 +199,25 @@ const DaftarMateri = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search"
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="text-xl font-bold sm:text-left w-full sm:w-auto">
-            Daftar Materi
-          </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search"
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">Daftar Materi</h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
@@ -210,7 +227,7 @@ const DaftarMateri = () => {
                   tipe_materi: "",
                   url_file: "",
                   id_modul: "",
-                  viewer_only: false, // Reset viewer_only saat menambahkan materi baru
+                  viewer_only: false,
                 });
               }}
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
@@ -220,27 +237,33 @@ const DaftarMateri = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[70vh]">
-          <table className="min-w-full bg-white">
-            <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-2 text-sm">Judul</th>
-                <th className="px-4 py-2 text-sm">Tipe</th>
-                <th className="px-4 py-2 text-sm">URL</th>
-                <th className="px-4 py-2 text-sm">Modul</th>
-                <th className="px-4 py-2 text-sm">Status</th>
-                <th className="px-4 py-2 text-sm">Edit</th>
-                <th className="px-4 py-2 text-sm">Hapus</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((materi, index) => (
-                <tr key={index} className="bg-gray-100">
-                  <td className="px-4 py-2 text-sm border">{materi.judul}</td>
-                  <td className="px-4 py-2 text-sm border">
-                    {materi.tipe_materi}
-                  </td>
-                  {/* <td className="px-4 py-2 text-sm border">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data materi...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto max-h-[70vh]">
+            <table className="min-w-full bg-white">
+              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-sm">Judul</th>
+                  <th className="px-4 py-2 text-sm">Tipe</th>
+                  <th className="px-4 py-2 text-sm">URL</th>
+                  <th className="px-4 py-2 text-sm">Modul</th>
+                  <th className="px-4 py-2 text-sm">Status</th>
+                  <th className="px-4 py-2 text-sm">Edit</th>
+                  <th className="px-4 py-2 text-sm">Hapus</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((materi, index) => (
+                  <tr key={index} className="bg-gray-100">
+                    <td className="px-4 py-2 text-sm border">{materi.judul}</td>
+                    <td className="px-4 py-2 text-sm border">
+                      {materi.tipe_materi}
+                    </td>
+                    {/* <td className="px-4 py-2 text-sm border">
                     <div className="flex justify-center gap-2">
                       <a
                         href={materi.url_file}
@@ -255,47 +278,50 @@ const DaftarMateri = () => {
                       </a>
                     </div>
                   </td> */}
-                  <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                    <div className="flex justify-center gap-2">
-                      <a
-                        href={materi.url_file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex justify-center bg-gray-200 pl-2 rounded-full items-center gap-2 
+                    <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+                      <div className="flex justify-center gap-2">
+                        <a
+                          href={materi.url_file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex justify-center bg-gray-200 pl-2 rounded-full items-center gap-2 
                         ${
                           materi.tipe_materi === "video"
                             ? "hover:bg-red-500 hover:text-white"
                             : "hover:bg-blue-500 hover:text-white"
                         }`}
-                      >
-                        Lihat
-                        <div
-                          className={`rounded-r-full px-2 py-2 ${
-                            materi.tipe_materi === "video"
-                              ? "bg-red-500"
-                              : "bg-blue-500"
-                          }`}
                         >
-                          {/* Kondisi untuk menentukan ikon berdasarkan tipe materi */}
-                          {materi.tipe_materi === "video" ? (
-                            <AiOutlinePlayCircle className="text-white" />
-                          ) : (
-                            <AiOutlineFile className="text-white" />
-                          )}
-                        </div>
-                      </a>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-sm border">
-                    {materi.judul_modul}
-                  </td>
-                  <td className="px-4 py-2 text-sm border flex justify-center">
-                    <select
-                      value={materi.visibility}
-                      onChange={(e) =>
-                        handleVisibilityChange(materi.id_materi, e.target.value)
-                      }
-                      className={`capitalize font-semibold rounded-md px-2 py-1
+                          Lihat
+                          <div
+                            className={`rounded-r-full px-2 py-2 ${
+                              materi.tipe_materi === "video"
+                                ? "bg-red-500"
+                                : "bg-blue-500"
+                            }`}
+                          >
+                            {/* Kondisi untuk menentukan ikon berdasarkan tipe materi */}
+                            {materi.tipe_materi === "video" ? (
+                              <AiOutlinePlayCircle className="text-white" />
+                            ) : (
+                              <AiOutlineFile className="text-white" />
+                            )}
+                          </div>
+                        </a>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-sm border">
+                      {materi.judul_modul}
+                    </td>
+                    <td className="px-4 py-2 text-sm border flex justify-center">
+                      <select
+                        value={materi.visibility}
+                        onChange={(e) =>
+                          handleVisibilityChange(
+                            materi.id_materi,
+                            e.target.value
+                          )
+                        }
+                        className={`capitalize font-semibold rounded-md px-2 py-1
       ${
         materi.visibility === "open"
           ? "text-green-600"
@@ -306,49 +332,50 @@ const DaftarMateri = () => {
           : "text-gray-600"
       }
     `}
-                    >
-                      <option className="text-green-600" value="open">
-                        Open
-                      </option>
-                      <option className="text-yellow-600" value="hold">
-                        Hold
-                      </option>
-                      <option className="text-red-600" value="close">
-                        Close
-                      </option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(materi)}
-                        className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
                       >
-                        Edit
-                        <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                          <LuPencil className="text-white" />
-                        </div>
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleDelete(materi.id_materi)}
-                        className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white items-center gap-2"
-                      >
-                        Hapus
-                        <div className="bg-red-500 rounded-r-full px-2 py-2">
-                          <AiOutlineClose className="text-white" />
-                        </div>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        <option className="text-green-600" value="open">
+                          Open
+                        </option>
+                        <option className="text-yellow-600" value="hold">
+                          Hold
+                        </option>
+                        <option className="text-red-600" value="close">
+                          Close
+                        </option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(materi)}
+                          className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
+                        >
+                          Edit
+                          <div className="bg-blue-500 rounded-r-full px-2 py-2">
+                            <LuPencil className="text-white" />
+                          </div>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleDelete(materi.id_materi)}
+                          className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white items-center gap-2"
+                        >
+                          Hapus
+                          <div className="bg-red-500 rounded-r-full px-2 py-2">
+                            <AiOutlineClose className="text-white" />
+                          </div>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {showModal && (

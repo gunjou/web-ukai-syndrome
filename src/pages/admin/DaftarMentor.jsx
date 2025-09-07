@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { MdClose } from "react-icons/md";
+import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import TambahMentorForm from "./modal/TambahMentorForm.jsx";
+import EditMentorForm from "./modal/EditMentorForm.jsx";
 
 const DaftarMentor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,61 +44,29 @@ const DaftarMentor = () => {
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = userData.filter((user) =>
-    user.nama.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const resetForm = () => {
-    setFormData({ nama: "", email: "", password: "" });
-    setShowModal(false);
-    setEditMode(false);
-    setSelectedId(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { nama, email, password } = formData;
-
-    if (!nama || !email || (!editMode && !password)) {
-      alert("Harap isi semua field yang diperlukan.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      if (editMode) {
-        const dataToSend = { nama, email };
-        if (password) dataToSend.password = password;
-        await Api.put(`/mentor/${selectedId}`, dataToSend);
-        alert("Data mentor berhasil diperbarui!");
-      } else {
-        await Api.post("/mentor", formData);
-        alert("Mentor berhasil ditambahkan!");
-      }
-      resetForm();
-      fetchMentorData();
-    } catch (error) {
-      console.error("Gagal menyimpan mentor:", error);
-      alert("Gagal menyimpan mentor. Silakan coba lagi.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const filteredData = useMemo(() => {
+    const k = searchTerm.toLowerCase();
+    return userData.filter((user) =>
+      [
+        user.nama,
+        user.email,
+        user.no_hp,
+        user.nama_batch,
+        user.nama_kelas,
+        user.nama_paket,
+      ].some((v) => (v ?? "").toLowerCase().includes(k))
+    );
+  }, [userData, searchTerm]);
 
   const handleEdit = (mentor) => {
-    setFormData({
-      nama: mentor.nama,
-      email: mentor.email,
-      password: "", // kosongkan password saat edit
-    });
-    setSelectedId(mentor.id_user);
-    setEditMode(true);
-    setShowModal(true);
+    setFormData({ mentor });
+    setEditModal(true);
+  };
+
+  // contoh dipanggil dari tabel
+  const handleEditClick = (mentor) => {
+    setSelectedMentor(mentor);
+    setEditModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -111,40 +83,53 @@ const DaftarMentor = () => {
 
   const renderTableRows = () =>
     filteredData.map((user, index) => (
-      <tr key={index} className="bg-gray-100">
-        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l capitalize">
+      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-200">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
+          {index + 1}
+        </td>
+        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border capitalize">
           {user.nama}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
           {user.email}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
-          {user.kode_pemulihan || "-"}
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
+          {user.no_hp || "-"}
         </td>
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleEdit(user)}
-              className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-            >
-              Edit
-              <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
+          {user.nama_kelas || "-"}
         </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
+          {user.nama_paket || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
+          {user.nama_batch || "-"}
+        </td>
+        {/* Kolom Aksi */}
+        <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
           <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleDelete(user.id_user)}
-              className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-            >
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
+            <div className="relative group">
+              <button
+                onClick={() => handleEditClick(user)}
+                className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Edit data
+              </span>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={() => handleDelete(user.id_user)}
+                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                <BsTrash3 className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Hapus data
+              </span>
+            </div>
           </div>
         </td>
       </tr>
@@ -164,23 +149,30 @@ const DaftarMentor = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search"
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="flex justify-center items-center text-xl font-bold sm:text-left w-full sm:w-auto">
-            Mentor Ukai Syndrome
-          </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search"
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">
+              Mentor Ukai Syndrome
+            </h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
-                setEditMode(false);
-                setFormData({ nama: "", email: "", password: "" });
               }}
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-2 py-1 rounded-xl transition shadow-md flex items-center gap-2"
             >
@@ -191,19 +183,23 @@ const DaftarMentor = () => {
         </div>
 
         {fetchingData ? (
-          <div className="text-center py-8">Memuat data mentor...</div>
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data mentor...</p>
+          </div>
         ) : (
           <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white">
-              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Nama</th>
-                  <th className="px-2 py-2 text-xs sm:text-sm">Email</th>
-                  <th className="px-2 py-2 text-xs sm:text-sm">
-                    Kode Pemulihan
-                  </th>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
+            <table className="min-w-full bg-white border">
+              <thead className="bg-gray-200 sticky top-0 z-10">
+                <tr className="text-xs sm:text-sm">
+                  <th className="px-2 py-2 border">No</th>
+                  <th className="px-4 py-2 border">Nama</th>
+                  <th className="px-2 py-2 border">Email</th>
+                  <th className="px-2 py-2 border">No HP</th>
+                  <th className="px-2 py-2 border">Kelas</th>
+                  <th className="px-2 py-2 border">Paket</th>
+                  <th className="px-2 py-2 border">Batch</th>
+                  <th className="px-4 py-2 border">Aksi</th>
                 </tr>
               </thead>
               <tbody>{renderTableRows()}</tbody>
@@ -215,76 +211,55 @@ const DaftarMentor = () => {
       {showModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
-          onClick={resetForm}
+          onClick={() => setShowModal(false)}
         >
           <div
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Tombol close */}
             <button
-              onClick={resetForm}
+              onClick={() => setShowModal(false)}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
-            <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Mentor" : "Tambah Mentor Baru"}
-            </h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama</label>
-                <input
-                  type="text"
-                  name="nama"
-                  value={formData.nama}
-                  onChange={handleChange}
-                  required
-                  placeholder="Nama Mentor"
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Email Mentor"
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required={!editMode}
-                  placeholder={
-                    editMode
-                      ? "Biarkan kosong jika tidak ingin diubah"
-                      : "Password"
-                  }
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none"
-                />
-              </div>
-              <div className="text-right">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isLoading ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+            <TambahMentorForm
+              showModal={showModal}
+              fetchMentorData={fetchMentorData}
+              onSuccess={() => {
+                fetchMentorData(); // refresh data mentor
+                // setShowModal(false); // tutup modal
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {editModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setEditModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <EditMentorForm
+              showModal={editModal}
+              initialData={selectedMentor}
+              fetchMentorData={fetchMentorData}
+              onSuccess={() => {
+                fetchMentorData(); // refresh data mentor
+                setEditModal(false); // tutup modal
+              }}
+            />
           </div>
         </div>
       )}

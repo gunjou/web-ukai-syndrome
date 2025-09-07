@@ -181,18 +181,25 @@ const DaftarBatch = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search"
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="text-xl font-bold sm:text-left w-full sm:w-auto">
-            Daftar Batch
-          </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search"
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">Daftar Batch</h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
@@ -203,7 +210,7 @@ const DaftarBatch = () => {
                   tanggal_selesai: "",
                 });
               }}
-              className="bg-yellow-500 hover:bg-yellow-700 text-white px-2 py-1 rounded-xl transition shadow-md flex items-center gap-2"
+              className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
             >
               <AiOutlinePlus size={18} />
               Tambah Batch
@@ -212,7 +219,10 @@ const DaftarBatch = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-8">Loading data...</div>
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data batch...</p>
+          </div>
         ) : (
           <div className="overflow-x-auto max-h-[70vh]">
             <table className="min-w-full bg-white">

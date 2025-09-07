@@ -9,6 +9,7 @@ import {
   FaUserTie,
   FaRegChartBar,
 } from "react-icons/fa";
+import { IoCreateSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 
 import Api from "../../utils/Api";
@@ -39,16 +40,16 @@ const HomeAdmin = () => {
       link: "/peserta",
       icon: <FaUsers className="text-yellow-500 text-sm" />,
     },
-    {
-      label: "PESERTA KELAS",
-      link: "/peserta/peserta-kelas",
-      icon: <FaUsers className="text-yellow-500 text-sm" />,
-    },
-    {
-      label: "PESERTA BATCH",
-      link: "/batch/peserta-batch",
-      icon: <FaUsers className="text-yellow-500 text-sm" />,
-    },
+    // {
+    //   label: "PESERTA KELAS",
+    //   link: "/peserta/peserta-kelas",
+    //   icon: <FaUsers className="text-yellow-500 text-sm" />,
+    // },
+    // {
+    //   label: "PESERTA BATCH",
+    //   link: "/batch/peserta-batch",
+    //   icon: <FaUsers className="text-yellow-500 text-sm" />,
+    // },
     {
       label: "BATCH",
       link: "/batch",
@@ -74,10 +75,15 @@ const HomeAdmin = () => {
       link: "/mentor",
       icon: <FaUserTie className="text-yellow-500 text-sm" />, // icon orang berdasi
     },
+    // {
+    //   label: "MENTOR KELAS",
+    //   link: "/mentor/mentor-kelas",
+    //   icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // sama kayak kelas
+    // },
     {
-      label: "MENTOR KELAS",
-      link: "/mentor/mentor-kelas",
-      icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // sama kayak kelas
+      label: "TRYOUT",
+      link: "/tryout",
+      icon: <IoCreateSharp className="text-yellow-500 text-sm" />, // icon laporan chart
     },
     {
       label: "LAPORAN",

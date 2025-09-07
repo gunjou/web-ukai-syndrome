@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Import components
 import Features from "./components/Features";
@@ -17,7 +19,8 @@ import VideoPage from "./pages/admin/VideoPage";
 import PaketPage from "./pages/admin/PaketPage.jsx";
 import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
 import LaporanPage from "./pages/admin/LaporanPage.jsx";
-import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
+import TryoutPage from "./pages/admin/TryoutPage.jsx";
+// import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
 import DaftarMentor from "./pages/admin/DaftarMentor.jsx";
 import DaftarKelas from "./pages/admin/DaftarKelas.jsx";
 import DaftarModul from "./pages/admin/DaftarModul.jsx";
@@ -35,7 +38,7 @@ import User from "./User"; // Import User component
 import Pembayaran from "./pages/users/Pembayaran.jsx";
 import DaftarBatch from "./pages/admin/DaftarBatch.jsx";
 import MentorKelas from "./pages/admin/MentorKelas.jsx";
-import UserBatch from "./pages/admin/UserBatch.jsx";
+// import UserBatch from "./pages/admin/UserBatch.jsx";
 
 // mentor
 import MentorJs from "./Mentor.js";
@@ -77,11 +80,11 @@ function App() {
         {/* Routes for admin dashboard */}
         <Route path="/admin-home" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
-        <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} />
+        {/* <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} /> */}
         <Route path="/mentor" element={<DaftarMentor />} />
         <Route path="/kelas" element={<DaftarKelas />} />
         <Route path="/batch" element={<DaftarBatch />} />
-        <Route path="/batch/peserta-batch" element={<UserBatch />} />
+        {/* <Route path="/batch/peserta-batch" element={<UserBatch />} /> */}
         <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
         <Route path="/modul" element={<DaftarModul />} />
         <Route path="/materi" element={<DaftarMateri />} />
@@ -91,6 +94,7 @@ function App() {
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
         <Route path="/laporan" element={<LaporanPage />} />
+        <Route path="/tryout" element={<TryoutPage />} />
         {/* Routes for user */}
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
@@ -98,6 +102,8 @@ function App() {
         <Route path="/dashboard/*" element={<User />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
       </Routes>
+      {/* Notifikasi Toast */}
+      <ToastContainer position="top-center" autoClose={3000} />
     </Router>
   );
 }

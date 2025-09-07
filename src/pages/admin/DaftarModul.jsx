@@ -13,6 +13,7 @@ const DaftarModul = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     judul: "",
@@ -24,8 +25,17 @@ const DaftarModul = () => {
   const [kelasOptions, setKelasOptions] = useState([]);
 
   useEffect(() => {
-    fetchModulData();
-    fetchKelasOptions();
+    const fetchData = async () => {
+      try {
+        await fetchModulData();
+        await fetchKelasOptions();
+      } catch (err) {
+        console.error("Gagal fetch data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const fetchModulData = async () => {
@@ -164,18 +174,25 @@ const DaftarModul = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search"
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="text-xl font-bold sm:text-left w-full sm:w-auto">
-            Daftar Modul
-          </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search"
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">Daftar Modul</h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
@@ -194,32 +211,38 @@ const DaftarModul = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[70vh]">
-          <table className="min-w-full bg-white">
-            <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-2 text-sm">Urutan</th>
-                <th className="px-4 py-2 text-sm capitalize">Judul</th>
-                <th className="px-4 py-2 text-sm capitalize">Deskripsi</th>
-                <th className="px-4 py-2 text-sm">Nama Kelas</th>
-                <th className="px-4 py-2 text-sm">Status</th>
-                <th className="px-4 py-2 text-sm">Edit</th>
-                <th className="px-4 py-2 text-sm">Hapus</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((modul, index) => (
-                <tr key={index} className="bg-gray-100">
-                  <td className="px-4 py-2 text-sm border">
-                    {modul.urutan_modul}
-                  </td>
-                  <td className="px-4 py-2 text-sm border">{modul.judul}</td>
-                  <td className="px-4 py-2 text-sm border">
-                    {modul.deskripsi}
-                  </td>
-                  <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
-                    <div
-                      className={`inline-block px-3 py-1 text-white rounded-full
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data modul...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto max-h-[70vh]">
+            <table className="min-w-full bg-white">
+              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-sm">Urutan</th>
+                  <th className="px-4 py-2 text-sm capitalize">Judul</th>
+                  <th className="px-4 py-2 text-sm capitalize">Deskripsi</th>
+                  <th className="px-4 py-2 text-sm">Nama Kelas</th>
+                  <th className="px-4 py-2 text-sm">Status</th>
+                  <th className="px-4 py-2 text-sm">Edit</th>
+                  <th className="px-4 py-2 text-sm">Hapus</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((modul, index) => (
+                  <tr key={index} className="bg-gray-100">
+                    <td className="px-4 py-2 text-sm border">
+                      {modul.urutan_modul}
+                    </td>
+                    <td className="px-4 py-2 text-sm border">{modul.judul}</td>
+                    <td className="px-4 py-2 text-sm border">
+                      {modul.deskripsi}
+                    </td>
+                    <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+                      <div
+                        className={`inline-block px-3 py-1 text-white rounded-full
               ${
                 modul.nama_kelas === "Premium"
                   ? "bg-[#CD7F32]"
@@ -231,17 +254,17 @@ const DaftarModul = () => {
                   ? "bg-blue-700"
                   : "bg-gray-300"
               }`}
-                    >
-                      {modul.nama_kelas}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-sm border flex justify-center">
-                    <select
-                      value={modul.visibility}
-                      onChange={(e) =>
-                        handleVisibilityChange(modul.id_modul, e.target.value)
-                      }
-                      className={`capitalize font-semibold rounded-md px-2 py-1
+                      >
+                        {modul.nama_kelas}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-sm border flex justify-center">
+                      <select
+                        value={modul.visibility}
+                        onChange={(e) =>
+                          handleVisibilityChange(modul.id_modul, e.target.value)
+                        }
+                        className={`capitalize font-semibold rounded-md px-2 py-1
       ${
         modul.visibility === "open"
           ? "text-green-600"
@@ -252,50 +275,51 @@ const DaftarModul = () => {
           : "text-gray-600"
       }
     `}
-                    >
-                      <option className="text-green-600" value="open">
-                        Open
-                      </option>
-                      <option className="text-yellow-600" value="hold">
-                        Hold
-                      </option>
-                      <option className="text-red-600" value="close">
-                        Close
-                      </option>
-                    </select>
-                  </td>
+                      >
+                        <option className="text-green-600" value="open">
+                          Open
+                        </option>
+                        <option className="text-yellow-600" value="hold">
+                          Hold
+                        </option>
+                        <option className="text-red-600" value="close">
+                          Close
+                        </option>
+                      </select>
+                    </td>
 
-                  <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(modul)}
-                        className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-                      >
-                        Edit
-                        <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                          <LuPencil className="text-white font-extrabold" />
-                        </div>
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleDelete(modul.id_modul)}
-                        className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-                      >
-                        Hapus
-                        <div className="bg-red-500 rounded-r-full px-2 py-2">
-                          <MdClose className="text-white font-extrabold" />
-                        </div>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(modul)}
+                          className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
+                        >
+                          Edit
+                          <div className="bg-blue-500 rounded-r-full px-2 py-2">
+                            <LuPencil className="text-white font-extrabold" />
+                          </div>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleDelete(modul.id_modul)}
+                          className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
+                        >
+                          Hapus
+                          <div className="bg-red-500 rounded-r-full px-2 py-2">
+                            <MdClose className="text-white font-extrabold" />
+                          </div>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

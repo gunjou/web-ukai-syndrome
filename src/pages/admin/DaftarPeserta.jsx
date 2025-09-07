@@ -1,28 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { MdClose } from "react-icons/md";
+import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
+import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
+import EditPesertaForm from "./modal/EditPesertaForm.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 
 const DaftarPeserta = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
-  const [formData, setFormData] = useState({
-    nama: "",
-    email: "",
-    password: "",
-  });
-  const [selectedId, setSelectedId] = useState(null);
+  // const [formData, setFormData] = useState({
+  //   nama: "",
+  //   email: "",
+  //   password: "",
+  // });
+  // const [selectedId, setSelectedId] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("single"); // tab aktif
+  const [bulkFile, setBulkFile] = useState(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const [uploadResult, setUploadResult] = useState(null);
+
+  // state untuk sort
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  const didFetch = useRef(false);
+
   useEffect(() => {
+    if (didFetch.current) return; // guard StrictMode (dev) agar hanya sekali
+    didFetch.current = true;
     fetchUsers();
   }, []);
 
@@ -30,8 +45,21 @@ const DaftarPeserta = () => {
     setIsLoading(true);
     setError("");
     try {
-      const response = await Api.get("/peserta");
-      setUserData(response.data);
+      const { data } = await Api.get("/peserta");
+
+      // SALIN dulu, baru sort (hindari mutasi)
+      const sorted = [...data].sort((a, b) =>
+        (a.nama ?? "").localeCompare(b.nama ?? "", "id", {
+          sensitivity: "base",
+        })
+      );
+
+      // (opsional) deduplicate berdasarkan id_user untuk amankan render
+      const deduped = Array.from(
+        new Map(sorted.map((u) => [u.id_user, u])).values()
+      );
+
+      setUserData(deduped);
     } catch (err) {
       setError("Gagal mengambil data peserta.");
       console.error(err);
@@ -40,15 +68,58 @@ const DaftarPeserta = () => {
     }
   };
 
+  // fungsi handle sort
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        // toggle asc <-> desc
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+  // 🔎 Search lebih luas (nama, email, hp, batch, kelas)
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = userData.filter((user) =>
-    user.nama.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    const k = searchTerm.toLowerCase();
+    return userData.filter((user) =>
+      [
+        user.nama,
+        user.email,
+        user.no_hp,
+        user.nama_batch,
+        user.nama_kelas,
+        user.nama_paket,
+      ].some((v) => (v ?? "").toLowerCase().includes(k))
+    );
+  }, [userData, searchTerm]);
+
+  // const filteredData = userData.filter((user) => {
+  //   const keyword = searchTerm.toLowerCase();
+  //   return (
+  //     user.nama?.toLowerCase().includes(keyword) ||
+  //     user.email?.toLowerCase().includes(keyword) ||
+  //     user.no_hp?.toLowerCase().includes(keyword) ||
+  //     user.nama_batch?.toLowerCase().includes(keyword) ||
+  //     user.nama_kelas?.toLowerCase().includes(keyword)
+  //   );
+  // });
+
+  // apply sort ke filteredData
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const valA = a[sortConfig.key] || "";
+    const valB = b[sortConfig.key] || "";
+    return sortConfig.direction === "asc"
+      ? valA.localeCompare(valB, "id", { sensitivity: "base" })
+      : valB.localeCompare(valA, "id", { sensitivity: "base" });
+  });
 
   const handleEdit = (user) => {
-    setFormData({ nama: user.nama, email: user.email, password: "" });
-    setSelectedId(user.id_user);
+    setEditData(user);
+    // setSelectedId(user.id_user);
     setEditMode(true);
     setShowModal(true);
   };
@@ -65,125 +136,112 @@ const DaftarPeserta = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const validateForm = () => {
-    const { nama, email, password } = formData;
-    if (!nama || !email || (!editMode && !password)) {
-      return "Harap isi semua field.";
-    }
-    return null;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationError = validateForm();
-    if (validationError) return alert(validationError);
-
-    setIsSubmitting(true);
+  const handleDownloadTemplate = async () => {
     try {
-      await Api.post("/peserta", formData);
-      alert("Peserta berhasil ditambahkan.");
-      setShowModal(false);
-      setFormData({ nama: "", email: "", password: "" });
-      fetchUsers();
-    } catch (error) {
-      console.error("Gagal menambahkan peserta:", error);
-      alert("Gagal menambahkan peserta.");
-    } finally {
-      setIsSubmitting(false);
+      const response = await Api.get("/peserta/template", {
+        responseType: "blob", // penting supaya dapat file
+      });
+
+      // buat link download manual
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "template_peserta.csv"); // nama file
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Gagal download template:", err);
+      alert("Gagal download template!");
     }
   };
 
-  const handleUpdate = async (e) => {
+  const handleBulkUpload = async (e) => {
     e.preventDefault();
-    const validationError = validateForm();
-    if (validationError) return alert(validationError);
+    if (!bulkFile) return;
 
     setIsSubmitting(true);
-    try {
-      const dataToSend = { ...formData };
-      if (!formData.password) delete dataToSend.password;
+    setUploadResult(null);
 
-      await Api.put(`/peserta/${selectedId}`, dataToSend);
-      alert("Peserta berhasil diperbarui.");
-      setShowModal(false);
-      setEditMode(false);
-      setFormData({ nama: "", email: "", password: "" });
+    const formData = new FormData();
+    formData.append("file", bulkFile);
+
+    try {
+      const response = await Api.post("/peserta/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Simpan hasil response
+      setUploadResult(response.data);
+
+      // Reset file setelah berhasil
+      setBulkFile(null);
       fetchUsers();
-    } catch (error) {
-      console.error("Gagal memperbarui peserta:", error);
-      alert("Gagal memperbarui peserta.");
+    } catch (err) {
+      console.error(err);
+      setUploadResult({
+        status: "error",
+        message: "Gagal mengupload peserta.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const renderTableRows = () =>
-    filteredData.map((user, index) => (
-      <tr key={index} className="bg-gray-100">
-        <td className="px-2 py-2 text-xs sm:text-sm border text-center capitalize">
-          {user.id_user}
+    sortedData.map((user, index) => (
+      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-200">
+        <td className="px-2 py-2 text-xs sm:text-sm border text-center">
+          {index + 1}
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
           {user.nama}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.kode_pemulihan || "-"}
+          {user.no_hp || "-"}
         </td>
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_batch || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_paket || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_kelas || "-"}
+        </td>
+        {/* Kolom aksi */}
+        <td className="px-4 py-2 text-xs sm:text-sm border w-[80px]">
           <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleEdit(user)}
-              className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-            >
-              Edit
-              <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
+            {/* Tombol Edit */}
+            <div className="relative group">
+              <button
+                onClick={() => handleEdit(user)}
+                className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+              {/* Tooltip */}
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Edit data
+              </span>
+            </div>
+
+            {/* Tombol Hapus */}
+            <div className="relative group">
+              <button
+                onClick={() => handleDelete(user.id_user)}
+                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                <BsTrash3 className="w-4 h-4" />
+              </button>
+              {/* Tooltip */}
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Hapus data
+              </span>
+            </div>
           </div>
         </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleDelete(user.id_user)}
-              className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-            >
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
-        </td>
-        {/* </td>
-        <td className="px-4 py-2 text-xs sm:text-sm text-center border">
-          <button
-            onClick={() => handleEdit(user)}
-            className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-          >
-            Edit
-            <div className="bg-blue-500 rounded-r-full px-2 py-2">
-              <LuPencil className="text-white font-extrabold" />
-            </div>
-          </button>
-        </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border text-center">
-          <button
-            onClick={() => handleDelete(user.id_user)}
-            className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-          >
-            Hapus
-            <div className="bg-red-500 rounded-r-full px-2 py-2">
-              <MdClose className="text-white font-extrabold" />
-            </div>
-          </button>
-        </td> */}
       </tr>
     ));
 
@@ -201,44 +259,110 @@ const DaftarPeserta = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
-        <div className="flex flex-col sm:flex-row justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Cari peserta..."
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="text-xl font-bold text-center sm:text-left">
-            Peserta Ukai Syndrome
-          </h1>
-          <button
-            onClick={() => {
-              setShowModal(true);
-              setEditMode(false);
-              setFormData({ nama: "", email: "", password: "" });
-            }}
-            className="bg-yellow-500 hover:bg-yellow-700 text-white px-2 py-1 rounded-xl shadow-md flex items-center gap-2"
-          >
-            <AiOutlinePlus size={18} /> Tambah Peserta
-          </button>
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Cari peserta..."
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">
+              Peserta Ukai Syndrome
+            </h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                setShowModal(true);
+                setEditMode(false);
+                // setFormData({ nama: "", email: "", password: "" });
+              }}
+              className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl shadow-md flex items-center gap-2"
+            >
+              <AiOutlinePlus size={18} /> Tambah Peserta
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
-          <p className="text-center text-gray-500 mt-4">Memuat data...</p>
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data peserta...</p>
+          </div>
         ) : error ? (
           <p className="text-center text-red-500 mt-4">{error}</p>
         ) : (
           <div className="overflow-x-auto max-h-[70vh]">
             <table className="min-w-full bg-white border">
               <thead className="bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-1 py-2 text-sm ">ID Peserta</th>
-                  <th className="px-4 py-2 text-sm ">Nama</th>
-                  <th className="px-4 py-2 text-sm ">Email</th>
-                  <th className="px-4 py-2 text-sm ">Kode Pemulihan</th>
-                  <th className="px-4 py-2 text-sm ">Edit</th>
-                  <th className="px-4 py-2 text-sm ">Hapus</th>
+                <tr className="bg-gray-200 text-xs sm:text-sm">
+                  <th className="px-2 py-2 border">No</th>
+                  <th
+                    onClick={() => handleSort("nama")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Nama{" "}
+                    {sortConfig.key === "nama"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("email")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Email{" "}
+                    {sortConfig.key === "email"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th className="px-4 py-2 border">No HP</th>
+                  <th
+                    onClick={() => handleSort("nama_batch")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Batch{" "}
+                    {sortConfig.key === "nama_batch"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("nama_paket")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Paket{" "}
+                    {sortConfig.key === "nama_paket"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("nama_kelas")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Kelas{" "}
+                    {sortConfig.key === "nama_kelas"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th className="px-4 py-2 border">Aksi</th>
                 </tr>
               </thead>
               <tbody>{renderTableRows()}</tbody>
@@ -253,84 +377,72 @@ const DaftarPeserta = () => {
           onClick={() => {
             setShowModal(false);
             setEditMode(false);
-            setFormData({ nama: "", email: "", password: "" });
+            // setFormData({ nama: "", email: "", password: "" });
           }}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-lg p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Tombol close */}
             <button
               onClick={() => {
                 setShowModal(false);
                 setEditMode(false);
-                setFormData({ nama: "", email: "", password: "" });
+                // setFormData({ nama: "", email: "", password: "" });
               }}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
-            <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Data Peserta" : "Tambah Peserta Baru"}
-            </h2>
-            <form
-              className="space-y-4"
-              onSubmit={editMode ? handleUpdate : handleSubmit}
-            >
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama</label>
-                <input
-                  type="text"
-                  name="nama"
-                  placeholder="Nama Peserta"
-                  value={formData.nama}
-                  onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Peserta"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder={
-                    editMode ? "Kosongkan jika tidak diubah" : "Password"
-                  }
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required={!editMode}
-                />
-              </div>
-              <div className="text-right">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`px-4 py-2 rounded-md text-white ${
-                    isSubmitting
-                      ? "bg-gray-400"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                >
-                  {isSubmitting ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+
+            {/* Kalau EDIT → langsung form edit */}
+            {editMode && editData ? (
+              <EditPesertaForm
+                setShowModal={setShowModal}
+                setEditMode={setEditMode}
+                fetchUsers={fetchUsers}
+                initialData={editData}
+              />
+            ) : (
+              <>
+                {/* Kalau TAMBAH → ada Tab */}
+                <div className="flex border-b mb-4">
+                  <button
+                    className={`flex-1 py-2 text-center font-medium ${
+                      activeTab === "single"
+                        ? "border-b-2 border-blue-600 text-blue-600"
+                        : "text-gray-600"
+                    }`}
+                    onClick={() => setActiveTab("single")}
+                  >
+                    Tambah Peserta
+                  </button>
+                  <button
+                    className={`flex-1 py-2 text-center font-medium ${
+                      activeTab === "bulk"
+                        ? "border-b-2 border-blue-600 text-blue-600"
+                        : "text-gray-600"
+                    }`}
+                    onClick={() => setActiveTab("bulk")}
+                  >
+                    Upload Bulk
+                  </button>
+                </div>
+
+                {activeTab === "single" ? (
+                  <TambahPesertaForm
+                    setShowModal={setShowModal}
+                    fetchUsers={fetchUsers}
+                  />
+                ) : (
+                  <UploadPesertaBulk
+                    setShowModal={setShowModal}
+                    fetchUsers={fetchUsers}
+                  />
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

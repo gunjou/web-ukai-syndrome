@@ -13,6 +13,7 @@ const DaftarKelas = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     nama_kelas: "",
@@ -25,8 +26,17 @@ const DaftarKelas = () => {
   const [batchError, setBatchError] = useState("");
 
   useEffect(() => {
-    fetchKelasData();
-    fetchBatchOptions();
+    const fetchData = async () => {
+      try {
+        await fetchKelasData();
+        await fetchBatchOptions();
+      } catch (err) {
+        console.error("Gagal fetch data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const fetchKelasData = async () => {
@@ -182,18 +192,25 @@ const DaftarKelas = () => {
       />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">
-        <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center py-2 px-8 gap-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search"
-            className="border rounded-lg px-4 py-2 w-2/5 sm:w-1/6"
-          />
-          <h1 className="text-xl font-bold sm:text-left w-full sm:w-auto">
-            Daftar Kelas
-          </h1>
-          <div className="flex justify-end w-full sm:w-1/4">
+        <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
+          {/* Kolom kiri (Search) */}
+          <div className="flex justify-start">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search"
+              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Kolom tengah (Judul) */}
+          <div className="flex justify-center">
+            <h1 className="text-xl font-bold text-center">Daftar Kelas</h1>
+          </div>
+
+          {/* Kolom kanan (Button) */}
+          <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
@@ -207,20 +224,27 @@ const DaftarKelas = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[70vh]">
-          <table className="min-w-full bg-white">
-            <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-              <tr>
-                <th className="px-4 py-2 text-sm ">Nama Kelas</th>
-                <th className="px-4 py-2 text-sm ">Deskripsi</th>
-                <th className="px-4 py-2 text-sm ">Batch</th>
-                <th className="px-4 py-2 text-sm ">Edit</th>
-                <th className="px-4 py-2 text-sm ">Hapus</th>
-              </tr>
-            </thead>
-            <tbody>{renderTableRows()}</tbody>
-          </table>
-        </div>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            <p className="text-gray-600">Memuat data kelas...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto max-h-[70vh]">
+            <table className="min-w-full bg-white">
+              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-sm ">Nama Kelas</th>
+                  <th className="px-4 py-2 text-sm ">Deskripsi</th>
+                  <th className="px-4 py-2 text-sm ">Batch</th>
+                  <th className="px-4 py-2 text-sm ">Edit</th>
+                  <th className="px-4 py-2 text-sm ">Hapus</th>
+                </tr>
+              </thead>
+              <tbody>{renderTableRows()}</tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {showModal && (
