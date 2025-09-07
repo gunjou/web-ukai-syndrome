@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
@@ -11,44 +12,24 @@ import {
 import MateriListContent from "./MateriListContent";
 import Api from "../../utils/Api"; // menggunakan instance axios
 import { Map } from "mapbox-gl";
+import { toast } from "react-toastify";
 
 // Komponen untuk daftar folder modul
 const MateriList = ({
+  modulItems,
   onFolderClick,
   onEditClick,
-  onUpdate,
-
   onChangeVisibility,
 }) => {
-  const [modulItems, setModulItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchModul = async () => {
-      try {
-        const response = await Api.get("/modul");
-        setModulItems(response.data.data || []);
-      } catch (err) {
-        setError("Gagal memuat modul.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchModul();
-  }, [onUpdate]); // Depend on onUpdate to trigger re-fetch when data is updated
-
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (!modulItems.length) return <div className="p-4">Belum ada modul.</div>;
 
   return (
     <div className="flex flex-wrap gap-6 p-4">
-      {modulItems.map((modul, idx) => (
+      {modulItems.map((modul) => (
         <div
-          key={idx}
+          key={modul.id_modul}
           className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
-          onClick={() => onFolderClick(modul.judul)}
+          onClick={() => onFolderClick(modul)} // kirim objek modul, bukan judul
         >
           <img
             src={icon_folder}
@@ -56,20 +37,23 @@ const MateriList = ({
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />
           <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center ">
-            <span className="text-gray-700 font-medium text-base capitalize ">
+            <span className="text-gray-700 font-medium text-base capitalize">
               {modul.judul}
             </span>
           </div>
+
           {/* Edit Button */}
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering the onClick for the folder
+              e.stopPropagation();
               onEditClick(modul);
             }}
             className="absolute top-2 right-2 text-xs text-blue-500"
           >
             Edit
           </button>
+
+          {/* Select visibility */}
           <div className="mt-1">
             <select
               value={modul.visibility}
@@ -78,23 +62,17 @@ const MateriList = ({
                 onChangeVisibility(modul.id_modul, e.target.value)
               }
               className={`text-sm px-2 py-1 rounded-md font-medium border
-      ${
-        modul.visibility === "open"
-          ? "text-green-600 border-green-400"
-          : modul.visibility === "hold"
-          ? "text-yellow-600 border-yellow-400"
-          : "text-red-600 border-red-400"
-      }`}
+                ${
+                  modul.visibility === "open"
+                    ? "text-green-600 border-green-400"
+                    : modul.visibility === "hold"
+                    ? "text-yellow-600 border-yellow-400"
+                    : "text-red-600 border-red-400"
+                }`}
             >
-              <option value="open" className="text-green-600">
-                Open
-              </option>
-              <option value="hold" className="text-yellow-600">
-                Hold
-              </option>
-              <option value="close" className="text-red-600">
-                Close
-              </option>
+              <option value="open">Open</option>
+              <option value="hold">Hold</option>
+              <option value="close">Close</option>
             </select>
           </div>
         </div>
@@ -123,7 +101,34 @@ const Materi = () => {
   const location = useLocation();
   const { folder } = useParams();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddMateriModal, setShowAddMateriModal] = useState(false);
   const [kelasOptions, setKelasOptions] = useState([]);
+  const { folder: id_modul } = useParams(); // folder = param yang dipakai di Route ":folder"
+  const [modalType, setModalType] = useState(null); // "modul" atau "materi"
+
+  const [judul, setJudul] = useState("");
+  const [tipeMateri, setTipeMateri] = useState("document");
+  const [urlFile, setUrlFile] = useState("");
+  const [visibility, setVisibility] = useState("hold");
+  const [viewerOnly, setViewerOnly] = useState(true);
+
+  const [activeModulId, setActiveModulId] = useState(null);
+
+  const fetchModul = async () => {
+    try {
+      setLoading(true);
+      const response = await Api.get("/modul");
+      setModulItems(response.data.data || []);
+    } catch (err) {
+      setError("Gagal memuat modul.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchModul();
+  }, []);
 
   const basePath = "/mentor-dashboard/materi";
   const pathSegments = location.pathname
@@ -144,10 +149,12 @@ const Materi = () => {
     fetchKelasOptions();
   }, []);
 
-  const handleFolderClick = (folderName) => {
-    const slug = folderName.toLowerCase().replace(/\s+/g, "-");
+  const handleFolderClick = (modul) => {
+    const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
     setBackStack((prev) => [...prev, location.pathname]);
     setForwardStack([]);
+    // console.log("ID Modul aktif:", modul);
+    setActiveModulId(modul.id_modul); // ✅ sekarang dapat id_modul
     navigate(`${basePath}/${slug}`);
   };
 
@@ -230,37 +237,82 @@ const Materi = () => {
       alert("Gagal mengubah status modul.");
     }
   };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !newFolderName ||
-      !newDescription ||
-      !newOrder ||
-      !editFolder?.id_paketkelas
-    ) {
-      alert("Harap lengkapi semua field.");
+
+    // Validasi minimal: judul wajib
+    if (!newFolderName.trim()) {
+      alert("Harap isi judul modul.");
       return;
     }
 
     const payload = {
-      judul: newFolderName,
-      deskripsi: newDescription,
-      urutan_modul: newOrder,
-      id_paketkelas: editFolder.id_paketkelas,
+      judul: newFolderName.trim(),
+      deskripsi: newDescription?.trim() || "",
+      visibility: "hold",
     };
 
     setLoading(true);
     try {
-      await Api.post("/modul", payload);
-      await handleModulUpdate(); // refresh modul
+      await Api.post("/modul/mentor", payload);
+      // opsional: panggil refresh parent jika ada, misal handleModulUpdate();
+      // await handleModulUpdate();
+
+      // Reset & tutup modal
       setShowAddModal(false);
       setNewFolderName("");
       setNewDescription("");
-      setNewOrder(0);
-      setEditFolder(null);
     } catch (error) {
       console.error("Gagal menambah modul:", error);
-      alert("Gagal menambah modul.");
+      const msg =
+        error?.response?.data?.message ||
+        "Gagal menambah modul. Silakan coba lagi.";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMateriSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const payload = {
+      id_modul: activeModulId, // otomatis dari modul yang dipilih
+      judul,
+      tipe_materi: tipeMateri,
+      url_file: urlFile,
+      visibility,
+      viewer_only: viewerOnly,
+    };
+
+    console.log("Payload tambah materi:", payload);
+
+    try {
+      await Api.post("/materi/mentor", payload);
+
+      toast.success("Materi berhasil ditambahkan ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // reset form (opsional)
+      setJudul("");
+      setTipeMateri("");
+      setUrlFile("");
+      setVisibility("hold");
+      setViewerOnly(false);
+
+      // tutup modal (opsional)
+      setShowAddMateriModal(false);
+    } catch (error) {
+      console.error("Gagal menambah materi:", error);
+
+      toast.error("Gagal menambah materi ❌", {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -274,12 +326,25 @@ const Materi = () => {
           <h1 className="text-2xl font-semibold">Materi Explorer</h1>
           {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
-            {location.pathname === basePath && (
+            {location.pathname === basePath ? (
+              // Kalau di root → tambah modul
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setShowAddModal(true);
+                }}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
                 Tambah Modul
+              </button>
+            ) : (
+              // Kalau masuk modul → tambah materi
+              <button
+                onClick={() => {
+                  setShowAddMateriModal(true);
+                }}
+                className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                Tambah Materi
               </button>
             )}
 
@@ -356,10 +421,7 @@ const Materi = () => {
             element={
               <MateriList
                 onFolderClick={handleFolderClick}
-                onEditClick={handleEditClick}
-                onUpdate={handleModulUpdate}
                 modulItems={modulItems}
-                onChangeVisibility={handleVisibilityChange}
               />
             }
           />
@@ -447,48 +509,42 @@ const Materi = () => {
         </div>
       )}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
             <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
             <form onSubmit={handleAddSubmit}>
+              {/* Judul Modul */}
               <input
                 type="text"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
                 placeholder="Judul Modul"
+                required
               />
+
+              {/* Deskripsi */}
               <textarea
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
                 placeholder="Deskripsi"
               />
-              <input
-                type="number"
-                value={newOrder}
-                onChange={(e) => setNewOrder(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Urutan Modul"
-              />
-              <select
-                value={editFolder?.id_paketkelas || ""}
-                onChange={(e) =>
-                  setEditFolder({
-                    ...editFolder,
-                    id_paketkelas: e.target.value,
-                  })
-                }
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              >
-                <option value="">-- Pilih Kelas --</option>
-                {kelasOptions.map((kelas) => (
-                  <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
-                    {kelas.nama_kelas}
-                  </option>
-                ))}
-              </select>
 
+              {/* Action buttons */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -507,6 +563,101 @@ const Materi = () => {
                   }`}
                 >
                   {loading ? "Loading..." : "Simpan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showAddMateriModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowAddMateriModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowAddMateriModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
+
+            <form onSubmit={handleAddMateriSubmit} className="space-y-4">
+              {/* Judul */}
+              <input
+                type="text"
+                value={judul}
+                onChange={(e) => setJudul(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Judul Materi"
+                required
+              />
+
+              {/* Tipe Materi */}
+              <select
+                value={tipeMateri}
+                onChange={(e) => setTipeMateri(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="document">Document</option>
+                <option value="video">Video</option>
+              </select>
+
+              {/* URL File */}
+              <input
+                type="text"
+                value={urlFile}
+                onChange={(e) => setUrlFile(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="URL atau Path File"
+                required
+              />
+
+              {/* Visibility */}
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="hold">Hold</option>
+                <option value="open">Open</option>
+              </select>
+
+              {/* Viewer Only */}
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={viewerOnly}
+                  onChange={(e) => setViewerOnly(e.target.checked)}
+                />
+                Hanya bisa dilihat (tidak bisa diunduh)
+              </label>
+
+              {/* Tombol */}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddMateriModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-md"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-md ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
