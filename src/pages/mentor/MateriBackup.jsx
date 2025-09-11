@@ -134,7 +134,7 @@ const Materi = () => {
   useEffect(() => {
     const fetchKelasOptions = async () => {
       try {
-        const response = await Api.get("/paket-kelas");
+        const response = await Api.get("/paket-kelas/mentor");
         const allKelas = response.data.data || [];
 
         const user = JSON.parse(localStorage.getItem("user"));

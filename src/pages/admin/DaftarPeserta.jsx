@@ -8,27 +8,19 @@ import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
 import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
 import EditPesertaForm from "./modal/EditPesertaForm.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { ConfirmToast } from "./modal/ConfirmToast.jsx";
+import { toast } from "react-toastify";
 
 const DaftarPeserta = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
-  // const [formData, setFormData] = useState({
-  //   nama: "",
-  //   email: "",
-  //   password: "",
-  // });
-  // const [selectedId, setSelectedId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState("single"); // tab aktif
-  const [bulkFile, setBulkFile] = useState(null);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  const [uploadResult, setUploadResult] = useState(null);
 
   // state untuk sort
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -96,17 +88,6 @@ const DaftarPeserta = () => {
     );
   }, [userData, searchTerm]);
 
-  // const filteredData = userData.filter((user) => {
-  //   const keyword = searchTerm.toLowerCase();
-  //   return (
-  //     user.nama?.toLowerCase().includes(keyword) ||
-  //     user.email?.toLowerCase().includes(keyword) ||
-  //     user.no_hp?.toLowerCase().includes(keyword) ||
-  //     user.nama_batch?.toLowerCase().includes(keyword) ||
-  //     user.nama_kelas?.toLowerCase().includes(keyword)
-  //   );
-  // });
-
   // apply sort ke filteredData
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -124,73 +105,17 @@ const DaftarPeserta = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus peserta ini?")) return;
-    try {
+  const handleDelete = (id) => {
+    ConfirmToast("Yakin ingin menghapus peserta ini?", async () => {
       await Api.delete(`/peserta/${id}`);
-      alert("Peserta berhasil dihapus.");
+      toast.success("Peserta berhasil dihapus.");
       fetchUsers();
-    } catch (error) {
-      console.error("Gagal menghapus peserta:", error);
-      alert("Gagal menghapus peserta.");
-    }
-  };
-
-  const handleDownloadTemplate = async () => {
-    try {
-      const response = await Api.get("/peserta/template", {
-        responseType: "blob", // penting supaya dapat file
-      });
-
-      // buat link download manual
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "template_peserta.csv"); // nama file
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      console.error("Gagal download template:", err);
-      alert("Gagal download template!");
-    }
-  };
-
-  const handleBulkUpload = async (e) => {
-    e.preventDefault();
-    if (!bulkFile) return;
-
-    setIsSubmitting(true);
-    setUploadResult(null);
-
-    const formData = new FormData();
-    formData.append("file", bulkFile);
-
-    try {
-      const response = await Api.post("/peserta/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      // Simpan hasil response
-      setUploadResult(response.data);
-
-      // Reset file setelah berhasil
-      setBulkFile(null);
-      fetchUsers();
-    } catch (err) {
-      console.error(err);
-      setUploadResult({
-        status: "error",
-        message: "Gagal mengupload peserta.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   const renderTableRows = () =>
     sortedData.map((user, index) => (
-      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-200">
+      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-300">
         <td className="px-2 py-2 text-xs sm:text-sm border text-center">
           {index + 1}
         </td>

@@ -5,9 +5,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Import components
-import Features from "./components/Features";
-import Modul from "./components/Modul";
-import Mentor from "./components/Mentor";
+// import Features from "./components/Features";
+// import Modul from "./components/Modul";
+// import Mentor from "./components/Mentor";
 import LandingPage from "./pages/LandingPage";
 
 // Import admin pages
@@ -33,7 +33,7 @@ import RegisterPage from "./pages/RegisterPage";
 import HomePageUser from "./pages/users/HomePage.jsx";
 
 // Import components
-import About from "./components/About";
+// import About from "./components/About";
 import User from "./User"; // Import User component
 import Pembayaran from "./pages/users/Pembayaran.jsx";
 import DaftarBatch from "./pages/admin/DaftarBatch.jsx";

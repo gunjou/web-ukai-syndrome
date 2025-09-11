@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { MdClose } from "react-icons/md";
 import { LuPencil } from "react-icons/lu";
+import { BsTrash3 } from "react-icons/bs";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { toast } from "react-toastify";
+import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 
 const DaftarBatch = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,9 +32,10 @@ const DaftarBatch = () => {
     try {
       const response = await Api.get("/batch");
       setBatchData(response.data.data);
+      console.log(response.data.data);
     } catch (error) {
       console.error("Gagal mengambil data:", error);
-      alert("Gagal mengambil data batch.");
+      // alert("Gagal mengambil data batch.");
     } finally {
       setLoading(false);
     }
@@ -40,9 +43,11 @@ const DaftarBatch = () => {
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = batchData.filter((batch) =>
-    batch.nama_batch.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = batchData
+    .filter((batch) =>
+      batch.nama_batch.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.tanggal_mulai.localeCompare(b.tanggal_mulai));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,13 +72,13 @@ const DaftarBatch = () => {
     setFormLoading(true);
     try {
       await Api.post("/batch", formData);
-      alert("Batch berhasil ditambahkan!");
+      toast.success("Batch berhasil ditambahkan!");
       setShowModal(false);
       setFormData({ nama_batch: "", tanggal_mulai: "", tanggal_selesai: "" });
       fetchBatchData();
     } catch (error) {
       console.error("Gagal menambahkan batch:", error);
-      alert("Gagal menambahkan batch. Silakan coba lagi.");
+      toast.error("Gagal menambahkan batch. Silakan coba lagi.");
     } finally {
       setFormLoading(false);
     }
@@ -100,68 +105,72 @@ const DaftarBatch = () => {
     setFormLoading(true);
     try {
       await Api.put(`/batch/${selectedId}`, formData);
-      alert("Batch berhasil diperbarui!");
+      toast.success("Batch berhasil diperbarui!");
       setShowModal(false);
       setEditMode(false);
       setFormData({ nama_batch: "", tanggal_mulai: "", tanggal_selesai: "" });
       fetchBatchData();
     } catch (error) {
       console.error("Gagal memperbarui batch:", error);
-      alert("Gagal memperbarui batch.");
+      toast.error("Gagal memperbarui batch.");
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus batch ini?")) return;
-    try {
+  const handleDelete = (id) => {
+    ConfirmToast("Yakin ingin menghapus batch ini?", async () => {
       await Api.delete(`/batch/${id}`);
-      alert("Batch berhasil dihapus.");
+      toast.success("Batch berhasil dihapus.");
       fetchBatchData();
-    } catch (error) {
-      console.error("Gagal menghapus batch:", error);
-      alert("Gagal menghapus batch.");
-    }
+    });
   };
 
   const renderTableRows = () =>
+    // filteredData.map((batch, index) => (
     filteredData.map((batch, index) => (
-      <tr key={index} className="bg-gray-100">
+      <tr key={index} className="bg-gray-100 hover:bg-gray-300">
+        <td className="px-2 py-2 text-xs sm:text-sm border text-center">
+          {index + 1}
+        </td>
         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l capitalize">
           {batch.nama_batch}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
+          {batch.total_peserta}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
           {batch.tanggal_mulai}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-left text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
           {batch.tanggal_selesai}
         </td>
 
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
+        {/* Kolom Aksi */}
+        <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
           <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleEdit(batch)}
-              className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-            >
-              Edit
-              <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
-        </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleDelete(batch.id_batch)}
-              className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-            >
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
+            <div className="relative group">
+              <button
+                onClick={() => handleEdit(batch)}
+                className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Edit data
+              </span>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={() => handleDelete(batch.id_batch)}
+                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                <BsTrash3 className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Hapus data
+              </span>
+            </div>
           </div>
         </td>
       </tr>
@@ -228,15 +237,18 @@ const DaftarBatch = () => {
             <table className="min-w-full bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
+                  <th className="px-2 py-2 border">No</th>
                   <th className="px-4 py-2 text-xs sm:text-sm">Nama Batch</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">
+                    Total Peserta
+                  </th>
                   <th className="px-2 py-2 text-xs sm:text-sm">
                     Tanggal Mulai
                   </th>
                   <th className="px-2 py-2 text-xs sm:text-sm">
                     Tanggal Selesai
                   </th>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Edit</th>
-                  <th className="px-4 py-2 text-xs sm:text-sm">Hapus</th>
+                  <th className="px-4 py-2 text-xs sm:text-sm">Aksi</th>
                 </tr>
               </thead>
               <tbody>{renderTableRows()}</tbody>

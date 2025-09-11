@@ -7,6 +7,8 @@ import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import TambahMentorForm from "./modal/TambahMentorForm.jsx";
 import EditMentorForm from "./modal/EditMentorForm.jsx";
+import { ConfirmToast } from "./modal/ConfirmToast.jsx";
+import { toast } from "react-toastify";
 
 const DaftarMentor = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,16 +16,7 @@ const DaftarMentor = () => {
   const [showModal, setShowModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
-
-  const [formData, setFormData] = useState({
-    nama: "",
-    email: "",
-    password: "",
-  });
 
   useEffect(() => {
     fetchMentorData();
@@ -36,7 +29,7 @@ const DaftarMentor = () => {
       setUserData(response.data);
     } catch (error) {
       console.error("Gagal mengambil data:", error);
-      alert("Gagal mengambil data mentor.");
+      // alert("Gagal mengambil data mentor.");
     } finally {
       setFetchingData(false);
     }
@@ -46,22 +39,19 @@ const DaftarMentor = () => {
 
   const filteredData = useMemo(() => {
     const k = searchTerm.toLowerCase();
-    return userData.filter((user) =>
-      [
-        user.nama,
-        user.email,
-        user.no_hp,
-        user.nama_batch,
-        user.nama_kelas,
-        user.nama_paket,
-      ].some((v) => (v ?? "").toLowerCase().includes(k))
-    );
+    return [...userData] // copy array biar ga mutasi state asli
+      .filter((user) =>
+        [
+          user.nama,
+          user.email,
+          user.no_hp,
+          user.nama_batch,
+          user.nama_kelas,
+          user.nama_paket,
+        ].some((v) => (v ?? "").toLowerCase().includes(k))
+      )
+      .sort((a, b) => a.nama.localeCompare(b.nama));
   }, [userData, searchTerm]);
-
-  const handleEdit = (mentor) => {
-    setFormData({ mentor });
-    setEditModal(true);
-  };
 
   // contoh dipanggil dari tabel
   const handleEditClick = (mentor) => {
@@ -69,21 +59,17 @@ const DaftarMentor = () => {
     setEditModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus mentor ini?")) return;
-    try {
+  const handleDelete = (id) => {
+    ConfirmToast("Yakin ingin menghapus mentor ini?", async () => {
       await Api.delete(`/mentor/${id}`);
-      alert("Mentor berhasil dihapus.");
+      toast.success("Mentor berhasil dihapus.");
       fetchMentorData();
-    } catch (error) {
-      console.error("Gagal menghapus mentor:", error);
-      alert("Gagal menghapus mentor.");
-    }
+    });
   };
 
   const renderTableRows = () =>
     filteredData.map((user, index) => (
-      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-200">
+      <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-300">
         <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
           {index + 1}
         </td>

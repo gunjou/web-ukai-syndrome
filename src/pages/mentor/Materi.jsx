@@ -139,7 +139,7 @@ const Materi = () => {
   useEffect(() => {
     const fetchKelasOptions = async () => {
       try {
-        const response = await Api.get("/paket-kelas");
+        const response = await Api.get("/paket-kelas/mentor");
         setKelasOptions(response.data.data || []);
       } catch (error) {
         console.error("Gagal mengambil daftar kelas:", error);

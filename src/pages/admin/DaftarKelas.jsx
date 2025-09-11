@@ -1,35 +1,30 @@
-import React, { useState, useEffect } from "react";
-import Header from "../../components/admin/Header.jsx";
-import { MdClose } from "react-icons/md";
+import React, { useState, useEffect, useMemo } from "react";
+import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { AiOutlinePlus } from "react-icons/ai";
+import { toast } from "react-toastify";
+import { ConfirmToast } from "./modal/ConfirmToast.jsx";
+import Header from "../../components/admin/Header.jsx";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import TambahKelasForm from "./modal/TambahKelasForm.jsx";
+import EditKelasForm from "./modal/EditKelasForm.jsx";
 
 const DaftarKelas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [kelasData, setKelasData] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
-    nama_kelas: "",
-    deskripsi: "",
-    id_batch: "",
-  });
+  const [showTambahModal, setShowTambahModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const [batchOptions, setBatchOptions] = useState([]);
-  const [batchLoading, setBatchLoading] = useState(true);
-  const [batchError, setBatchError] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedData, setSelectedData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         await fetchKelasData();
-        await fetchBatchOptions();
       } catch (err) {
         console.error("Gagal fetch data:", err);
       } finally {
@@ -48,131 +43,86 @@ const DaftarKelas = () => {
     }
   };
 
-  const fetchBatchOptions = async () => {
-    setBatchLoading(true);
-    setBatchError("");
-    try {
-      const response = await Api.get("/batch");
-      setBatchOptions(response.data.data);
-    } catch (error) {
-      console.error("Gagal mengambil data batch:", error);
-      setBatchError("Gagal mengambil data batch.");
-    } finally {
-      setBatchLoading(false);
-    }
-  };
-
+  // 🔎 Search lebih luas (nama_kelas, nama_paket, nama_batch, deskripsi)
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = kelasData.filter((kelas) =>
-    kelas.nama_kelas.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    const k = searchTerm.toLowerCase();
+    return kelasData.filter((kelas) =>
+      [
+        kelas.nama_kelas,
+        kelas.nama_paket,
+        kelas.nama_batch,
+        kelas.deskripsi,
+      ].some((v) => (v ?? "").toLowerCase().includes(k))
+    );
+  }, [kelasData, searchTerm]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.nama_kelas || !formData.deskripsi || !formData.id_batch) {
-      alert("Harap lengkapi semua field.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await Api.post("/paket-kelas", formData);
-      alert("Kelas berhasil ditambahkan!");
-      setShowModal(false);
-      setFormData({ nama_kelas: "", deskripsi: "", id_batch: "" });
-      fetchKelasData();
-    } catch (error) {
-      console.error("Gagal menambahkan kelas:", error);
-      alert("Gagal menambahkan kelas. Silakan coba lagi.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = (kelas) => {
-    setFormData({
-      nama_kelas: kelas.nama_kelas,
-      deskripsi: kelas.deskripsi,
-      id_batch: kelas.id_batch,
-    });
+  const handleEditClick = (kelas) => {
     setSelectedId(kelas.id_paketkelas);
-    setEditMode(true);
-    setShowModal(true);
+    setSelectedData(kelas);
+    setShowEditModal(true);
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    if (!formData.nama_kelas || !formData.deskripsi || !formData.id_batch) {
-      alert("Harap lengkapi semua field.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await Api.put(`/paket-kelas/${selectedId}`, formData);
-      alert("Kelas berhasil diperbarui!");
-      setShowModal(false);
-      setEditMode(false);
-      setFormData({ nama_kelas: "", deskripsi: "", id_batch: "" });
-      fetchKelasData();
-    } catch (error) {
-      console.error("Gagal memperbarui kelas:", error);
-      alert("Gagal memperbarui kelas.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus kelas ini?")) return;
-    try {
+  const handleDelete = (id) => {
+    ConfirmToast("Yakin ingin menghapus kelas ini?", async () => {
       await Api.delete(`/paket-kelas/${id}`);
-      alert("Kelas berhasil dihapus.");
+      toast.success("Kelas berhasil dihapus.");
       fetchKelasData();
-    } catch (error) {
-      console.error("Gagal menghapus kelas:", error);
-      alert("Gagal menghapus kelas.");
-    }
+    });
   };
 
   const renderTableRows = () =>
     filteredData.map((kelas, index) => (
-      <tr key={index} className="bg-gray-100">
+      <tr key={index} className="bg-gray-100 hover:bg-gray-300">
+        <td className="px-2 py-2 text-xs sm:text-sm border text-center">
+          {index + 1}
+        </td>
         <td className="px-4 py-2 text-sm border capitalize">
           {kelas.nama_kelas}
         </td>
         <td className="px-4 py-2 text-sm border capitalize">
-          {kelas.deskripsi}
+          {kelas.nama_paket}
         </td>
         <td className="px-4 py-2 text-sm border">{kelas.nama_batch}</td>
-        <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-          <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleEdit(kelas)}
-              className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-            >
-              Edit
-              <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                <LuPencil className="text-white font-extrabold" />
-              </div>
-            </button>
-          </div>
+        <td className="px-4 py-2 text-sm border capitalize">
+          {kelas.deskripsi}
         </td>
-        <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
+        <td className="px-4 py-2 text-sm border text-center">
+          {kelas.total_peserta}
+        </td>
+        <td className="px-4 py-2 text-sm border text-center">
+          {kelas.total_mentor}
+        </td>
+        <td className="px-4 py-2 text-sm border text-center">
+          {kelas.total_modul}
+        </td>
+
+        {/* Kolom Aksi */}
+        <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
           <div className="flex justify-center gap-2">
-            <button
-              onClick={() => handleDelete(kelas.id_paketkelas)}
-              className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-            >
-              Hapus
-              <div className="bg-red-500 rounded-r-full px-2 py-2">
-                <MdClose className="text-white font-extrabold" />
-              </div>
-            </button>
+            <div className="relative group">
+              <button
+                onClick={() => handleEditClick(kelas)}
+                className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Edit data
+              </span>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={() => handleDelete(kelas.id_paketkelas)}
+                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                <BsTrash3 className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Hapus data
+              </span>
+            </div>
           </div>
         </td>
       </tr>
@@ -213,9 +163,7 @@ const DaftarKelas = () => {
           <div className="flex justify-end">
             <button
               onClick={() => {
-                setShowModal(true);
-                setEditMode(false);
-                setFormData({ nama_kelas: "", deskripsi: "", id_batch: "" });
+                setShowTambahModal(true);
               }}
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
             >
@@ -234,11 +182,15 @@ const DaftarKelas = () => {
             <table className="min-w-full bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
+                  <th className="px-4 py-2 text-sm ">No</th>
                   <th className="px-4 py-2 text-sm ">Nama Kelas</th>
-                  <th className="px-4 py-2 text-sm ">Deskripsi</th>
+                  <th className="px-4 py-2 text-sm ">Paket</th>
                   <th className="px-4 py-2 text-sm ">Batch</th>
-                  <th className="px-4 py-2 text-sm ">Edit</th>
-                  <th className="px-4 py-2 text-sm ">Hapus</th>
+                  <th className="px-4 py-2 text-sm ">Deskripsi</th>
+                  <th className="px-4 py-2 text-sm ">Total Peserta</th>
+                  <th className="px-4 py-2 text-sm ">Total Mentor</th>
+                  <th className="px-4 py-2 text-sm ">Total Modul</th>
+                  <th className="px-4 py-2 text-sm ">Aksi</th>
                 </tr>
               </thead>
               <tbody>{renderTableRows()}</tbody>
@@ -247,94 +199,53 @@ const DaftarKelas = () => {
         )}
       </div>
 
-      {showModal && (
+      {/* 🔹 Modal Tambah Kelas */}
+      {showTambahModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
-          onClick={() => {
-            setShowModal(false);
-            setEditMode(false);
-            setFormData({ nama_kelas: "", deskripsi: "", id_batch: "" });
-          }}
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowTambahModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative"
+            className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowTambahModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              ✕
+            </button>
+            <TambahKelasForm
+              setShowModal={setShowTambahModal}
+              fetchKelas={fetchKelasData}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 🔹 Modal Edit Kelas */}
+      {showEditModal && selectedData && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => {
-                setShowModal(false);
-                setEditMode(false);
-                setFormData({ nama_kelas: "", deskripsi: "", id_batch: "" });
-              }}
+              onClick={() => setShowEditModal(false)}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
-              <AiOutlineClose size={24} />
+              ✕
             </button>
-            <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Kelas" : "Tambah Kelas Baru"}
-            </h2>
-            <form
-              onSubmit={editMode ? handleUpdate : handleSubmit}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium">Nama Kelas</label>
-                <input
-                  type="text"
-                  name="nama_kelas"
-                  placeholder="Masukkan nama kelas"
-                  value={formData.nama_kelas}
-                  onChange={handleChange}
-                  required
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Deskripsi</label>
-                <textarea
-                  name="deskripsi"
-                  placeholder="Masukkan deskripsi"
-                  value={formData.deskripsi}
-                  onChange={handleChange}
-                  required
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Batch</label>
-                {batchLoading ? (
-                  <div className="text-sm text-gray-500">Memuat batch...</div>
-                ) : batchError ? (
-                  <div className="text-sm text-red-500">{batchError}</div>
-                ) : (
-                  <select
-                    name="id_batch"
-                    value={formData.id_batch}
-                    onChange={handleChange}
-                    required
-                    className="w-full border rounded-md px-3 py-2"
-                  >
-                    <option value="">-- Pilih Batch --</option>
-                    {batchOptions.map((batch) => (
-                      <option key={batch.id_batch} value={batch.id_batch}>
-                        {batch.nama_batch}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-              <div className="text-right">
-                <button
-                  type="submit"
-                  className={`bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 ${
-                    isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+            <EditKelasForm
+              setShowModal={setShowEditModal}
+              fetchKelas={fetchKelasData}
+              selectedId={selectedId}
+              initialData={selectedData}
+            />
           </div>
         </div>
       )}
