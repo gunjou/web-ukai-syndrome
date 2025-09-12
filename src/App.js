@@ -1,8 +1,10 @@
+// eslint-disable-next-line no-unused-vars
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import useAntiInspect from "./utils/useAntiInspect.js";
 
 // Import components
 // import Features from "./components/Features";
@@ -44,31 +46,8 @@ import MentorKelas from "./pages/admin/MentorKelas.jsx";
 import MentorJs from "./Mentor.js";
 
 function App() {
-  useEffect(() => {
-    // Disable klik kanan
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
-
-    // Disable shortcut tertentu
-    const handleKeyDown = (e) => {
-      if (
-        e.key === "F12" || // Inspect
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
-        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
-        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
-        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
-        (e.ctrlKey && (e.key === "X" || e.key === "x"))
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
+  useAntiInspect(true);
 
   return (
     <Router>

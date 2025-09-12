@@ -132,17 +132,6 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
           />
         </div>
 
-        {/* Batch */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Batch</label>
-          <Select
-            options={batchOptions}
-            onChange={handleSelectBatch}
-            placeholder="Pilih batch..."
-            isSearchable
-          />
-        </div>
-
         {/* Paket */}
         <div>
           <label className="block text-sm font-medium mb-1">Paket</label>
@@ -150,6 +139,17 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
             options={paketOptions}
             onChange={handleSelectPaket}
             placeholder="Pilih paket..."
+            isSearchable
+          />
+        </div>
+
+        {/* Batch */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Batch</label>
+          <Select
+            options={batchOptions}
+            onChange={handleSelectBatch}
+            placeholder="Pilih batch..."
             isSearchable
           />
         </div>

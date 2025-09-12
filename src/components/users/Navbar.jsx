@@ -30,8 +30,9 @@ const Navbar = () => {
 
   const handleKelasSaya = async () => {
     try {
-      const res = await Api.get("/auth/me");
-      const user = res.data.data;
+      const res = await Api.get("/profile/kelas-saya");
+      const user = res.data;
+      console.log(user);
 
       if (!user || user.nama_kelas === null) {
         alert("Belum ada paket terdaftar. Silakan beli paket terlebih dahulu.");

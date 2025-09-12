@@ -5,11 +5,12 @@ import Api from "../../utils/Api";
 const MenuBar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [kelasUser, setKelasUser] = useState(false);
   const menuRef = useRef(null);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "User";
-  const namaPaket = storedUser?.nama_paket || "Premium";
+  // const namaPaket = storedUser?.nama_paket || "Premium";
 
   const initials = userName
     .split(" ")
@@ -17,17 +18,40 @@ const MenuBar = () => {
     .join("")
     .toUpperCase();
 
-  // Fungsi warna avatar random dari nama
   const stringToColor = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const color = `hsl(${hash % 360}, 70%, 60%)`;
-    return color;
+
+    const hue = hash % 360; // tetap random dari nama
+    const saturation = 40 + (hash % 30); // 40–70% → tidak terlalu gonjreng
+    const lightness = 45 + (hash % 20); // 45–65% → lebih soft
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
 
   const avatarColor = stringToColor(userName);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await handleKelasSaya();
+      } catch (err) {
+        console.error("Gagal fetch data:", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleKelasSaya = async () => {
+    try {
+      const res = await Api.get("/profile/kelas-saya");
+      setKelasUser(res.data);
+    } catch (err) {
+      console.error("Gagal cek kelas saya:", err);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -90,7 +114,19 @@ const MenuBar = () => {
       </div>
 
       {/* Kanan: Avatar + Menu */}
-      <div className="relative" ref={menuRef}>
+      <div className="relative inline-block mr-4">
+        {/* Label di atas border */}
+        <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
+          Kelas
+        </span>
+
+        {/* "Button" palsu */}
+        <div className="px-4 py-1 border rounded-full bg-white text-black shadow-sm">
+          {kelasUser.nama_kelas}
+        </div>
+      </div>
+
+      <div className="relative mr-3" ref={menuRef}>
         <button
           onClick={() => setShowMenu((prev) => !prev)}
           className="w-10 h-10 rounded-full text-white font-bold flex items-center justify-center shadow"
