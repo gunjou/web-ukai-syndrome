@@ -23,7 +23,7 @@ const DaftarBatch = () => {
   }, []);
 
   const fetchBatchData = async () => {
-    // setLoading(true);
+    setLoading(true);
     try {
       const response = await Api.get("/batch");
       setBatchData(response.data.data);
