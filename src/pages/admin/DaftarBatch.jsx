@@ -4,6 +4,8 @@ import { LuPencil } from "react-icons/lu";
 import { BsTrash3 } from "react-icons/bs";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import TambahBatchForm from "./modal/TambahBatchForm.jsx";
+import EditBatchForm from "./modal/EditBatchForm.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
@@ -11,31 +13,22 @@ import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 const DaftarBatch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [batchData, setBatchData] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
-    nama_batch: "",
-    tanggal_mulai: "",
-    tanggal_selesai: "",
-  });
+  const [selectedBatch, setSelectedBatch] = useState(false);
+  const [showAddBatchModal, setShowAddBatchModal] = useState(false);
+  const [showEditBatchModal, setShowEditBatchModal] = useState(false);
 
   useEffect(() => {
     fetchBatchData();
   }, []);
 
   const fetchBatchData = async () => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const response = await Api.get("/batch");
       setBatchData(response.data.data);
-      console.log(response.data.data);
     } catch (error) {
       console.error("Gagal mengambil data:", error);
-      // alert("Gagal mengambil data batch.");
     } finally {
       setLoading(false);
     }
@@ -49,73 +42,9 @@ const DaftarBatch = () => {
     )
     .sort((a, b) => a.tanggal_mulai.localeCompare(b.tanggal_mulai));
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const validateForm = () => {
-    return (
-      formData.nama_batch.trim() &&
-      formData.tanggal_mulai.trim() &&
-      formData.tanggal_selesai.trim()
-    );
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert("Semua field wajib diisi!");
-      return;
-    }
-
-    setFormLoading(true);
-    try {
-      await Api.post("/batch", formData);
-      toast.success("Batch berhasil ditambahkan!");
-      setShowModal(false);
-      setFormData({ nama_batch: "", tanggal_mulai: "", tanggal_selesai: "" });
-      fetchBatchData();
-    } catch (error) {
-      console.error("Gagal menambahkan batch:", error);
-      toast.error("Gagal menambahkan batch. Silakan coba lagi.");
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  const handleEdit = (batch) => {
-    setFormData({
-      nama_batch: batch.nama_batch,
-      tanggal_mulai: batch.tanggal_mulai,
-      tanggal_selesai: batch.tanggal_selesai,
-    });
-    setSelectedId(batch.id_batch);
-    setEditMode(true);
-    setShowModal(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert("Semua field wajib diisi!");
-      return;
-    }
-
-    setFormLoading(true);
-    try {
-      await Api.put(`/batch/${selectedId}`, formData);
-      toast.success("Batch berhasil diperbarui!");
-      setShowModal(false);
-      setEditMode(false);
-      setFormData({ nama_batch: "", tanggal_mulai: "", tanggal_selesai: "" });
-      fetchBatchData();
-    } catch (error) {
-      console.error("Gagal memperbarui batch:", error);
-      toast.error("Gagal memperbarui batch.");
-    } finally {
-      setFormLoading(false);
-    }
+  const handleEditClick = (batch) => {
+    setSelectedBatch(batch);
+    setShowEditBatchModal(true);
   };
 
   const handleDelete = (id) => {
@@ -127,7 +56,6 @@ const DaftarBatch = () => {
   };
 
   const renderTableRows = () =>
-    // filteredData.map((batch, index) => (
     filteredData.map((batch, index) => (
       <tr key={index} className="bg-gray-100 hover:bg-gray-300">
         <td className="px-2 py-2 text-xs sm:text-sm border text-center">
@@ -151,7 +79,7 @@ const DaftarBatch = () => {
           <div className="flex justify-center gap-2">
             <div className="relative group">
               <button
-                onClick={() => handleEdit(batch)}
+                onClick={() => handleEditClick(batch)}
                 className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <LuPencil className="w-4 h-4" />
@@ -210,15 +138,7 @@ const DaftarBatch = () => {
           {/* Kolom kanan (Button) */}
           <div className="flex justify-end">
             <button
-              onClick={() => {
-                setShowModal(true);
-                setEditMode(false);
-                setFormData({
-                  nama_batch: "",
-                  tanggal_mulai: "",
-                  tanggal_selesai: "",
-                });
-              }}
+              onClick={() => setShowAddBatchModal(true)}
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
             >
               <AiOutlinePlus size={18} />
@@ -257,98 +177,57 @@ const DaftarBatch = () => {
         )}
       </div>
 
-      {showModal && (
+      {/* Modal Tambah Modul */}
+      {showAddBatchModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
-          onClick={() => {
-            setShowModal(false);
-            setEditMode(false);
-            setFormData({
-              nama_batch: "",
-              tanggal_mulai: "",
-              tanggal_selesai: "",
-            });
-          }}
+          onClick={() => setShowAddBatchModal(false)}
         >
           <div
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Tombol close */}
             <button
-              onClick={() => {
-                setShowModal(false);
-                setEditMode(false);
-                setFormData({
-                  nama_batch: "",
-                  tanggal_mulai: "",
-                  tanggal_selesai: "",
-                });
-              }}
-              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+              onClick={() => setShowAddBatchModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
-            <h2 className="text-lg font-bold mb-4 text-center">
-              {editMode ? "Edit Batch" : "Tambah Batch Baru"}
-            </h2>
-            <form
-              className="space-y-4"
-              onSubmit={editMode ? handleUpdate : handleSubmit}
+
+            {/* Form */}
+            <TambahBatchForm
+              onClose={() => setShowAddBatchModal(false)}
+              onRefresh={fetchBatchData}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Batch */}
+      {showEditBatchModal && selectedBatch && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowEditBatchModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowEditBatchModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
             >
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Nama Batch
-                </label>
-                <input
-                  type="text"
-                  name="nama_batch"
-                  value={formData.nama_batch}
-                  onChange={handleChange}
-                  required
-                  placeholder="Nama Batch"
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Tanggal Mulai
-                </label>
-                <input
-                  type="date"
-                  name="tanggal_mulai"
-                  value={formData.tanggal_mulai}
-                  onChange={handleChange}
-                  required
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Tanggal Selesai
-                </label>
-                <input
-                  type="date"
-                  name="tanggal_selesai"
-                  value={formData.tanggal_selesai}
-                  onChange={handleChange}
-                  required
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              <div className="text-right">
-                <button
-                  type="submit"
-                  disabled={formLoading}
-                  className={`px-4 py-2 rounded-lg text-white ${
-                    formLoading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                >
-                  {formLoading ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
+              <AiOutlineClose size={24} />
+            </button>
+
+            {/* Form */}
+            <EditBatchForm
+              selectedBatch={selectedBatch}
+              onClose={() => setShowEditBatchModal(false)}
+              onRefresh={fetchBatchData}
+            />
           </div>
         </div>
       )}

@@ -1,34 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { MdClose } from "react-icons/md";
+import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import TambahModulForm from "./modal/TambahModulForm.jsx";
+import EditModulForm from "./modal/EditModalForm.jsx";
+import ListKelasModal from "./modal/ListKelasModal.jsx";
+import { ConfirmToast } from "./modal/ConfirmToast.jsx";
+import { toast } from "react-toastify";
 
 const DaftarModul = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [modulData, setModulData] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedModul, setSelectedModul] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const [formData, setFormData] = useState({
-    judul: "",
-    deskripsi: "",
-    urutan_modul: "",
-    id_paketkelas: "",
-  });
-
-  const [kelasOptions, setKelasOptions] = useState([]);
+  const [showListKelasModal, setShowListKelasModal] = useState(false);
+  const [showAddModulModal, setShowAddModulModal] = useState(false);
+  const [showEditModulModal, setShowEditModulModal] = useState(false);
+  const [loadingVisibility, setLoadingVisibility] = useState(false); // ⬅️ state global loading
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         await fetchModulData();
-        await fetchKelasOptions();
       } catch (err) {
         console.error("Gagal fetch data:", err);
       } finally {
@@ -41,111 +38,44 @@ const DaftarModul = () => {
   const fetchModulData = async () => {
     try {
       const response = await Api.get("/modul");
-      setModulData(response.data.data);
+      let data = response.data.data || [];
+
+      // 🔹 Sort data
+      data.sort((a, b) => {
+        // 1️⃣ Prioritas: admin dulu
+        if (a.owner === "admin" && b.owner !== "admin") return -1;
+        if (a.owner !== "admin" && b.owner === "admin") return 1;
+
+        // 2️⃣ Kalau sama-sama admin atau sama-sama bukan admin → sort A-Z
+        return a.judul.localeCompare(b.judul, "id", { sensitivity: "base" });
+      });
+
+      setModulData(data);
     } catch (error) {
       console.error("Gagal mengambil data modul:", error);
     }
   };
 
-  const fetchKelasOptions = async () => {
-    try {
-      const response = await Api.get("/paket-kelas");
-      setKelasOptions(response.data.data);
-    } catch (error) {
-      console.error("Gagal mengambil data kelas:", error);
-    }
-  };
-
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = modulData.filter((modul) =>
-    modul.judul.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    const k = searchTerm.toLowerCase();
+    return [...modulData] // copy array biar ga mutasi state asli
+      .filter((modul) =>
+        [modul.judul, modul.owner, modul.deskripsi].some((v) =>
+          (v ?? "").toLowerCase().includes(k)
+        )
+      );
+  }, [modulData, searchTerm]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleEditClick = (modul) => {
+    setSelectedModul(modul);
+    setShowEditModulModal(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { judul, deskripsi, urutan_modul, id_paketkelas } = formData;
-    if (!judul || !deskripsi || !urutan_modul || !id_paketkelas) {
-      alert("Harap lengkapi semua field.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await Api.post("/modul", formData);
-      alert("Modul berhasil ditambahkan!");
-      setShowModal(false);
-      setFormData({
-        judul: "",
-        deskripsi: "",
-        urutan_modul: "",
-        id_paketkelas: "",
-      });
-      fetchModulData();
-    } catch (error) {
-      console.error("Gagal menambahkan modul:", error);
-      alert("Gagal menambahkan modul.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = (modul) => {
-    setFormData({
-      judul: modul.judul,
-      deskripsi: modul.deskripsi,
-      urutan_modul: modul.urutan_modul,
-      id_paketkelas: modul.id_paketkelas,
-    });
-    setSelectedId(modul.id_modul);
-    setEditMode(true);
-    setShowModal(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    const { judul, deskripsi, urutan_modul, id_paketkelas } = formData;
-    if (!judul || !deskripsi || !urutan_modul || !id_paketkelas) {
-      alert("Harap lengkapi semua field.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await Api.put(`/modul/${selectedId}`, formData);
-      alert("Modul berhasil diperbarui!");
-      setShowModal(false);
-      setEditMode(false);
-      setFormData({
-        judul: "",
-        deskripsi: "",
-        urutan_modul: "",
-        id_paketkelas: "",
-      });
-      fetchModulData();
-    } catch (error) {
-      console.error("Gagal memperbarui modul:", error);
-      alert("Gagal memperbarui modul.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus modul ini?")) return;
-    try {
-      await Api.delete(`/modul/${id}`);
-      alert("Modul berhasil dihapus.");
-      fetchModulData();
-    } catch (error) {
-      console.error("Gagal menghapus modul:", error);
-      alert("Gagal menghapus modul.");
-    }
-  };
   const handleVisibilityChange = async (id, newStatus) => {
+    setLoadingVisibility(true); // tampilkan overlay
+
     try {
       await Api.put(`/modul/${id}/visibility`, { visibility: newStatus });
       // Update lokal
@@ -156,9 +86,116 @@ const DaftarModul = () => {
       );
     } catch (error) {
       console.error("Gagal mengubah visibility:", error);
-      alert("Gagal mengubah status modul.");
+      toast.error("Gagal mengubah status modul.");
+    } finally {
+      toast.success("Status modul berhasil diubah.");
+      setLoadingVisibility(false); // sembunyikan overlay
     }
   };
+
+  const handleRefreshFetch = async () => fetchModulData();
+
+  const handleDelete = (id) => {
+    ConfirmToast("Yakin ingin menghapus modul ini?", async () => {
+      await Api.delete(`/modul/${id}`);
+      toast.success("Modul berhasil dihapus.");
+      fetchModulData();
+    });
+  };
+
+  const getBadgeColor = (total) => {
+    if (total < 1) return "bg-blue-500/20";
+    if (total <= 5) return "bg-blue-500/40";
+    if (total <= 10) return "bg-blue-500/70";
+    if (total <= 20) return "bg-blue-500/90";
+    return "bg-blue-600"; // full solid
+  };
+
+  const handleOpenListKelasModal = (id) => {
+    setSelectedId(id);
+    setShowListKelasModal(true);
+  };
+
+  const renderTableRows = () =>
+    filteredData.map((modul, index) => (
+      <tr
+        key={filteredData.id_modul || index}
+        className="bg-gray-100 hover:bg-gray-300"
+      >
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
+          {index + 1}
+        </td>
+        <td className="px-4 py-2 text-sm border">{modul.judul}</td>
+        <td className="px-4 py-2 text-sm border">{modul.owner}</td>
+        <td className="px-4 py-2 text-sm border">{modul.deskripsi}</td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          {modul.owner === "admin" ? (
+            <button
+              onClick={() => handleOpenListKelasModal(modul.id_modul)}
+              className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
+                modul.total_kelas
+              )}`}
+            >
+              {modul.total_kelas} Kelas
+            </button>
+          ) : (
+            <p className="text-sm">
+              {modul.paketkelas?.[0]?.nama_kelas || "-"}
+            </p>
+          )}
+        </td>
+        <td className="px-4 py-2 text-sm border flex justify-center">
+          <select
+            value={modul.visibility}
+            onChange={(e) =>
+              handleVisibilityChange(modul.id_modul, e.target.value)
+            }
+            className={`capitalize font-semibold rounded-md px-2 py-1
+                    ${
+                      modul.visibility === "open"
+                        ? "text-green-600"
+                        : modul.visibility === "hold"
+                        ? "text-yellow-600"
+                        : modul.visibility === "close"
+                        ? "text-red-600"
+                        : "text-gray-600"
+                    }
+                  `}
+          >
+            <option value="open">Open</option>
+            <option value="hold">Hold</option>
+            <option value="close">Close</option>
+          </select>
+        </td>
+        {/* Kolom Aksi */}
+        <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
+          <div className="flex justify-center gap-2">
+            <div className="relative group">
+              <button
+                onClick={() => handleEditClick(modul)}
+                className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <LuPencil className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Edit data
+              </span>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={() => handleDelete(modul.id_modul)}
+                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                <BsTrash3 className="w-4 h-4" />
+              </button>
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Hapus data
+              </span>
+            </div>
+          </div>
+        </td>
+      </tr>
+    ));
 
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
@@ -194,16 +231,7 @@ const DaftarModul = () => {
           {/* Kolom kanan (Button) */}
           <div className="flex justify-end">
             <button
-              onClick={() => {
-                setShowModal(true);
-                setEditMode(false);
-                setFormData({
-                  judul: "",
-                  deskripsi: "",
-                  urutan_modul: "",
-                  id_paketkelas: "",
-                });
-              }}
+              onClick={() => setShowAddModulModal(true)}
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
             >
               <AiOutlinePlus /> Tambah Modul
@@ -221,181 +249,127 @@ const DaftarModul = () => {
             <table className="min-w-full bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-2 text-sm">Urutan</th>
+                  <th className="px-4 py-2 text-sm">No</th>
                   <th className="px-4 py-2 text-sm capitalize">Judul</th>
+                  <th className="px-4 py-2 text-sm capitalize">Owner</th>
                   <th className="px-4 py-2 text-sm capitalize">Deskripsi</th>
-                  <th className="px-4 py-2 text-sm">Nama Kelas</th>
+                  <th className="px-4 py-2 text-sm">List Kelas</th>
                   <th className="px-4 py-2 text-sm">Status</th>
-                  <th className="px-4 py-2 text-sm">Edit</th>
-                  <th className="px-4 py-2 text-sm">Hapus</th>
+                  <th className="px-4 py-2 text-sm">Aksi</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredData.map((modul, index) => (
-                  <tr key={index} className="bg-gray-100">
-                    <td className="px-4 py-2 text-sm border">
-                      {modul.urutan_modul}
-                    </td>
-                    <td className="px-4 py-2 text-sm border">{modul.judul}</td>
-                    <td className="px-4 py-2 text-sm border">
-                      {modul.deskripsi}
-                    </td>
-                    <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
-                      <div
-                        className={`inline-block px-3 py-1 text-white rounded-full
-              ${
-                modul.nama_kelas === "Premium"
-                  ? "bg-[#CD7F32]"
-                  : modul.nama_kelas === "Gold"
-                  ? "bg-yellow-500"
-                  : modul.nama_kelas === "Silver"
-                  ? "bg-gray-400"
-                  : modul.nama_kelas === "Diamond"
-                  ? "bg-blue-700"
-                  : "bg-gray-300"
-              }`}
-                      >
-                        {modul.nama_kelas}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2 text-sm border flex justify-center">
-                      <select
-                        value={modul.visibility}
-                        onChange={(e) =>
-                          handleVisibilityChange(modul.id_modul, e.target.value)
-                        }
-                        className={`capitalize font-semibold rounded-md px-2 py-1
-      ${
-        modul.visibility === "open"
-          ? "text-green-600"
-          : modul.visibility === "hold"
-          ? "text-yellow-600"
-          : modul.visibility === "close"
-          ? "text-red-600"
-          : "text-gray-600"
-      }
-    `}
-                      >
-                        <option className="text-green-600" value="open">
-                          Open
-                        </option>
-                        <option className="text-yellow-600" value="hold">
-                          Hold
-                        </option>
-                        <option className="text-red-600" value="close">
-                          Close
-                        </option>
-                      </select>
-                    </td>
-
-                    <td className="px-4 py-2 text-xs text-center sm:text-sm border-b border-r">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(modul)}
-                          className="flex justify-center bg-gray-200 pl-2 rounded-full hover:bg-blue-500 hover:text-white items-center gap-2"
-                        >
-                          Edit
-                          <div className="bg-blue-500 rounded-r-full px-2 py-2">
-                            <LuPencil className="text-white font-extrabold" />
-                          </div>
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2 text-xs sm:text-sm border-b border-r">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleDelete(modul.id_modul)}
-                          className="bg-gray-200 pl-2 rounded-full hover:bg-red-500 hover:text-white flex items-center gap-2"
-                        >
-                          Hapus
-                          <div className="bg-red-500 rounded-r-full px-2 py-2">
-                            <MdClose className="text-white font-extrabold" />
-                          </div>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              <tbody>{renderTableRows()}</tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      {/* Modal Tambah Modul */}
+      {showAddModulModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowAddModulModal(false)}
+        >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">
-                {editMode ? "Edit Modul" : "Tambah Modul Baru"}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setEditMode(false);
-                  setFormData({
-                    judul: "",
-                    deskripsi: "",
-                    urutan_modul: "",
-                    id_paketkelas: "",
-                  });
-                }}
-              >
-                <AiOutlineClose size={20} />
-              </button>
-            </div>
-            <form
-              onSubmit={editMode ? handleUpdate : handleSubmit}
-              className="space-y-4"
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowAddModulModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
             >
-              <input
-                type="text"
-                name="judul"
-                placeholder="Judul Modul"
-                value={formData.judul}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              <textarea
-                name="deskripsi"
-                placeholder="Deskripsi Modul"
-                value={formData.deskripsi}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              <input
-                type="number"
-                name="urutan_modul"
-                placeholder="Urutan Modul"
-                value={formData.urutan_modul}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              <select
-                name="id_paketkelas"
-                value={formData.id_paketkelas}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="">-- Pilih Kelas --</option>
-                {kelasOptions.map((kelas) => (
-                  <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
-                    {kelas.nama_kelas}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Menyimpan..." : "Simpan"}
-              </button>
-            </form>
+              <AiOutlineClose size={24} />
+            </button>
+
+            {/* Form */}
+            <TambahModulForm
+              onClose={() => setShowAddModulModal(false)}
+              onRefresh={handleRefreshFetch}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Modul */}
+      {showEditModulModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowEditModulModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowEditModulModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+
+            {/* Form */}
+            <EditModulForm
+              modul={selectedModul}
+              onClose={() => setShowEditModulModal(false)}
+              onRefresh={handleRefreshFetch}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Overlay Loading */}
+      {loadingVisibility && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-2 bg-white px-6 py-4 rounded-lg shadow-md">
+            <svg
+              className="animate-spin h-6 w-6 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <p className="text-sm font-medium text-gray-700">Menyimpan...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal List Kelas */}
+      {showListKelasModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListKelasModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListKelasModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <ListKelasModal
+              idModul={selectedId}
+              onClose={() => setShowListKelasModal(false)}
+              onRefresh={() => handleRefreshFetch()}
+            />
           </div>
         </div>
       )}
