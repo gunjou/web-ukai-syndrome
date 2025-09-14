@@ -44,6 +44,7 @@ import MentorKelas from "./pages/admin/MentorKelas.jsx";
 
 // mentor
 import MentorJs from "./Mentor.js";
+import PrivacyPolicy from "./utils/PrivacyPolicy.jsx";
 
 function App() {
   // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
@@ -80,6 +81,8 @@ function App() {
         {/* Route for User Dashboard */}
         <Route path="/dashboard/*" element={<User />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
+        {/* Privacy Policy */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
       {/* Notifikasi Toast */}
       <ToastContainer position="top-center" autoClose={3000} />
