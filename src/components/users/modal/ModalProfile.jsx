@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, User, Key, Info, HelpCircle } from "lucide-react";
+import { Camera, User, Key, Info, HelpCircle, Eye, EyeOff } from "lucide-react";
 import Api from "../../../utils/Api";
 import ModalMenu from "./ModalMenu";
 import toast, { Toaster } from "react-hot-toast";
+import EditProfileModal from "./EditProfileModal";
+import PasswordModal from "./PasswordModal";
+import AboutModal from "./AboutModal";
+import HelpModal from "./HelpModal";
 
 const ModalProfile = ({ isOpen, onClose }) => {
   const [kelasUser, setKelasUser] = useState(null);
@@ -13,6 +17,9 @@ const ModalProfile = ({ isOpen, onClose }) => {
   const [menuOpen, setMenuOpen] = useState(null);
   const [editData, setEditData] = useState({ nama: "", email: "", no_hp: "" });
   const [saving, setSaving] = useState(false);
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "User";
@@ -263,51 +270,29 @@ const ModalProfile = ({ isOpen, onClose }) => {
       </AnimatePresence>
 
       {/* Modal Edit Profile */}
-      <ModalMenu
+      <EditProfileModal
         isOpen={menuOpen === "edit"}
         onClose={() => setMenuOpen(null)}
-        title="Edit Profile"
-      >
-        <form className="space-y-3" onSubmit={handleSaveProfile}>
-          <input
-            type="text"
-            placeholder="Nama"
-            className="w-full border px-3 py-2 rounded-lg"
-            value={editData.nama}
-            onChange={(e) => setEditData({ ...editData, nama: e.target.value })}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border px-3 py-2 rounded-lg bg-gray-100"
-            value={editData.email}
-            disabled
-          />
+        editData={editData}
+        setEditData={setEditData}
+        handleSaveProfile={handleSaveProfile}
+        saving={saving}
+      />
 
-          {/* No HP dengan prefix +62 */}
-          <div className="flex items-center border rounded-lg overflow-hidden">
-            <input
-              type="text"
-              placeholder="8123456789"
-              className="w-full px-3 py-2 outline-none"
-              value={editData.no_hp}
-              onChange={(e) =>
-                setEditData({ ...editData, no_hp: e.target.value })
-              }
-            />
-          </div>
+      <PasswordModal
+        isOpen={menuOpen === "password"}
+        onClose={() => setMenuOpen(null)}
+      />
 
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            disabled={saving}
-          >
-            {saving ? "Menyimpan..." : "Simpan"}
-          </button>
-        </form>
-      </ModalMenu>
+      <AboutModal
+        isOpen={menuOpen === "about"}
+        onClose={() => setMenuOpen(null)}
+      />
 
-      {/* Modal lain (Password, Tentang, Bantuan) tetap sama */}
+      <HelpModal
+        isOpen={menuOpen === "help"}
+        onClose={() => setMenuOpen(null)}
+      />
     </>
   );
 };
