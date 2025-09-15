@@ -207,23 +207,31 @@ const Video = () => {
   const handleAddSubmit = async (e) => {
     e.preventDefault();
 
-    // Validasi minimal: judul wajib
     if (!newFolderName.trim()) {
-      alert("Harap isi judul modul.");
+      toast.warning("Harap isi judul modul ⚠️", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
     const payload = {
       judul: newFolderName.trim(),
       deskripsi: newDescription?.trim() || "",
-      visibility: "hold",
+      visibility: "open", // ✅ default auto open
     };
 
     setLoading(true);
     try {
       await Api.post("/modul/mentor", payload);
-      // opsional: panggil refresh parent jika ada, misal handleModulUpdate();
-      // await handleModulUpdate();
+
+      // ✅ langsung refresh daftar modul
+      await handleModulUpdate();
+
+      toast.success("Modul berhasil ditambahkan ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
       // Reset & tutup modal
       setShowAddModal(false);
@@ -231,10 +239,15 @@ const Video = () => {
       setNewDescription("");
     } catch (error) {
       console.error("Gagal menambah modul:", error);
+
       const msg =
         error?.response?.data?.message ||
         "Gagal menambah modul. Silakan coba lagi.";
-      alert(msg);
+
+      toast.error(`❌ ${msg}`, {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -247,10 +260,9 @@ const Video = () => {
     const payload = {
       id_modul: activeModulId, // otomatis dari modul yang dipilih
       judul,
-      tipe_materi: tipeMateri,
+      tipe_materi: "video", // ✅ selalu video
       url_file: urlFile,
-      visibility,
-      viewer_only: viewerOnly,
+      visibility: "open", // ✅ auto open
     };
 
     console.log("Payload tambah materi:", payload);
@@ -263,15 +275,14 @@ const Video = () => {
         autoClose: 3000,
       });
 
-      // reset form (opsional)
+      // reset form
       setJudul("");
-      setTipeMateri("");
       setUrlFile("");
-      setVisibility("hold");
-      setViewerOnly(false);
 
-      // tutup modal (opsional)
+      // tutup modal
       setShowAddMateriModal(false);
+
+      // refresh daftar materi
       window.location.reload();
     } catch (error) {
       console.error("Gagal menambah materi:", error);
@@ -444,49 +455,69 @@ const Video = () => {
 
       {/* Modal Tambah (opsional jika dibutuhkan nanti) */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-96">
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+
             <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
-            <form onSubmit={handleAddSubmit}>
+
+            <form onSubmit={handleAddSubmit} className="space-y-4">
+              {/* Judul */}
               <input
                 type="text"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Judul"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Judul Modul"
+                required
               />
+
+              {/* Deskripsi */}
               <textarea
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Deskripsi"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Deskripsi Modul"
               />
-              <input
-                type="number"
-                value={newOrder}
-                onChange={(e) => setNewOrder(parseInt(e.target.value))}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Urutan"
-              />
-              <div className="flex justify-end">
+
+              {/* Tombol */}
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded mr-2"
+                  className="px-4 py-2 bg-gray-200 rounded-md"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-md ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
                 >
-                  Simpan
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
       {showAddMateriModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
@@ -516,17 +547,6 @@ const Video = () => {
                 required
               />
 
-              {/* Tipe Materi */}
-              <select
-                value={tipeMateri}
-                onChange={(e) => setTipeMateri(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value="document">Document</option>
-                <option value="video">Video</option>
-              </select>
-
               {/* URL File */}
               <input
                 type="text"
@@ -536,26 +556,6 @@ const Video = () => {
                 placeholder="URL atau Path File"
                 required
               />
-
-              {/* Visibility */}
-              <select
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="hold">Hold</option>
-                <option value="open">Open</option>
-              </select>
-
-              {/* Viewer Only */}
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={viewerOnly}
-                  onChange={(e) => setViewerOnly(e.target.checked)}
-                />
-                Hanya bisa dilihat (tidak bisa diunduh)
-              </label>
 
               {/* Tombol */}
               <div className="flex justify-end gap-2">
