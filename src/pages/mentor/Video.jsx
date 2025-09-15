@@ -163,25 +163,42 @@ const Video = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (!newFolderName) return;
+    if (newFolderName.trim() === "") {
+      toast.warning("Judul modul tidak boleh kosong ⚠️", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
 
     setLoading(true);
     const payload = {
       id_paketkelas: editFolder.id_paketkelas,
       judul: newFolderName,
       deskripsi: newDescription,
-      urutan_modul: newOrder,
     };
 
     try {
       await Api.put(`/modul/${editFolder.id_modul}`, payload);
       await handleModulUpdate();
+
+      toast.success("Modul berhasil diperbarui ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
       setEditFolder(null);
       setNewFolderName("");
       setNewDescription("");
       setNewOrder(0);
     } catch (err) {
-      console.error("Gagal update modul.");
+      console.error("Failed to update folder:", err);
+
+      const msg = err?.response?.data?.message || "Gagal memperbarui modul ❌";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -260,9 +277,9 @@ const Video = () => {
     const payload = {
       id_modul: activeModulId, // otomatis dari modul yang dipilih
       judul,
-      tipe_materi: "video", // ✅ selalu video
+      tipe_materi: "video",
       url_file: urlFile,
-      visibility: "open", // ✅ auto open
+      visibility: "open",
     };
 
     console.log("Payload tambah materi:", payload);
@@ -406,46 +423,67 @@ const Video = () => {
         </Routes>
       </div>
 
-      {/* Modal Edit */}
+      {/* Edit Modal */}
       {editFolder && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-96">
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setEditFolder(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setEditFolder(null)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+
             <h3 className="text-lg font-semibold mb-4">Edit Modul</h3>
-            <form onSubmit={handleEditSubmit}>
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Judul"
-              />
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Deskripsi"
-              />
-              <input
-                type="number"
-                value={newOrder}
-                onChange={(e) => setNewOrder(parseInt(e.target.value))}
-                className="w-full p-2 border mb-4 rounded"
-                placeholder="Urutan"
-              />
-              <div className="flex justify-end">
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <label className="text-gray-900 text-sm">
+                Judul Modul
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Masukkan judul modul"
+                  required
+                />
+              </label>
+
+              <label className="text-gray-900 text-sm">
+                Deskripsi
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Masukkan deskripsi modul"
+                />
+              </label>
+
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setEditFolder(null)}
-                  className="px-4 py-2 bg-gray-200 rounded mr-2"
+                  className="px-4 py-2 bg-gray-200 rounded-md"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
                   disabled={loading}
+                  className={`px-4 py-2 rounded-md ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
                 >
-                  {loading ? "Loading..." : "Simpan"}
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>

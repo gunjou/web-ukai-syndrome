@@ -11,7 +11,6 @@ import {
 } from "react-router-dom";
 import MateriListContent from "./MateriListContent";
 import Api from "../../utils/Api"; // menggunakan instance axios
-import { Map } from "mapbox-gl";
 import { toast } from "react-toastify";
 
 // Komponen untuk daftar folder modul
@@ -29,7 +28,7 @@ const MateriList = ({
         <div
           key={modul.id_modul}
           className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
-          onClick={() => onFolderClick(modul)} // kirim objek modul, bukan judul
+          onClick={() => onFolderClick(modul)}
         >
           <img
             src={icon_folder}
@@ -90,9 +89,9 @@ const FolderContent = () => {
 const Materi = () => {
   const [backStack, setBackStack] = useState([]);
   const [forwardStack, setForwardStack] = useState([]);
-  const [modulItems, setModulItems] = useState([]); // state untuk modul
+  const [modulItems, setModulItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // state untuk error
+  const [error, setError] = useState("");
   const [editFolder, setEditFolder] = useState(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -103,8 +102,6 @@ const Materi = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddMateriModal, setShowAddMateriModal] = useState(false);
   const [kelasOptions, setKelasOptions] = useState([]);
-  const { folder: id_modul } = useParams(); // folder = param yang dipakai di Route ":folder"
-  const [modalType, setModalType] = useState(null); // "modul" atau "materi"
 
   const [judul, setJudul] = useState("");
   const [tipeMateri, setTipeMateri] = useState("document");
@@ -153,8 +150,7 @@ const Materi = () => {
     const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
     setBackStack((prev) => [...prev, location.pathname]);
     setForwardStack([]);
-    // console.log("ID Modul aktif:", modul);
-    setActiveModulId(modul.id_modul); // ✅ sekarang dapat id_modul
+    setActiveModulId(modul.id_modul);
     navigate(`${basePath}/${slug}`);
   };
 
@@ -167,56 +163,61 @@ const Materi = () => {
     }
   };
 
-  // Handle Edit Folder Button Click
   const handleEditClick = (folder) => {
     setEditFolder(folder);
     setNewFolderName(folder.judul);
     setNewDescription(folder.deskripsi || "");
-    setNewOrder(folder.urutan_modul || 0);
   };
 
-  // Handle Edit Form Submit with loading state
   const handleModulUpdate = async () => {
-    setLoading(true);
     try {
-      const response = await Api.get("/modul"); // Mengambil ulang data modul
+      const response = await Api.get("/modul");
       setModulItems(response.data.data || []);
     } catch (err) {
       setError("Gagal memuat modul.");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    if (newFolderName.trim() === "") return; // Validate the name
+    if (newFolderName.trim() === "") {
+      toast.warning("Judul modul tidak boleh kosong ⚠️", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
 
-    setLoading(true); // Set loading to true before API call
-
+    setLoading(true);
     const payload = {
       id_paketkelas: editFolder.id_paketkelas,
       judul: newFolderName,
       deskripsi: newDescription,
-      urutan_modul: newOrder,
     };
 
     try {
-      const response = await Api.put(`/modul/${editFolder.id_modul}`, payload); // Update folder
-      console.log("Folder updated successfully:", response.data);
+      await Api.put(`/modul/${editFolder.id_modul}`, payload);
+      await handleModulUpdate();
 
-      // After successful edit, update the list
-      handleModulUpdate();
+      toast.success("Modul berhasil diperbarui ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
-      // Reset form state
       setEditFolder(null);
       setNewFolderName("");
       setNewDescription("");
       setNewOrder(0);
     } catch (err) {
       console.error("Failed to update folder:", err);
+
+      const msg = err?.response?.data?.message || "Gagal memperbarui modul ❌";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
-      setLoading(false); // Set loading to false after the request is complete
+      setLoading(false);
     }
   };
 
@@ -233,17 +234,21 @@ const Materi = () => {
         )
       );
     } catch (error) {
-      console.error("Gagal mengubah visibility:", error);
-      alert("Gagal mengubah status modul.");
+      toast.error("Gagal mengubah status modul ❌", {
+        position: "top-right",
+        autoClose: 4000,
+      });
     }
   };
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
 
-    // Validasi minimal: judul wajib
     if (!newFolderName.trim()) {
-      alert("Harap isi judul modul.");
+      toast.warning("Harap isi judul modul ⚠️", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -256,19 +261,24 @@ const Materi = () => {
     setLoading(true);
     try {
       await Api.post("/modul/mentor", payload);
-      // opsional: panggil refresh parent jika ada, misal handleModulUpdate();
-      // await handleModulUpdate();
+      await handleModulUpdate();
 
-      // Reset & tutup modal
+      toast.success("Modul berhasil ditambahkan ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
       setShowAddModal(false);
       setNewFolderName("");
       setNewDescription("");
     } catch (error) {
-      console.error("Gagal menambah modul:", error);
       const msg =
         error?.response?.data?.message ||
         "Gagal menambah modul. Silakan coba lagi.";
-      alert(msg);
+      toast.error(`❌ ${msg}`, {
+        position: "top-right",
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -279,15 +289,12 @@ const Materi = () => {
     setLoading(true);
 
     const payload = {
-      id_modul: activeModulId, // otomatis dari modul yang dipilih
+      id_modul: activeModulId,
       judul,
-      tipe_materi: tipeMateri,
+      tipe_materi: "document",
       url_file: urlFile,
-      visibility,
-      viewer_only: viewerOnly,
+      visibility: "open",
     };
-
-    console.log("Payload tambah materi:", payload);
 
     try {
       await Api.post("/materi/mentor", payload);
@@ -297,18 +304,11 @@ const Materi = () => {
         autoClose: 3000,
       });
 
-      // reset form (opsional)
       setJudul("");
-      setTipeMateri("");
       setUrlFile("");
-      setVisibility("hold");
-      setViewerOnly(false);
-
-      // tutup modal (opsional)
       setShowAddMateriModal(false);
+      window.location.reload();
     } catch (error) {
-      console.error("Gagal menambah materi:", error);
-
       toast.error("Gagal menambah materi ❌", {
         position: "top-right",
         autoClose: 4000,
@@ -324,24 +324,17 @@ const Materi = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Materi Explorer</h1>
-          {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
             {location.pathname === basePath ? (
-              // Kalau di root → tambah modul
               <button
-                onClick={() => {
-                  setShowAddModal(true);
-                }}
+                onClick={() => setShowAddModal(true)}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
                 Tambah Modul
               </button>
             ) : (
-              // Kalau masuk modul → tambah materi
               <button
-                onClick={() => {
-                  setShowAddMateriModal(true);
-                }}
+                onClick={() => setShowAddMateriModal(true)}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
                 Tambah Materi
@@ -414,13 +407,14 @@ const Materi = () => {
           ))}
         </div>
 
-        {/* Konten berdasarkan Route */}
         <Routes>
           <Route
             path="/"
             element={
               <MateriList
                 onFolderClick={handleFolderClick}
+                onEditClick={handleEditClick}
+                onChangeVisibility={handleVisibilityChange}
                 modulItems={modulItems}
               />
             }
@@ -431,83 +425,73 @@ const Materi = () => {
 
       {/* Edit Modal */}
       {editFolder && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">Edit Folder</h3>
-            <form onSubmit={handleEditSubmit}>
-              {/* Folder Name Input */}
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Enter new folder name"
-              />
-              {/* Description Input */}
-              <textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Enter folder description"
-              />
-              {/* Order Input */}
-              <input
-                type="number"
-                value={newOrder}
-                onChange={(e) => setNewOrder(parseInt(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                placeholder="Enter module order"
-              />
-              <div className="flex justify-end">
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setEditFolder(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setEditFolder(null)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+
+            <h3 className="text-lg font-semibold mb-4">Edit Modul</h3>
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <label className="text-gray-900 text-sm">
+                Judul Modul
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Masukkan judul modul"
+                  required
+                />
+              </label>
+
+              <label className="text-gray-900 text-sm">
+                Deskripsi
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  placeholder="Masukkan deskripsi modul"
+                />
+              </label>
+
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setEditFolder(null)}
-                  className="px-4 py-2 bg-gray-200 rounded-md mr-2"
+                  className="px-4 py-2 bg-gray-200 rounded-md"
                 >
-                  Cancel
+                  Batal
                 </button>
                 <button
                   type="submit"
-                  disabled={loading} // Disable button when loading is true
+                  disabled={loading}
                   className={`px-4 py-2 rounded-md ${
                     loading
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 text-white"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
                   }`}
                 >
-                  {loading ? (
-                    <span className="flex justify-center items-center">
-                      <svg
-                        className="animate-spin h-5 w-5 mr-2 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 0116 0 8 8 0 01-16 0z"
-                        ></path>
-                      </svg>
-                      Loading...
-                    </span>
-                  ) : (
-                    "Submit"
-                  )}
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Modal Tambah Modul */}
       {showAddModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
@@ -517,7 +501,6 @@ const Materi = () => {
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol close */}
             <button
               onClick={() => setShowAddModal(false)}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
@@ -526,7 +509,6 @@ const Materi = () => {
             </button>
             <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
             <form onSubmit={handleAddSubmit}>
-              {/* Judul Modul */}
               <input
                 type="text"
                 value={newFolderName}
@@ -535,16 +517,12 @@ const Materi = () => {
                 placeholder="Judul Modul"
                 required
               />
-
-              {/* Deskripsi */}
               <textarea
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md mb-4"
                 placeholder="Deskripsi"
               />
-
-              {/* Action buttons */}
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -569,6 +547,8 @@ const Materi = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Tambah Materi */}
       {showAddMateriModal && (
         <div
           className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
@@ -578,7 +558,6 @@ const Materi = () => {
             className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol close */}
             <button
               onClick={() => setShowAddMateriModal(false)}
               className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
@@ -588,7 +567,6 @@ const Materi = () => {
             <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
 
             <form onSubmit={handleAddMateriSubmit} className="space-y-4">
-              {/* Judul */}
               <input
                 type="text"
                 value={judul}
@@ -597,19 +575,6 @@ const Materi = () => {
                 placeholder="Judul Materi"
                 required
               />
-
-              {/* Tipe Materi */}
-              <select
-                value={tipeMateri}
-                onChange={(e) => setTipeMateri(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value="document">Document</option>
-                <option value="video">Video</option>
-              </select>
-
-              {/* URL File */}
               <input
                 type="text"
                 value={urlFile}
@@ -618,28 +583,6 @@ const Materi = () => {
                 placeholder="URL atau Path File"
                 required
               />
-
-              {/* Visibility */}
-              <select
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="hold">Hold</option>
-                <option value="open">Open</option>
-              </select>
-
-              {/* Viewer Only */}
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={viewerOnly}
-                  onChange={(e) => setViewerOnly(e.target.checked)}
-                />
-                Hanya bisa dilihat (tidak bisa diunduh)
-              </label>
-
-              {/* Tombol */}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
@@ -667,4 +610,5 @@ const Materi = () => {
     </div>
   );
 };
+
 export default Materi;
