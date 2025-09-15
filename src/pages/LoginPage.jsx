@@ -1,18 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import Api from "../utils/Api"; // import instance axios
+import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai"; // ikon untuk toast
+import Api from "../utils/Api";
 import ukai from "../assets/logo_putih.png";
 import ukaibawah from "../assets/loginRegister/bg_samping_login.png";
+
+// Komponen Loading Overlay
+const LoadingOverlay = () => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+  </div>
+);
+
+// Komponen Toast
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+      <div
+        className={`flex items-center gap-2 px-6 py-3 rounded-lg shadow-lg text-white text-center transition
+        ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+      >
+        {type === "success" ? (
+          <AiOutlineCheckCircle size={22} className="text-white" />
+        ) : (
+          <AiOutlineCloseCircle size={22} className="text-white" />
+        )}
+        <span>{message}</span>
+      </div>
+    </div>
+  );
+};
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // {message, type}
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await Api.post("/auth/login/web", {
@@ -28,29 +65,45 @@ const LoginPage = () => {
         role,
       } = response.data;
 
-      // Simpan token dan user info di localStorage
       localStorage.setItem("token", access_token);
       localStorage.setItem(
         "user",
         JSON.stringify({ id_user, nama, email: userEmail, role })
       );
 
-      // Navigasi berdasarkan role
-      if (role === "admin") {
-        navigate("/admin-home");
-      } else if (role === "mentor") {
-        navigate("/mentor-dashboard/materi");
-      } else {
-        navigate("/home");
-      }
+      setToast({ message: "Login berhasil!", type: "success" });
+
+      setTimeout(() => {
+        if (role === "admin") {
+          navigate("/admin-home");
+        } else if (role === "mentor") {
+          navigate("/mentor-dashboard/materi");
+        } else {
+          navigate("/home");
+        }
+      }, 1500);
     } catch (error) {
       console.error("Login failed:", error);
-      alert("Email atau password salah!");
+      setToast({ message: "Email atau password salah!", type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-b from-[#a11d1d] to-[#531d1d] px-4 py-8">
+      {/* Loading Overlay */}
+      {loading && <LoadingOverlay />}
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Kiri: Form Login */}
       <div className="flex items-center justify-center w-full md:w-1/2">
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md">

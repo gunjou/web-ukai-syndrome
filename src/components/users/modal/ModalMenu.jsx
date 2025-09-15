@@ -12,7 +12,7 @@ const ModalMenu = ({ isOpen, onClose, title, children }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose} // klik luar modal tutup
+          onClick={onClose}
         >
           <motion.div
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 my-6 relative"
