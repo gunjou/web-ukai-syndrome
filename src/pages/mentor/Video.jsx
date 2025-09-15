@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
@@ -8,36 +9,19 @@ import {
   useParams,
   useLocation,
 } from "react-router-dom";
+import { toast } from "react-toastify";
 import VideoListContent from "./VideoListContent";
 import Api from "../../utils/Api";
 
 // Komponen daftar folder
 const VideoList = ({
+  modulItems,
   onFolderClick,
   onEditClick,
   onChangeVisibility,
   onUpdate,
 }) => {
-  const [modulItems, setModulItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchModul = async () => {
-      try {
-        const response = await Api.get("/modul");
-        setModulItems(response.data.data || []);
-      } catch (err) {
-        setError("Gagal memuat modul.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchModul();
-  }, [onUpdate]);
-
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (!modulItems.length) return <div className="p-4">Belum ada modul.</div>;
 
   return (
     <div className="flex flex-wrap gap-6 p-4">
@@ -45,7 +29,7 @@ const VideoList = ({
         <div
           key={idx}
           className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
-          onClick={() => onFolderClick(modul.judul)}
+          onClick={() => onFolderClick(modul)}
         >
           <img
             src={icon_folder}
@@ -101,6 +85,7 @@ const FolderContent = () => {
 const Video = () => {
   const [backStack, setBackStack] = useState([]);
   const [forwardStack, setForwardStack] = useState([]);
+  const [error, setError] = useState(""); // state untuk error
   const [modulItems, setModulItems] = useState([]);
   const [editFolder, setEditFolder] = useState(null);
   const [newFolderName, setNewFolderName] = useState("");
@@ -108,6 +93,32 @@ const Video = () => {
   const [newOrder, setNewOrder] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddMateriModal, setShowAddMateriModal] = useState(false);
+
+  const [judul, setJudul] = useState("");
+  const [tipeMateri, setTipeMateri] = useState("video");
+  const [urlFile, setUrlFile] = useState("");
+  const [visibility, setVisibility] = useState("hold");
+  const [viewerOnly, setViewerOnly] = useState(true);
+
+  const [activeModulId, setActiveModulId] = useState(null);
+
+  const fetchModul = async () => {
+    try {
+      setLoading(true);
+      const response = await Api.get("/modul");
+      setModulItems(response.data.data || []);
+    } catch (err) {
+      setError("Gagal memuat modul.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchModul();
+  }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { folder } = useParams();
@@ -117,10 +128,12 @@ const Video = () => {
     .split("/")
     .filter(Boolean);
 
-  const handleFolderClick = (folderName) => {
-    const slug = folderName.toLowerCase().replace(/\s+/g, "-");
+  const handleFolderClick = (modul) => {
+    const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
     setBackStack((prev) => [...prev, location.pathname]);
     setForwardStack([]);
+    setActiveModulId(modul.id_modul); // ✅ sekarang dapat id_modul
+    console.log(modul);
     navigate(`${basePath}/${slug}`);
   };
 
@@ -191,19 +204,113 @@ const Video = () => {
     }
   };
 
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validasi minimal: judul wajib
+    if (!newFolderName.trim()) {
+      alert("Harap isi judul modul.");
+      return;
+    }
+
+    const payload = {
+      judul: newFolderName.trim(),
+      deskripsi: newDescription?.trim() || "",
+      visibility: "hold",
+    };
+
+    setLoading(true);
+    try {
+      await Api.post("/modul/mentor", payload);
+      // opsional: panggil refresh parent jika ada, misal handleModulUpdate();
+      // await handleModulUpdate();
+
+      // Reset & tutup modal
+      setShowAddModal(false);
+      setNewFolderName("");
+      setNewDescription("");
+    } catch (error) {
+      console.error("Gagal menambah modul:", error);
+      const msg =
+        error?.response?.data?.message ||
+        "Gagal menambah modul. Silakan coba lagi.";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMateriSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const payload = {
+      id_modul: activeModulId, // otomatis dari modul yang dipilih
+      judul,
+      tipe_materi: tipeMateri,
+      url_file: urlFile,
+      visibility,
+      viewer_only: viewerOnly,
+    };
+
+    console.log("Payload tambah materi:", payload);
+
+    try {
+      await Api.post("/materi/mentor", payload);
+
+      toast.success("Materi berhasil ditambahkan ✅", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // reset form (opsional)
+      setJudul("");
+      setTipeMateri("");
+      setUrlFile("");
+      setVisibility("hold");
+      setViewerOnly(false);
+
+      // tutup modal (opsional)
+      setShowAddMateriModal(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Gagal menambah materi:", error);
+
+      toast.error("Gagal menambah materi ❌", {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white w-full h-auto h-p-6">
       <div className="w-full bg-gray-100 p-4 rounded-[20px]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-semibold">Video Explorer</h1>
-
+          {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">
-            {location.pathname === basePath && (
+            {location.pathname === basePath ? (
+              // Kalau di root → tambah modul
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setShowAddModal(true);
+                }}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
                 Tambah Modul
+              </button>
+            ) : (
+              // Kalau masuk modul → tambah materi
+              <button
+                onClick={() => {
+                  setShowAddMateriModal(true);
+                }}
+                className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                Tambah Materi
               </button>
             )}
 
@@ -280,7 +387,7 @@ const Video = () => {
                 onFolderClick={handleFolderClick}
                 onEditClick={handleEditClick}
                 onChangeVisibility={handleVisibilityChange}
-                onUpdate={handleModulUpdate}
+                modulItems={modulItems}
               />
             }
           />
@@ -340,7 +447,7 @@ const Video = () => {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
-            <form onSubmit={handleEditSubmit}>
+            <form onSubmit={handleAddSubmit}>
               <input
                 type="text"
                 value={newFolderName}
@@ -374,6 +481,101 @@ const Video = () => {
                   className="px-4 py-2 bg-blue-500 text-white rounded"
                 >
                   Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showAddMateriModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowAddMateriModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol close */}
+            <button
+              onClick={() => setShowAddMateriModal(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
+
+            <form onSubmit={handleAddMateriSubmit} className="space-y-4">
+              {/* Judul */}
+              <input
+                type="text"
+                value={judul}
+                onChange={(e) => setJudul(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Judul Materi"
+                required
+              />
+
+              {/* Tipe Materi */}
+              <select
+                value={tipeMateri}
+                onChange={(e) => setTipeMateri(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="document">Document</option>
+                <option value="video">Video</option>
+              </select>
+
+              {/* URL File */}
+              <input
+                type="text"
+                value={urlFile}
+                onChange={(e) => setUrlFile(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="URL atau Path File"
+                required
+              />
+
+              {/* Visibility */}
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="hold">Hold</option>
+                <option value="open">Open</option>
+              </select>
+
+              {/* Viewer Only */}
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={viewerOnly}
+                  onChange={(e) => setViewerOnly(e.target.checked)}
+                />
+                Hanya bisa dilihat (tidak bisa diunduh)
+              </label>
+
+              {/* Tombol */}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddMateriModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-md"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-md ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  {loading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
