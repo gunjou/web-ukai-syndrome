@@ -255,7 +255,7 @@ const Materi = () => {
     const payload = {
       judul: newFolderName.trim(),
       deskripsi: newDescription?.trim() || "",
-      visibility: "hold",
+      visibility: "open",
     };
 
     setLoading(true);
