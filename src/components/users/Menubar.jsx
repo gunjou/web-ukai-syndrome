@@ -101,7 +101,7 @@ const MenuBar = () => {
           <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
             Kelas
           </span>
-          <div className="px-4 py-1 border rounded-full bg-white text-black shadow-sm">
+          <div className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm">
             {kelasUser.nama_kelas}
           </div>
         </div>

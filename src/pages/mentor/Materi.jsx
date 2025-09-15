@@ -167,6 +167,7 @@ const Materi = () => {
     setEditFolder(folder);
     setNewFolderName(folder.judul);
     setNewDescription(folder.deskripsi || "");
+    setVisibility(folder.visibility || ""); // ✅ set default visibility
   };
 
   const handleModulUpdate = async () => {
@@ -193,6 +194,7 @@ const Materi = () => {
       id_paketkelas: editFolder.id_paketkelas,
       judul: newFolderName,
       deskripsi: newDescription,
+      visibility,
     };
 
     try {
@@ -207,10 +209,8 @@ const Materi = () => {
       setEditFolder(null);
       setNewFolderName("");
       setNewDescription("");
-      setNewOrder(0);
+      setVisibility("");
     } catch (err) {
-      console.error("Failed to update folder:", err);
-
       const msg = err?.response?.data?.message || "Gagal memperbarui modul ❌";
       toast.error(msg, {
         position: "top-right",
@@ -464,6 +464,26 @@ const Materi = () => {
                   className="w-full p-2 border border-gray-300 rounded-md mt-1"
                   placeholder="Masukkan deskripsi modul"
                 />
+              </label>
+
+              <label className="text-gray-900 text-sm">
+                Visibility
+                <select
+                  value={visibility}
+                  onChange={(e) => setVisibility(e.target.value)}
+                  className={`w-full p-2 rounded-md mt-1 border font-medium
+              ${
+                visibility === "open"
+                  ? "text-green-600 border-green-400"
+                  : visibility === "hold"
+                  ? "text-yellow-600 border-yellow-400"
+                  : "text-red-600 border-red-400"
+              }`}
+                >
+                  <option value="open">Open</option>
+                  <option value="hold">Hold</option>
+                  <option value="close">Close</option>
+                </select>
               </label>
 
               <div className="flex justify-end gap-2">

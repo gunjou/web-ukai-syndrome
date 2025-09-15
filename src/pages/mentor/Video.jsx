@@ -158,7 +158,7 @@ const Video = () => {
     setEditFolder(folder);
     setNewFolderName(folder.judul);
     setNewDescription(folder.deskripsi || "");
-    setNewOrder(folder.urutan_modul || 0);
+    setVisibility(folder.visibility);
   };
 
   const handleEditSubmit = async (e) => {
@@ -176,6 +176,7 @@ const Video = () => {
       id_paketkelas: editFolder.id_paketkelas,
       judul: newFolderName,
       deskripsi: newDescription,
+      visibility,
     };
 
     try {
@@ -190,7 +191,7 @@ const Video = () => {
       setEditFolder(null);
       setNewFolderName("");
       setNewDescription("");
-      setNewOrder(0);
+      setVisibility("");
     } catch (err) {
       console.error("Failed to update folder:", err);
 
@@ -209,6 +210,7 @@ const Video = () => {
       await Api.put(`/modul/${id_modul}/visibility`, {
         visibility: newVisibility,
       });
+
       setModulItems((prev) =>
         prev.map((modul) =>
           modul.id_modul === id_modul
@@ -216,8 +218,23 @@ const Video = () => {
             : modul
         )
       );
+
+      // ✅ toast sukses
+      toast.success(
+        `Visibility berhasil diubah ke ${newVisibility.toUpperCase()}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
     } catch (error) {
-      console.error("Gagal mengubah visibility.");
+      console.error("Gagal mengubah visibility:", error);
+
+      // ❌ toast error
+      toast.error("Gagal mengubah visibility", {
+        position: "top-right",
+        autoClose: 4000,
+      });
     }
   };
 
@@ -464,6 +481,26 @@ const Video = () => {
                   className="w-full p-2 border border-gray-300 rounded-md mt-1"
                   placeholder="Masukkan deskripsi modul"
                 />
+              </label>
+
+              <label className="text-gray-900 text-sm">
+                Visibility
+                <select
+                  value={visibility}
+                  onChange={(e) => setVisibility(e.target.value)}
+                  className={`w-full p-2 rounded-md mt-1 border font-medium
+                   ${
+                     visibility === "open"
+                       ? "text-green-600 border-green-400"
+                       : visibility === "hold"
+                       ? "text-yellow-600 border-yellow-400"
+                       : "text-red-600 border-red-400"
+                   }`}
+                >
+                  <option value="open">Open</option>
+                  <option value="hold">Hold</option>
+                  <option value="close">Close</option>
+                </select>
               </label>
 
               <div className="flex justify-end gap-2">
