@@ -103,10 +103,17 @@ const Video = () => {
 
   const [activeModulId, setActiveModulId] = useState(null);
 
-  const fetchModul = async () => {
+  useEffect(() => {
+    const id = localStorage.getItem("kelas");
+    if (id) {
+      fetchModul(id); // panggil API dengan id_paketkelas
+    }
+  }, []);
+
+  const fetchModul = async (id_paketkelas) => {
     try {
       setLoading(true);
-      const response = await Api.get("/modul");
+      const response = await Api.get(`/modul/mentor/${id_paketkelas}`);
       setModulItems(response.data.data || []);
     } catch (err) {
       setError("Gagal memuat modul.");
@@ -114,10 +121,6 @@ const Video = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchModul();
-  }, []);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -133,7 +136,7 @@ const Video = () => {
     setBackStack((prev) => [...prev, location.pathname]);
     setForwardStack([]);
     setActiveModulId(modul.id_modul); // ✅ sekarang dapat id_modul
-    console.log(modul);
+    // console.log(modul);
     navigate(`${basePath}/${slug}`);
   };
 
@@ -299,7 +302,7 @@ const Video = () => {
       visibility: "open",
     };
 
-    console.log("Payload tambah materi:", payload);
+    // console.log("Payload tambah materi:", payload);
 
     try {
       await Api.post("/materi/mentor", payload);

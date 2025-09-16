@@ -111,10 +111,17 @@ const Materi = () => {
 
   const [activeModulId, setActiveModulId] = useState(null);
 
-  const fetchModul = async () => {
+  useEffect(() => {
+    const id = localStorage.getItem("kelas");
+    if (id) {
+      fetchModul(id); // panggil API dengan id_paketkelas
+    }
+  }, []);
+
+  const fetchModul = async (id_paketkelas) => {
     try {
       setLoading(true);
-      const response = await Api.get("/modul");
+      const response = await Api.get(`/modul/mentor/${id_paketkelas}`);
       setModulItems(response.data.data || []);
     } catch (err) {
       setError("Gagal memuat modul.");
@@ -122,10 +129,6 @@ const Materi = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchModul();
-  }, []);
 
   const basePath = "/mentor-dashboard/materi";
   const pathSegments = location.pathname

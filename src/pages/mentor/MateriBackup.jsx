@@ -206,7 +206,7 @@ const Materi = () => {
 
     try {
       const response = await Api.put(`/modul/${editFolder.id_modul}`, payload); // Update folder
-      console.log("Folder updated successfully:", response.data);
+      // console.log("Folder updated successfully:", response.data);
 
       // After successful edit, update the list
       handleModulUpdate();

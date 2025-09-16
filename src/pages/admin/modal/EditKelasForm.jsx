@@ -161,20 +161,27 @@ const EditKelasForm = ({
           />
         </div>
 
-        {/* Tombol submit */}
-        <div className="text-right">
+        {/* Tombol Aksi */}
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-md"
+          >
+            Batal
+          </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-4 py-2 flex items-center justify-center gap-2 rounded-md text-white ${
+            className={`px-4 py-2 rounded-md text-white flex items-center gap-2 ${
               isSubmitting
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {isSubmitting && (
               <svg
-                className="animate-spin h-5 w-5 text-white"
+                className="animate-spin h-4 w-4 text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -194,7 +201,7 @@ const EditKelasForm = ({
                 ></path>
               </svg>
             )}
-            {isSubmitting ? "Menyimpan..." : "Update"}
+            {isSubmitting ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
       </form>

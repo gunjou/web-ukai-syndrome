@@ -1,3 +1,4 @@
+// ListKelasModal.jsx
 import { useEffect, useState } from "react";
 import { BsTrash3 } from "react-icons/bs";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -6,17 +7,25 @@ import AssignKelasModal from "./AssignKelasModal.jsx";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./ConfirmToast.jsx";
 
-const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
+const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
   const [kelasData, setKelasData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAssignModal, setShowAssignModal] = useState(false);
 
+  // tentukan prefix API berdasarkan mode
+  const prefix = mode === "mentor" ? "mentor-kelas" : "modul";
+
   const fetchKelas = async () => {
-    if (!idModul) return; // jangan fetch kalau idModul kosong
+    if (!idTarget) return;
     setLoading(true);
     try {
-      const res = await Api.get(`/modul/list-kelas/${idModul}`);
-      setKelasData(res.data.data || []);
+      const res = await Api.get(`/${prefix}/list-kelas/${idTarget}`);
+      const list = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
+      setKelasData(list);
     } catch (err) {
       console.error("Gagal fetch list kelas:", err);
     } finally {
@@ -27,33 +36,34 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
   useEffect(() => {
     fetchKelas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idModul]);
+  }, [idTarget]);
 
   const handleSaveAssign = async (ids) => {
-    if (!idModul) return;
+    if (!idTarget) return;
 
     try {
-      await Api.post(`/modul/assign-kelas/${idModul}`, {
+      await Api.post(`/${prefix}/assign-kelas/${idTarget}`, {
         id_paketkelas: ids,
       });
-      toast.success("Kelas berhasil di-assign ke modul.");
+      toast.success(`Kelas berhasil di-assign ke ${mode}.`);
       setShowAssignModal(false);
-      fetchKelas(); // 🔄 refresh daftar kelas setelah assign
-      onRefresh(); // 🔄 refresh jumlah kelas di halaman utama
+      fetchKelas();
+      onRefresh?.();
     } catch (err) {
       console.error("Gagal assign kelas:", err);
-      toast.error("Gagal assign kelas.");
+      toast.error(`Gagal assign kelas ke ${mode}.`);
     }
   };
 
   const handleDelete = (id) => {
-    ConfirmToast("Yakin ingin menghapus modul untuk kelas ini?", async () => {
+    ConfirmToast(`Yakin ingin menghapus ${mode} untuk kelas ini?`, async () => {
       try {
-        await Api.delete(`/modul/kelas/${id}`);
-        toast.success("Modul untuk kelas ini berhasil dihapus.");
-        fetchKelas(); // 🔄 refresh setelah delete
+        await Api.delete(`/${prefix}/kelas/${id}`);
+        toast.success(`${mode} untuk kelas ini berhasil dihapus.`);
+        fetchKelas();
+        onRefresh?.();
       } catch (err) {
-        toast.error("Gagal menghapus modul.");
+        toast.error(`Gagal menghapus ${mode}.`);
         console.error(err);
       }
     });
@@ -62,7 +72,7 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
   return (
     <div className="relative">
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-bold">Daftar Kelas Modul</h2>
+        <h2 className="text-lg font-bold">{title}</h2>
       </div>
 
       {loading ? (
@@ -82,6 +92,7 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
                 <th className="border px-3 py-2">Nama Kelas</th>
                 <th className="border px-3 py-2">Paket</th>
                 <th className="border px-3 py-2">Batch</th>
+                <th className="border px-3 py-2">Total Modul</th>
                 <th className="border px-3 py-2">Total Peserta</th>
                 <th className="border px-3 py-2">Total Mentor</th>
                 <th className="border px-3 py-2">Aksi</th>
@@ -96,12 +107,19 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
                   <td className="border px-3 py-2">{kelas.nama_kelas}</td>
                   <td className="border px-3 py-2">{kelas.nama_paket}</td>
                   <td className="border px-3 py-2">{kelas.nama_batch}</td>
+                  <td className="border px-3 py-2">{kelas.total_modul}</td>
                   <td className="border px-3 py-2">{kelas.total_peserta}</td>
                   <td className="border px-3 py-2">{kelas.total_mentor}</td>
                   <td className="border px-3 py-2 text-xs sm:text-sm">
                     <div className="relative group">
                       <button
-                        onClick={() => handleDelete(kelas.id_modulkelas)}
+                        onClick={() =>
+                          handleDelete(
+                            mode === "mentor"
+                              ? kelas.id_mentorkelas
+                              : kelas.id_modulkelas
+                          )
+                        }
                         className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white"
                       >
                         <BsTrash3 className="w-4 h-4" />
@@ -117,7 +135,8 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
           </table>
         </div>
       )}
-      {/* Kolom kanan (Button) */}
+
+      {/* Button Assign */}
       <div className="flex justify-end pt-3">
         <button
           onClick={() => setShowAssignModal(true)}
@@ -127,7 +146,7 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
         </button>
       </div>
 
-      {/* Modal Assign Kelas */}
+      {/* Modal Assign */}
       {showAssignModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center z-50"
@@ -148,7 +167,10 @@ const ListKelasModal = ({ idModul, onClose, onRefresh }) => {
               show={showAssignModal}
               onClose={() => setShowAssignModal(false)}
               onSave={handleSaveAssign}
-              idModul={idModul}
+              {...(mode === "mentor"
+                ? { idMentor: idTarget }
+                : { idModul: idTarget })}
+              mode={mode}
             />
           </div>
         </div>

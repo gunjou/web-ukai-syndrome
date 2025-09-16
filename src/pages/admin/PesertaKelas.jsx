@@ -78,7 +78,7 @@ const PesertaKelas = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit", { isEdit, selectedId, formData }); // tambahkan log
+    // console.log("Submit", { isEdit, selectedId, formData }); // tambahkan log
 
     const validationError = validateForm();
     if (validationError) return alert(validationError);

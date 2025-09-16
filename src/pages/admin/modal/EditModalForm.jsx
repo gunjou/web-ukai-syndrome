@@ -31,7 +31,7 @@ const EditModulForm = ({ modul, onClose, onRefresh }) => {
     e.preventDefault();
     setLoading(true);
 
-    console.log(formData);
+    // console.log(formData);
     try {
       await Api.put(`/modul/${modul.id_modul}`, formData);
       toast.success(`Modul "${formData.judul}" berhasil diperbarui!`);

@@ -3,11 +3,21 @@ import Api from "../../../utils/Api";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 
-const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
+const AssignKelasModal = ({
+  show,
+  onClose,
+  onSave,
+  idModul,
+  idMentor,
+  mode,
+}) => {
   const [kelasList, setKelasList] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Ambil target ID sesuai mode
+  const idTarget = mode === "mentor" ? idMentor : idModul;
 
   useEffect(() => {
     if (show) {
@@ -17,10 +27,18 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
   }, [show]);
 
   const fetchKelas = async () => {
-    if (!idModul) return; // jangan fetch kalau idModul kosong
+    if (!idTarget) return;
     setLoading(true);
+
     try {
-      const res = await Api.get(`/modul/kelas-tersedia/${idModul}`);
+      let url = "";
+      if (mode === "modul") {
+        url = `/modul/kelas-tersedia/${idTarget}`;
+      } else if (mode === "mentor") {
+        url = `/mentor-kelas/kelas-tersedia/${idTarget}`;
+      }
+
+      const res = await Api.get(url);
       setKelasList(res.data.data || []);
     } catch (err) {
       console.error("Gagal fetch list kelas:", err);
@@ -44,8 +62,8 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
 
     setSaving(true);
     try {
-      await onSave(selectedIds); // ⬅️ panggil parent function
-      onClose(); // tutup modal
+      await onSave(selectedIds, mode); // ⬅️ kasih tau mode juga kalau parent butuh
+      onClose();
     } catch (err) {
       console.error("Gagal assign:", err);
       toast.error("Gagal assign kelas.");
@@ -58,9 +76,7 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      {/* Konten modal */}
       <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl p-6 relative pointer-events-auto">
-        {/* Tombol Close */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
@@ -68,7 +84,11 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
           <AiOutlineClose size={24} />
         </button>
 
-        <h2 className="text-lg font-bold mb-4">Assign Kelas ke Modul</h2>
+        <h2 className="text-lg font-bold mb-4">
+          {mode === "modul"
+            ? "Assign Kelas ke Modul"
+            : "Assign Kelas ke Mentor"}
+        </h2>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-2">
@@ -83,11 +103,12 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
           <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
             <table className="w-full border bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr className="bg-white">
+                <tr>
                   <th className="px-4 py-2 border text-left">Pilih</th>
                   <th className="px-4 py-2 border text-left">Nama Kelas</th>
                   <th className="px-4 py-2 border text-left">Paket</th>
                   <th className="px-4 py-2 border text-left">Batch</th>
+                  <th className="px-4 py-2 border text-center">Modul</th>
                   <th className="px-4 py-2 border text-center">Peserta</th>
                   <th className="px-4 py-2 border text-center">Mentor</th>
                 </tr>
@@ -104,7 +125,6 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
                           : "bg-gray-100 hover:bg-gray-300"
                       }`}
                       onClick={(e) => {
-                        // Cegah toggle ganda kalau klik langsung checkbox
                         if (e.target.type !== "checkbox") {
                           handleCheckboxChange(kelas.id_paketkelas);
                         }
@@ -123,6 +143,9 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
                       <td className="px-4 py-2 border">{kelas.nama_paket}</td>
                       <td className="px-4 py-2 border">{kelas.nama_batch}</td>
                       <td className="px-4 py-2 border text-center">
+                        {kelas.total_modul}
+                      </td>
+                      <td className="px-4 py-2 border text-center">
                         {kelas.total_peserta}
                       </td>
                       <td className="px-4 py-2 border text-center">
@@ -136,16 +159,18 @@ const AssignKelasModal = ({ show, onClose, onSave, idModul }) => {
           </div>
         )}
 
-        <div className="grid grid-cols-2">
-          {selectedIds.length > 0 ? (
-            <div className="flex justify-start gap-3 mt-4">
-              {selectedIds.length} Kelas terpilih
-            </div>
-          ) : (
-            <div className="flex justify-start gap-3 mt-4"></div>
-          )}
-          {/* Tombol Aksi */}
-          <div className="flex justify-end gap-3 mt-4">
+        <div className="grid grid-cols-2 items-center mt-4">
+          {/* Kolom kiri */}
+          <div className="flex justify-start">
+            {selectedIds.length > 0 && (
+              <span className="text-sm text-gray-700">
+                {selectedIds.length} Kelas terpilih
+              </span>
+            )}
+          </div>
+
+          {/* Kolom kanan */}
+          <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
               className="px-4 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded-xl"

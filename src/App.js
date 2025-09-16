@@ -45,6 +45,7 @@ import MentorKelas from "./pages/admin/MentorKelas.jsx";
 // mentor
 import MentorJs from "./Mentor.js";
 import PrivacyPolicy from "./utils/PrivacyPolicy.jsx";
+import HomeMentor from "./pages/mentor/HomeMentor.jsx";
 
 function App() {
   // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
@@ -80,6 +81,7 @@ function App() {
         <Route path="/pembayaran" element={<Pembayaran />} />
         {/* Route for User Dashboard */}
         <Route path="/dashboard/*" element={<User />} />
+        <Route path="/mentor-home" element={<HomeMentor />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
         {/* Privacy Policy */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
