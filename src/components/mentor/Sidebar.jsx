@@ -9,7 +9,7 @@ const Sidebar = () => {
   return (
     <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
       <div className="p-6 pl-4 text-2xl font-bold text-blue-600">
-        <a className="flex justify-left" href="/home">
+        <a className="flex justify-left" href="/mentor-home">
           <img
             src={homepage_img}
             alt="Homepage Logo"

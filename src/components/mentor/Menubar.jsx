@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import Api from "../../utils/Api";
+import { toast } from "react-toastify";
+import { KelasContext } from "./KelasContext";
+
 import ModalProfile from "./modal/ModalProfile";
+
 const MenuBar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [kelasUser, setKelasUser] = useState(false);
   const menuRef = useRef(null);
+
+  const { kelasList, kelasUser, gantiKelas } = useContext(KelasContext);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "User";
@@ -31,49 +35,33 @@ const MenuBar = () => {
 
   const avatarColor = stringToColor(userName);
 
-  useEffect(() => {
-    const id = localStorage.getItem("kelas");
-    try {
-      if (id) {
-        handleKelasSaya(id); // panggil API dengan id_paketkelas
-      }
-    } catch (err) {
-      console.error("Gagal fetch data:", err);
-    }
-  }, []);
+  // helper ambil label batch
+  const getBatchLabel = (kelas) => {
+    if (!kelas) return "";
+    return kelas.batch || kelas.batch_ke || kelas.angkatan || null;
+  };
 
-  const handleKelasSaya = async (id_paketkelas) => {
-    try {
-      const res = await Api.get(`/paket-kelas/${id_paketkelas}`);
-      setKelasUser(res.data.data);
-    } catch (err) {
-      console.error("Gagal cek kelas saya:", err);
+  const handleChangeKelas = (e) => {
+    const id = e.target.value;
+    const selected = kelasList.find((k) => k.id_paketkelas == id);
+    if (selected) {
+      gantiKelas(selected); // update global state
+      toast.success(
+        `Kelas diganti ke ${selected.nama_kelas}${
+          selected.batch ? ` (Batch ${selected.batch})` : ""
+        }`
+      );
+
+      setTimeout(() => {
+        window.location.reload(); // 🔄 reload halaman
+      }, 800); // kasih delay biar toast sempat tampil
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await Api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogout = () => {
+    localStorage.clear();
     navigate("/login");
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   return (
     <>
@@ -96,14 +84,26 @@ const MenuBar = () => {
           </div>
         </div>
 
-        {/* Kanan: Kelas */}
+        {/* Kanan: Dropdown Kelas */}
         <div className="relative inline-block mr-4">
           <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
             Kelas
           </span>
-          <div className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm">
-            {kelasUser.nama_kelas}
-          </div>
+          <select
+            value={kelasUser?.id_paketkelas || ""}
+            onChange={handleChangeKelas}
+            className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm"
+          >
+            <option value="" disabled>
+              Pilih Kelas
+            </option>
+            {kelasList.map((kelas) => (
+              <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
+                {kelas.nama_kelas}{" "}
+                {getBatchLabel(kelas) ? `(Batch ${getBatchLabel(kelas)})` : ""}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Avatar + Menu */}

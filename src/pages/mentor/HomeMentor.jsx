@@ -35,7 +35,7 @@ const HomeMentor = () => {
   };
 
   return (
-    <div className="min-h-screen w-auto bg-gradient-to-r from-[#1d3ca1] to-[#1d1d53] flex flex-col items-center relative">
+    <div className="min-h-screen w-auto bg-gradient-to-r from-[#a11d1d] to-[#531d1d] flex flex-col items-center relative">
       <img
         src={bgmaps}
         alt="Background Image"
@@ -89,8 +89,8 @@ const HomeMentor = () => {
                     </div>
 
                     {/* Right Text */}
-                    <div className="lg:w-[70%] flex flex-col justify-center pl-3 pr-2">
-                      <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f]">
+                    <div className="lg:w-[80%] flex flex-col justify-center pl-2 pr-2">
+                      <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f] capitalize">
                         {kelas.nama_kelas}
                       </div>
                       <div className="text-[10px] text-left text-gray-600">
