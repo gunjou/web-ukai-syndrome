@@ -32,20 +32,20 @@ const MenuBar = () => {
   const avatarColor = stringToColor(userName);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await handleKelasSaya();
-      } catch (err) {
-        console.error("Gagal fetch data:", err);
+    const id = localStorage.getItem("kelas");
+    try {
+      if (id) {
+        handleKelasSaya(id); // panggil API dengan id_paketkelas
       }
-    };
-    fetchData();
+    } catch (err) {
+      console.error("Gagal fetch data:", err);
+    }
   }, []);
 
-  const handleKelasSaya = async () => {
+  const handleKelasSaya = async (id_paketkelas) => {
     try {
-      const res = await Api.get("/profile/kelas-saya");
-      setKelasUser(res.data);
+      const res = await Api.get(`/paket-kelas/${id_paketkelas}`);
+      setKelasUser(res.data.data);
     } catch (err) {
       console.error("Gagal cek kelas saya:", err);
     }

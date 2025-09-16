@@ -77,7 +77,8 @@ const LoginPage = () => {
         if (role === "admin") {
           navigate("/admin-home");
         } else if (role === "mentor") {
-          navigate("/mentor-dashboard/materi");
+          // navigate("/mentor-dashboard/materi");
+          navigate("/mentor-home");
         } else {
           navigate("/home");
         }

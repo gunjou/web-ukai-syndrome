@@ -70,7 +70,7 @@ const EditMentorForm = ({
       if (!payload.password) {
         delete payload.password;
       }
-      console.log("Payload:", payload); // Debug: cek payload
+      // console.log("Payload:", payload); // Debug: cek payload
 
       await Api.put(`/mentor/${initialData.id_user}`, payload);
 

@@ -366,7 +366,9 @@ const DaftarModul = () => {
               <AiOutlineClose size={24} />
             </button>
             <ListKelasModal
-              idModul={selectedId}
+              mode="modul"
+              idTarget={selectedId}
+              title="Daftar Kelas Modul"
               onClose={() => setShowListKelasModal(false)}
               onRefresh={() => handleRefreshFetch()}
             />

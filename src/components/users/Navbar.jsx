@@ -32,7 +32,7 @@ const Navbar = () => {
     try {
       const res = await Api.get("/profile/kelas-saya");
       const user = res.data;
-      console.log(user);
+      // console.log(user);
 
       if (!user || user.nama_kelas === null) {
         alert("Belum ada paket terdaftar. Silakan beli paket terlebih dahulu.");

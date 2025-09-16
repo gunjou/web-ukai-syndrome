@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
-import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import Header from "../../components/admin/Header.jsx";
@@ -202,20 +202,21 @@ const DaftarKelas = () => {
       {/* 🔹 Modal Tambah Kelas */}
       {showTambahModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setShowTambahModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol Close */}
+            {/* Tombol close */}
             <button
               onClick={() => setShowTambahModal(false)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
             >
-              ✕
+              <AiOutlineClose size={24} />
             </button>
+            {/* Form */}
             <TambahKelasForm
               setShowModal={setShowTambahModal}
               fetchKelas={fetchKelasData}
@@ -227,18 +228,19 @@ const DaftarKelas = () => {
       {/* 🔹 Modal Edit Kelas */}
       {showEditModal && selectedData && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-lg w-[90%] max-w-lg p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Tombol close */}
             <button
               onClick={() => setShowEditModal(false)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
             >
-              ✕
+              <AiOutlineClose size={24} />
             </button>
             <EditKelasForm
               setShowModal={setShowEditModal}

@@ -44,7 +44,7 @@ const MateriListContent = () => {
         );
 
         // Debug untuk lihat isi visibility
-        console.log("Filtered materi:", filtered);
+        // console.log("Filtered materi:", filtered);
 
         setMateriList(filtered);
       } catch (err) {

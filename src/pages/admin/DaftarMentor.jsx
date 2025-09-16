@@ -9,6 +9,7 @@ import TambahMentorForm from "./modal/TambahMentorForm.jsx";
 import EditMentorForm from "./modal/EditMentorForm.jsx";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import { toast } from "react-toastify";
+import ListKelasModal from "./modal/ListKelasModal.jsx";
 
 const DaftarMentor = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,10 +18,16 @@ const DaftarMentor = () => {
   const [editModal, setEditModal] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [fetchingData, setFetchingData] = useState(true);
+  const [selectedId, setSelectedId] = useState(null);
+  const [showListKelasModal, setShowListKelasModal] = useState(false);
 
   useEffect(() => {
     fetchMentorData();
   }, []);
+
+  const handleRefreshFetch = async () => fetchMentorData();
+
+  // console.log(userData);
 
   const fetchMentorData = async () => {
     setFetchingData(true);
@@ -67,6 +74,19 @@ const DaftarMentor = () => {
     });
   };
 
+  const getBadgeColor = (total) => {
+    if (total < 1) return "bg-blue-500/20";
+    if (total <= 5) return "bg-blue-500/40";
+    if (total <= 10) return "bg-blue-500/70";
+    if (total <= 20) return "bg-blue-500/90";
+    return "bg-blue-600"; // full solid
+  };
+
+  const handleOpenListKelasModal = (id) => {
+    setSelectedId(id);
+    setShowListKelasModal(true);
+  };
+
   const renderTableRows = () =>
     filteredData.map((user, index) => (
       <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-300">
@@ -82,14 +102,15 @@ const DaftarMentor = () => {
         <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
           {user.no_hp || "-"}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
-          {user.nama_kelas || "-"}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
-          {user.nama_paket || "-"}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
-          {user.nama_batch || "-"}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <button
+            onClick={() => handleOpenListKelasModal(user.id_user)}
+            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
+              user.total_kelas
+            )}`}
+          >
+            {user.total_kelas} Kelas
+          </button>
         </td>
         {/* Kolom Aksi */}
         <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
@@ -101,7 +122,7 @@ const DaftarMentor = () => {
               >
                 <LuPencil className="w-4 h-4" />
               </button>
-              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+              <span className="absolute bottom-full z-51 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
                 Edit data
               </span>
             </div>
@@ -112,7 +133,7 @@ const DaftarMentor = () => {
               >
                 <BsTrash3 className="w-4 h-4" />
               </button>
-              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+              <span className="absolute bottom-full z-51 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
                 Hapus data
               </span>
             </div>
@@ -182,9 +203,7 @@ const DaftarMentor = () => {
                   <th className="px-4 py-2 border">Nama</th>
                   <th className="px-2 py-2 border">Email</th>
                   <th className="px-2 py-2 border">No HP</th>
-                  <th className="px-2 py-2 border">Kelas</th>
-                  <th className="px-2 py-2 border">Paket</th>
-                  <th className="px-2 py-2 border">Batch</th>
+                  <th className="px-2 py-2 border">List Kelas</th>
                   <th className="px-4 py-2 border">Aksi</th>
                 </tr>
               </thead>
@@ -196,11 +215,11 @@ const DaftarMentor = () => {
 
       {showModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol close */}
@@ -223,11 +242,11 @@ const DaftarMentor = () => {
       )}
       {editModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setEditModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol close */}
@@ -245,6 +264,33 @@ const DaftarMentor = () => {
                 fetchMentorData(); // refresh data mentor
                 setEditModal(false); // tutup modal
               }}
+            />
+          </div>
+        </div>
+      )}
+      {/* Modal List Kelas */}
+      {showListKelasModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListKelasModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListKelasModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <ListKelasModal
+              mode="mentor"
+              idTarget={selectedId}
+              title="Daftar Kelas Mentor"
+              onClose={() => setShowListKelasModal(false)}
+              onRefresh={() => handleRefreshFetch()}
             />
           </div>
         </div>
