@@ -226,6 +226,7 @@ const Materi = () => {
       await Api.put(`/modul/${id_modul}/visibility`, {
         visibility: newVisibility,
       });
+
       setModulItems((prev) =>
         prev.map((modul) =>
           modul.id_modul === id_modul
@@ -233,8 +234,20 @@ const Materi = () => {
             : modul
         )
       );
+
+      // ✅ toast sukses
+      toast.success(
+        `Visibility berhasil diubah ke ${newVisibility.toUpperCase()}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
     } catch (error) {
-      toast.error("Gagal mengubah status modul ❌", {
+      console.error("Gagal mengubah visibility:", error);
+
+      // ❌ toast error
+      toast.error("Gagal mengubah visibility", {
         position: "top-right",
         autoClose: 4000,
       });
