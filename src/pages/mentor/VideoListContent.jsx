@@ -98,10 +98,17 @@ const VideoListContent = () => {
     commentRefs.current = {};
   }, [comments]);
 
-  const fetchKomentar = async (id_materi) => {
+  const fetchKomentar = async (id_materi, id_paketkelas) => {
     try {
-      const res = await Api.get(`/komentar/${id_materi}/komentar`);
+      const res = await Api.get(
+        `/komentar/${id_materi}/komentar/${id_paketkelas}`
+      );
       const rawKomentar = res.data.data || [];
+
+      // urutkan komentar terbaru paling atas
+      rawKomentar.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
 
       const komentarMap = {};
       const rootKomentar = [];
@@ -158,7 +165,8 @@ const VideoListContent = () => {
 
     try {
       await Api.delete(`/komentar/${id_komentarmateri}`);
-      selectedVideo && fetchKomentar(selectedVideo.id_materi);
+      selectedVideo &&
+        fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal menghapus komentar:", err);
       alert("Terjadi kesalahan saat menghapus komentar.");
@@ -176,10 +184,13 @@ const VideoListContent = () => {
         id_materi: selectedVideo.id_materi,
       };
 
-      await Api.post(`/komentar/${selectedVideo.id_materi}/komentar`, payload);
+      await Api.post(
+        `/komentar/${selectedVideo.id_materi}/komentar/${selectedVideo.id_paketkelas}`,
+        payload
+      );
       setNewComment("");
       setReplyingTo(null);
-      fetchKomentar(selectedVideo.id_materi);
+      fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal menambahkan komentar:", err);
       alert("Gagal menambahkan komentar.");
@@ -196,7 +207,7 @@ const VideoListContent = () => {
 
       setNewComment("");
       setEditingComment(null);
-      fetchKomentar(selectedVideo.id_materi);
+      fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal mengedit komentar:", err);
       alert("Terjadi kesalahan saat mengedit komentar.");
@@ -233,21 +244,19 @@ const VideoListContent = () => {
           </button>
           {comment.id_user === currentUserId &&
             canEditComment(comment.created_at) && (
-              <>
-                <button
-                  onClick={() => handleEdit(comment)}
-                  className="text-yellow-600 hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteComment(comment.id_komentarmateri)}
-                  className="text-red-600 hover:underline"
-                >
-                  Hapus
-                </button>
-              </>
+              <button
+                onClick={() => handleEdit(comment)}
+                className="text-yellow-600 hover:underline"
+              >
+                Edit
+              </button>
             )}
+          <button
+            onClick={() => handleDeleteComment(comment.id_komentarmateri)}
+            className="text-red-600 hover:underline"
+          >
+            Hapus
+          </button>
         </div>
       )}
 
@@ -412,7 +421,7 @@ const VideoListContent = () => {
                   key={video.id_materi}
                   onClick={() => {
                     setSelectedVideo(video);
-                    fetchKomentar(video.id_materi);
+                    fetchKomentar(video.id_materi, video.id_paketkelas);
                   }}
                   className={`flex gap-3 mb-3 p-2 rounded cursor-pointer hover:bg-gray-100 ${
                     selectedVideo?.id_materi === video.id_materi
@@ -442,7 +451,6 @@ const VideoListContent = () => {
       </div>
     );
   }
-
   return (
     <div className="p-2 relative">
       <h2 className="text-2xl font-semibold mb-2 capitalize">
@@ -459,7 +467,7 @@ const VideoListContent = () => {
               key={video.id_materi}
               onClick={() => {
                 setSelectedVideo(video);
-                fetchKomentar(video.id_materi);
+                fetchKomentar(video.id_materi, video.id_paketkelas);
               }}
               className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
