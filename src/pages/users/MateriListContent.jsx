@@ -147,7 +147,11 @@ const MateriListContent = () => {
               {/* Watermark overlay */}
               <div
                 className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
-                style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
+                style={{
+                  transform: "rotate(-25deg)",
+                  opacity: 0.25,
+                  zIndex: 10,
+                }}
               >
                 {Array.from({ length: 80 }, (_, i) => (
                   <span
@@ -161,14 +165,19 @@ const MateriListContent = () => {
               </div>
 
               {pdfUrl && (
-                <iframe
-                  title={selectedMateri.judul}
-                  src={pdfUrl}
-                  className="w-full h-[500px] border-none"
-                  allow="autoplay"
-                  sandbox="allow-same-origin allow-scripts allow-popups"
-                  referrerPolicy="no-referrer"
-                />
+                <div className="relative w-full h-[500px]">
+                  <iframe
+                    title={selectedMateri.judul}
+                    src={pdfUrl}
+                    className="w-full h-[500px] border-none"
+                    allow="autoplay"
+                    sandbox="allow-same-origin allow-scripts allow-popups"
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {/* overlay transparan untuk blok tombol popup gdrive */}
+                  <div className="absolute top-0 right-0 w-16 h-12 bg-transparent z-10"></div>
+                </div>
               )}
             </div>
           </div>

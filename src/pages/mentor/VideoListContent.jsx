@@ -333,14 +333,19 @@ const VideoListContent = () => {
             {/* Video Player & Watermark */}
             <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black relative">
               {selectedVideo.url_file.includes("drive.google.com") ? (
-                <iframe
-                  src={formatDriveUrl(selectedVideo.url_file)}
-                  width="100%"
-                  height="100%"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  className="w-full h-full"
-                ></iframe>
+                <>
+                  <iframe
+                    src={formatDriveUrl(selectedVideo.url_file)}
+                    width="100%"
+                    height="100%"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    className="w-full h-full"
+                  ></iframe>
+
+                  {/* overlay transparan di pojok kanan atas (blokir tombol popup GDrive) */}
+                  <div className="absolute top-0 right-0 w-16 h-12 z-10 bg-transparent"></div>
+                </>
               ) : (
                 <video
                   key={selectedVideo.id_materi}

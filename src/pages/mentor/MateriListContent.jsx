@@ -13,6 +13,13 @@ const MateriListContent = () => {
   const [selectedMateri, setSelectedMateri] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [pdfUrl, setPdfUrl] = useState("");
+  const [userName, setUserName] = useState("User"); // default
+
+  // Ambil nama user dari localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.nama) setUserName(user.nama);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -174,17 +181,42 @@ const MateriListContent = () => {
 
             {/* PDF.js Document Viewer */}
             <div
-              className="border rounded-lg overflow-hidden select-none"
+              className="relative border rounded-lg overflow-hidden select-none"
               onContextMenu={(e) => e.preventDefault()}
             >
+              {/* Watermark overlay */}
+              <div
+                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
+                style={{
+                  transform: "rotate(-25deg)",
+                  opacity: 0.25,
+                  zIndex: 10,
+                }}
+              >
+                {Array.from({ length: 40 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="text-gray-400 font-bold select-none m-8 whitespace-nowrap"
+                    style={{ fontSize: "2rem" }}
+                  >
+                    {userName}
+                  </span>
+                ))}
+              </div>
               {pdfUrl && (
-                <iframe
-                  title={selectedMateri.judul}
-                  src={pdfUrl}
-                  className="w-full h-[500px] border-none"
-                  allow="autoplay"
-                  sandbox="allow-same-origin allow-scripts allow-popups"
-                />
+                <div className="relative w-full h-[500px]">
+                  <iframe
+                    title={selectedMateri.judul}
+                    src={pdfUrl}
+                    className="w-full h-[500px] border-none"
+                    allow="autoplay"
+                    sandbox="allow-same-origin allow-scripts allow-popups"
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {/* overlay transparan untuk blok tombol popup gdrive */}
+                  <div className="absolute top-0 right-0 w-16 h-12 bg-transparent z-10"></div>
+                </div>
               )}
             </div>
           </div>

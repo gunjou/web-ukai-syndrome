@@ -316,14 +316,19 @@ const VideoListContent = () => {
   const renderPlayer = () => {
     if (!selectedVideo) return null;
     return selectedVideo.url_file.includes("drive.google.com") ? (
-      <iframe
-        src={formatDriveUrl(selectedVideo.url_file)}
-        width="100%"
-        height="100%"
-        allow="autoplay; encrypted-media"
-        allowFullScreen
-        className="w-full h-full"
-      ></iframe>
+      <div className="relative w-full h-full">
+        <iframe
+          src={formatDriveUrl(selectedVideo.url_file)}
+          width="100%"
+          height="100%"
+          allow="autoplay; encrypted-media"
+          allowFullScreen
+          className="w-full h-full"
+        ></iframe>
+
+        {/* overlay transparan untuk blok tombol popup gdrive */}
+        <div className="absolute top-0 right-0 w-16 h-12 bg-transparent z-10"></div>
+      </div>
     ) : (
       <video
         key={selectedVideo.id_materi}
