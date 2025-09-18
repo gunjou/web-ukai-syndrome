@@ -71,8 +71,6 @@ const LoginPage = () => {
         JSON.stringify({ id_user, nama, email: userEmail, role })
       );
 
-      setToast({ message: "Login berhasil!", type: "success" });
-
       setTimeout(() => {
         if (role === "admin") {
           navigate("/admin-home");
@@ -82,7 +80,8 @@ const LoginPage = () => {
         } else {
           navigate("/home");
         }
-      }, 1500);
+      }, 500);
+      setToast({ message: "Login berhasil!", type: "success" });
     } catch (error) {
       console.error("Login failed:", error);
       setToast({ message: "Email atau password salah!", type: "error" });
