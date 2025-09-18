@@ -228,8 +228,9 @@ const VideoListContent = () => {
           comment.is_deleted ? "italic text-gray-400" : "text-gray-800"
         }`}
       >
-        {comment.is_deleted ? "Komentar telah dihapus" : comment.isi_komentar}
+        {comment.isi_komentar}
       </p>
+
       <p className="text-xs text-gray-500 mt-1">
         {new Date(comment.created_at).toLocaleString()}
       </p>

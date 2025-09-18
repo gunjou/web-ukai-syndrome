@@ -1,8 +1,31 @@
+// untuk peserta
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
 import thumbnailDefault from "../../assets/logo-1.svg";
+
+// helper format Google Drive URL
+const formatDriveUrl = (url) => {
+  if (!url.includes("drive.google.com")) return url;
+  const match = url.match(/\/d\/([^/]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return url.replace("/view", "/preview");
+};
+
+// validasi url video
+const isValidVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes("drive.google.com") ||
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".ogg")
+  );
+};
 
 const VideoListContent = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -21,11 +44,9 @@ const VideoListContent = () => {
   const [openReplies, setOpenReplies] = useState({});
   const commentRefs = useRef({});
 
-  // Helper function to check if a comment can be edited
   const canEditComment = (createdAt) => {
-    const timeLimit = 5 * 60 * 1000; // 5 minutes
-    const currentTime = Date.now();
-    return currentTime - new Date(createdAt).getTime() <= timeLimit;
+    const timeLimit = 5 * 60 * 1000; // 5 menit
+    return Date.now() - new Date(createdAt).getTime() <= timeLimit;
   };
 
   useEffect(() => {
@@ -54,7 +75,8 @@ const VideoListContent = () => {
         const filtered = materiData.filter(
           (item) =>
             item.id_modul === selectedModul.id_modul &&
-            item.tipe_materi === "video"
+            item.tipe_materi === "video" &&
+            isValidVideoUrl(item.url_file)
         );
 
         setVideoList(filtered);
@@ -74,18 +96,16 @@ const VideoListContent = () => {
     commentRefs.current = {};
   }, [comments]);
 
-  // Thumbnail generator (fallback ke placeholder kalau bukan gdrive)
-  const getThumbnailUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    return match
-      ? `https://drive.google.com/thumbnail?id=${match[1]}`
-      : "https://via.placeholder.com/150";
-  };
-
-  const fetchKomentar = async (id_materi) => {
+  const fetchKomentar = async (id_materi, id_paketkelas) => {
     try {
-      const res = await Api.get(`/komentar/${id_materi}/komentar`);
+      const res = await Api.get(
+        `/komentar/${id_materi}/komentar/${id_paketkelas}`
+      );
       const rawKomentar = res.data.data || [];
+
+      rawKomentar.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
 
       const komentarMap = {};
       const rootKomentar = [];
@@ -139,10 +159,10 @@ const VideoListContent = () => {
 
   const handleDeleteComment = async (id_komentarmateri) => {
     if (!window.confirm("Yakin ingin menghapus komentar ini?")) return;
-
     try {
       await Api.delete(`/komentar/${id_komentarmateri}`);
-      selectedVideo && fetchKomentar(selectedVideo.id_materi);
+      selectedVideo &&
+        fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal menghapus komentar:", err);
       alert("Terjadi kesalahan saat menghapus komentar.");
@@ -160,10 +180,13 @@ const VideoListContent = () => {
         id_materi: selectedVideo.id_materi,
       };
 
-      await Api.post(`/komentar/${selectedVideo.id_materi}/komentar`, payload);
+      await Api.post(
+        `/komentar/${selectedVideo.id_materi}/komentar/${selectedVideo.id_paketkelas}`,
+        payload
+      );
       setNewComment("");
       setReplyingTo(null);
-      fetchKomentar(selectedVideo.id_materi);
+      fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal menambahkan komentar:", err);
       alert("Gagal menambahkan komentar.");
@@ -172,7 +195,6 @@ const VideoListContent = () => {
 
   const handleEditComment = async (e) => {
     e.preventDefault();
-
     try {
       await Api.put(`/komentar/${editingComment.id_komentarmateri}`, {
         isi_komentar: newComment,
@@ -180,7 +202,7 @@ const VideoListContent = () => {
 
       setNewComment("");
       setEditingComment(null);
-      fetchKomentar(selectedVideo.id_materi);
+      fetchKomentar(selectedVideo.id_materi, selectedVideo.id_paketkelas);
     } catch (err) {
       console.error("Gagal mengedit komentar:", err);
       alert("Terjadi kesalahan saat mengedit komentar.");
@@ -201,8 +223,9 @@ const VideoListContent = () => {
           comment.is_deleted ? "italic text-gray-400" : "text-gray-800"
         }`}
       >
-        {comment.is_deleted ? "Komentar telah dihapus" : comment.isi_komentar}
+        {comment.isi_komentar}
       </p>
+
       <p className="text-xs text-gray-500 mt-1">
         {new Date(comment.created_at).toLocaleString()}
       </p>
@@ -270,7 +293,6 @@ const VideoListContent = () => {
         </form>
       )}
 
-      {/* Toggle replies */}
       {Array.isArray(comment.replies) && comment.replies.length > 0 && (
         <div className="ml-1 mt-2">
           <button
@@ -291,6 +313,31 @@ const VideoListContent = () => {
     </li>
   );
 
+  const renderPlayer = () => {
+    if (!selectedVideo) return null;
+    return selectedVideo.url_file.includes("drive.google.com") ? (
+      <iframe
+        src={formatDriveUrl(selectedVideo.url_file)}
+        width="100%"
+        height="100%"
+        allow="autoplay; encrypted-media"
+        allowFullScreen
+        className="w-full h-full"
+      ></iframe>
+    ) : (
+      <video
+        key={selectedVideo.id_materi}
+        controls
+        controlsList="nodownload"
+        disablePictureInPicture
+        className="w-full h-full"
+        src={selectedVideo.url_file}
+      >
+        Browser Anda tidak mendukung pemutar video.
+      </video>
+    );
+  };
+
   if (selectedVideo) {
     return (
       <div className="p-4 min-h-screen bg-gray-100">
@@ -303,22 +350,10 @@ const VideoListContent = () => {
         </button>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Video Player & Komentar */}
           <div className="flex-1 bg-white shadow rounded-lg p-4">
-            {/* Video Player & Watermark */}
             <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black relative">
-              <video
-                key={selectedVideo.id_materi}
-                controls
-                controlsList="nodownload"
-                disablePictureInPicture
-                className="w-full h-full"
-                src={selectedVideo.url_file}
-              >
-                Browser Anda tidak mendukung pemutar video.
-              </video>
+              {renderPlayer()}
 
-              {/* Watermark overlay */}
               <div
                 className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none select-none capitalize"
                 style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
@@ -346,7 +381,6 @@ const VideoListContent = () => {
                 💬 {getTotalKomentar()} Komentar
               </p>
 
-              {/* Form komentar utama */}
               <form onSubmit={handleAddComment} className="mb-4">
                 <textarea
                   className="w-full border rounded p-2 focus:outline-none focus:ring"
@@ -367,7 +401,6 @@ const VideoListContent = () => {
                 </button>
               </form>
 
-              {/* Daftar komentar */}
               {comments.length === 0 ? (
                 <p className="text-gray-500">Belum ada komentar.</p>
               ) : (
@@ -378,7 +411,6 @@ const VideoListContent = () => {
             </div>
           </div>
 
-          {/* Sidebar Video */}
           <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-full">
             <h3 className="text-lg font-semibold mb-3">Daftar Video</h3>
             {videoList.length > 0 ? (
@@ -387,7 +419,7 @@ const VideoListContent = () => {
                   key={video.id_materi}
                   onClick={() => {
                     setSelectedVideo(video);
-                    fetchKomentar(video.id_materi);
+                    fetchKomentar(video.id_materi, video.id_paketkelas);
                   }}
                   className={`flex gap-3 mb-3 p-2 rounded cursor-pointer hover:bg-gray-100 ${
                     selectedVideo?.id_materi === video.id_materi
@@ -434,7 +466,7 @@ const VideoListContent = () => {
               key={video.id_materi}
               onClick={() => {
                 setSelectedVideo(video);
-                fetchKomentar(video.id_materi);
+                fetchKomentar(video.id_materi, video.id_paketkelas);
               }}
               className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
             >
