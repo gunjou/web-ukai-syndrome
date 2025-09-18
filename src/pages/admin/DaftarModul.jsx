@@ -355,7 +355,7 @@ const DaftarModul = () => {
           onClick={() => setShowListKelasModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative"
+            className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol Close */}

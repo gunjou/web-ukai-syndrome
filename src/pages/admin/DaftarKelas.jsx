@@ -9,6 +9,9 @@ import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import TambahKelasForm from "./modal/TambahKelasForm.jsx";
 import EditKelasForm from "./modal/EditKelasForm.jsx";
+import KelasPesertaModal from "./modal/KelasPesertaModal.jsx";
+import KelasModulModal from "./modal/KelasModulModal.jsx";
+import KelasMentorModal from "./modal/KelasMentorModal.jsx";
 
 const DaftarKelas = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,9 +20,15 @@ const DaftarKelas = () => {
 
   const [showTambahModal, setShowTambahModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showListPesertaModal, setShowListPesertaModal] = useState(false);
+  const [showListMentorModal, setShowListMentorModal] = useState(false);
+  const [showListModulModal, setShowListModulModal] = useState(false);
 
   const [selectedId, setSelectedId] = useState(null);
+  const [selectedNamaKelas, setSelectedNamaKelas] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
+
+  const handleRefreshFetch = async () => fetchKelasData();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,6 +81,32 @@ const DaftarKelas = () => {
     });
   };
 
+  const handleOpenListPesertaModal = (id, nama) => {
+    setShowListPesertaModal(true);
+    setSelectedId(id);
+    setSelectedNamaKelas(nama);
+  };
+
+  const handleOpenListMentorModal = (id, nama) => {
+    setShowListMentorModal(true);
+    setSelectedId(id);
+    setSelectedNamaKelas(nama);
+  };
+
+  const handleOpenListModulModal = (id, nama) => {
+    setShowListModulModal(true);
+    setSelectedId(id);
+    setSelectedNamaKelas(nama);
+  };
+
+  const getBadgeColor = (total) => {
+    if (total < 1) return "bg-blue-500/20";
+    if (total <= 5) return "bg-blue-500/40";
+    if (total <= 10) return "bg-blue-500/70";
+    if (total <= 20) return "bg-blue-500/90";
+    return "bg-blue-600"; // full solid
+  };
+
   const renderTableRows = () =>
     filteredData.map((kelas, index) => (
       <tr key={index} className="bg-gray-100 hover:bg-gray-300">
@@ -88,14 +123,41 @@ const DaftarKelas = () => {
         <td className="px-4 py-2 text-sm border capitalize">
           {kelas.deskripsi}
         </td>
-        <td className="px-4 py-2 text-sm border text-center">
-          {kelas.total_peserta}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <button
+            onClick={() =>
+              handleOpenListPesertaModal(kelas.id_paketkelas, kelas.nama_kelas)
+            }
+            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
+              kelas.total_peserta
+            )}`}
+          >
+            {kelas.total_peserta} Peserta
+          </button>
         </td>
-        <td className="px-4 py-2 text-sm border text-center">
-          {kelas.total_mentor}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <button
+            onClick={() =>
+              handleOpenListMentorModal(kelas.id_paketkelas, kelas.nama_kelas)
+            }
+            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
+              kelas.total_mentor
+            )}`}
+          >
+            {kelas.total_mentor} Peserta
+          </button>
         </td>
-        <td className="px-4 py-2 text-sm border text-center">
-          {kelas.total_modul}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <button
+            onClick={() =>
+              handleOpenListModulModal(kelas.id_paketkelas, kelas.nama_kelas)
+            }
+            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
+              kelas.total_modul
+            )}`}
+          >
+            {kelas.total_modul} Peserta
+          </button>
         </td>
 
         {/* Kolom Aksi */}
@@ -247,6 +309,87 @@ const DaftarKelas = () => {
               fetchKelas={fetchKelasData}
               selectedId={selectedId}
               initialData={selectedData}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal List Peserta */}
+      {showListPesertaModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListPesertaModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListPesertaModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <KelasPesertaModal
+              idTarget={selectedId}
+              namaTarget={selectedNamaKelas}
+              onClose={() => setShowListPesertaModal(false)}
+              onRefresh={() => handleRefreshFetch()}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal List Mentor */}
+      {showListMentorModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListMentorModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-3xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListMentorModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <KelasMentorModal
+              idTarget={selectedId}
+              namaTarget={selectedNamaKelas}
+              onClose={() => setShowListMentorModal(false)}
+              onRefresh={() => handleRefreshFetch()}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal List Modul */}
+      {showListModulModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListModulModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListModulModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <KelasModulModal
+              idTarget={selectedId}
+              namaTarget={selectedNamaKelas}
+              onClose={() => setShowListModulModal(false)}
+              onRefresh={() => handleRefreshFetch()}
             />
           </div>
         </div>

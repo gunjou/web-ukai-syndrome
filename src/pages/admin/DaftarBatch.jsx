@@ -9,14 +9,20 @@ import EditBatchForm from "./modal/EditBatchForm.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
+import ListPesertaModal from "./modal/ListPesertaModal.jsx";
 
 const DaftarBatch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [batchData, setBatchData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedNamaBatch, setSelectedNamaBatch] = useState(null);
   const [showAddBatchModal, setShowAddBatchModal] = useState(false);
   const [showEditBatchModal, setShowEditBatchModal] = useState(false);
+  const [showListPesertaModal, setShowListPesertaModal] = useState(false);
+
+  const handleRefreshFetch = async () => fetchBatchData();
 
   useEffect(() => {
     fetchBatchData();
@@ -55,6 +61,32 @@ const DaftarBatch = () => {
     });
   };
 
+  const getBadgeColor = (total) => {
+    if (total < 1) return "bg-blue-500/20";
+    if (total <= 5) return "bg-blue-500/40";
+    if (total <= 10) return "bg-blue-500/70";
+    if (total <= 20) return "bg-blue-500/90";
+    return "bg-blue-600"; // full solid
+  };
+
+  const handleOpenListPesertaModal = (id, nama) => {
+    // console.log(id);
+    setShowListPesertaModal(true);
+    setSelectedId(id);
+    setSelectedNamaBatch(nama);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-"; // kalau kosong
+
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
+
   const renderTableRows = () =>
     filteredData.map((batch, index) => (
       <tr key={index} className="bg-gray-100 hover:bg-gray-300">
@@ -64,14 +96,23 @@ const DaftarBatch = () => {
         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border-b border-r border-l capitalize">
           {batch.nama_batch}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
-          {batch.total_peserta}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+          <button
+            onClick={() =>
+              handleOpenListPesertaModal(batch.id_batch, batch.nama_batch)
+            }
+            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
+              batch.total_peserta
+            )}`}
+          >
+            {batch.total_peserta} Peserta
+          </button>
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
-          {batch.tanggal_mulai}
+          {formatDate(batch.tanggal_mulai)}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border text-center">
-          {batch.tanggal_selesai}
+          {formatDate(batch.tanggal_selesai)}
         </td>
 
         {/* Kolom Aksi */}
@@ -227,6 +268,33 @@ const DaftarBatch = () => {
               selectedBatch={selectedBatch}
               onClose={() => setShowEditBatchModal(false)}
               onRefresh={fetchBatchData}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal List Peserta */}
+      {showListPesertaModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListPesertaModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListPesertaModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <ListPesertaModal
+              idTarget={selectedId}
+              namaTarget={selectedNamaBatch}
+              onClose={() => setShowListPesertaModal(false)}
+              onRefresh={() => handleRefreshFetch()}
             />
           </div>
         </div>

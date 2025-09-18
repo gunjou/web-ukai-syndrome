@@ -89,6 +89,7 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
           <table className="w-full border-collapse border text-sm">
             <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
               <tr className="bg-white">
+                <th className="border px-3 py-2">No</th>
                 <th className="border px-3 py-2">Nama Kelas</th>
                 <th className="border px-3 py-2">Paket</th>
                 <th className="border px-3 py-2">Batch</th>
@@ -99,11 +100,14 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
               </tr>
             </thead>
             <tbody>
-              {kelasData.map((kelas) => (
+              {kelasData.map((kelas, index) => (
                 <tr
-                  key={kelas.id_paketkelas}
+                  key={index}
                   className="text-center bg-gray-100 hover:bg-gray-300"
                 >
+                  <td className="px-2 py-2 text-xs sm:text-sm border text-center">
+                    {index + 1}
+                  </td>
                   <td className="border px-3 py-2">{kelas.nama_kelas}</td>
                   <td className="border px-3 py-2">{kelas.nama_paket}</td>
                   <td className="border px-3 py-2">{kelas.nama_batch}</td>
