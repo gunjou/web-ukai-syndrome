@@ -1,8 +1,31 @@
+// untuk mentor
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { HiArrowLeft } from "react-icons/hi";
 import Api from "../../utils/Api";
 import thumbnailDefault from "../../assets/logo-1.svg";
+
+// helper untuk format url Google Drive
+const formatDriveUrl = (url) => {
+  if (!url.includes("drive.google.com")) return url;
+  const match = url.match(/\/d\/([^/]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return url.replace("/view", "/preview");
+};
+
+// helper validasi video
+const isValidVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes("drive.google.com") ||
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".ogg")
+  );
+};
 
 const VideoListContent = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -21,7 +44,7 @@ const VideoListContent = () => {
   const [openReplies, setOpenReplies] = useState({});
   const commentRefs = useRef({});
 
-  // Cek apakah komentar masih bisa di-edit (<= 5 menit)
+  // cek apakah komentar masih bisa diedit (<= 5 menit)
   const canEditComment = (createdAt) => {
     const timeLimit = 5 * 60 * 1000;
     const currentTime = Date.now();
@@ -54,7 +77,8 @@ const VideoListContent = () => {
         const filtered = materiData.filter(
           (item) =>
             item.id_modul === selectedModul.id_modul &&
-            item.tipe_materi === "video"
+            item.tipe_materi === "video" &&
+            isValidVideoUrl(item.url_file)
         );
 
         setVideoList(filtered);
@@ -298,16 +322,27 @@ const VideoListContent = () => {
           <div className="flex-1 bg-white shadow rounded-lg p-4">
             {/* Video Player & Watermark */}
             <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black relative">
-              <video
-                key={selectedVideo.id_materi}
-                controls
-                controlsList="nodownload"
-                disablePictureInPicture
-                className="w-full h-full"
-                src={selectedVideo.url_file}
-              >
-                Browser Anda tidak mendukung pemutar video.
-              </video>
+              {selectedVideo.url_file.includes("drive.google.com") ? (
+                <iframe
+                  src={formatDriveUrl(selectedVideo.url_file)}
+                  width="100%"
+                  height="100%"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  className="w-full h-full"
+                ></iframe>
+              ) : (
+                <video
+                  key={selectedVideo.id_materi}
+                  controls
+                  controlsList="nodownload"
+                  disablePictureInPicture
+                  className="w-full h-full"
+                  src={selectedVideo.url_file}
+                >
+                  Browser Anda tidak mendukung pemutar video.
+                </video>
+              )}
 
               {/* Watermark overlay */}
               <div
