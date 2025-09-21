@@ -10,19 +10,22 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
     deskripsi: "",
     id_batch: null,
     id_paket: null,
+    id_user: null,
   });
 
   const [batchOptions, setBatchOptions] = useState([]);
   const [paketOptions, setPaketOptions] = useState([]);
+  const [mentorOptions, setMentorOptions] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🔄 Ambil data batch & paket dari API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [batchRes, paketRes] = await Promise.all([
+        const [batchRes, paketRes, mentorRes] = await Promise.all([
           Api.get("/batch"),
           Api.get("/paket"),
+          Api.get("/mentor/bio-mentor"),
         ]);
 
         setBatchOptions(
@@ -36,6 +39,13 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
           (paketRes.data.data || []).map((p) => ({
             value: p.id_paket,
             label: p.nama_paket,
+          }))
+        );
+
+        setMentorOptions(
+          (mentorRes.data.data || []).map((p) => ({
+            value: p.id_user,
+            label: p.nama,
           }))
         );
       } catch (err) {
@@ -69,6 +79,13 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
     }));
   };
 
+  const handleSelectMentor = (selected) => {
+    setFormData((prev) => ({
+      ...prev,
+      id_user: selected ? selected.value : null,
+    }));
+  };
+
   // submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,6 +100,7 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
         deskripsi: "",
         id_batch: null,
         id_paket: null,
+        id_user: null, // id_walikelas
       });
 
       if (typeof fetchKelas === "function") {
@@ -129,6 +147,17 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
             className="w-full border rounded-md px-3 py-2"
             rows="3"
             required
+          />
+        </div>
+
+        {/* Wali kelas */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Wali Kelas</label>
+          <Select
+            options={mentorOptions}
+            onChange={handleSelectMentor}
+            placeholder="Pilih wali kelas..."
+            isSearchable
           />
         </div>
 

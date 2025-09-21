@@ -43,17 +43,22 @@ const HomeMentor = () => {
   useEffect(() => {
     const fetchKelas = async () => {
       try {
-        const response = await Api.get("/paket-kelas/mentor");
+        const endpoint = isWaliKelas
+          ? "/paket-kelas/wali-kelas"
+          : "/paket-kelas/mentor";
+
+        const response = await Api.get(endpoint);
         setKelasList(response.data.data || []);
-        console.log(response.data.data);
+        console.log("Data kelas:", response.data.data);
       } catch (error) {
-        console.error("Gagal mengambil kelas mentor:", error);
+        console.error("Gagal mengambil kelas:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchKelas();
-  }, []);
+  }, [isWaliKelas]);
 
   const handleKelasClick = (kelas) => {
     // arahkan ke halaman materi dengan membawa id_paketkelas
@@ -67,7 +72,7 @@ const HomeMentor = () => {
   };
 
   const onToggleWaliKelas = () => {
-    setIsWaliKelas(true);
+    setIsWaliKelas((prev) => !prev); // toggle true/false
   };
 
   return (

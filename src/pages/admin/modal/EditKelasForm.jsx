@@ -14,19 +14,22 @@ const EditKelasForm = ({
     deskripsi: initialData?.deskripsi || "",
     id_batch: initialData?.id_batch || null,
     id_paket: initialData?.id_paket || null,
+    id_user: initialData?.id_user || null, // id_walikelas
   });
 
   const [batchOptions, setBatchOptions] = useState([]);
   const [paketOptions, setPaketOptions] = useState([]);
+  const [mentorOptions, setMentorOptions] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🔄 Ambil data batch & paket dari API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [batchRes, paketRes] = await Promise.all([
+        const [batchRes, paketRes, mentorRes] = await Promise.all([
           Api.get("/batch"),
           Api.get("/paket"),
+          Api.get("/mentor/bio-mentor"),
         ]);
 
         setBatchOptions(
@@ -40,6 +43,13 @@ const EditKelasForm = ({
           (paketRes.data.data || []).map((p) => ({
             value: p.id_paket,
             label: p.nama_paket,
+          }))
+        );
+
+        setMentorOptions(
+          (mentorRes.data.data || []).map((p) => ({
+            value: p.id_user,
+            label: p.nama,
           }))
         );
       } catch (err) {
@@ -70,6 +80,13 @@ const EditKelasForm = ({
     setFormData((prev) => ({
       ...prev,
       id_paket: selected ? selected.value : null,
+    }));
+  };
+
+  const handleSelectMentor = (selected) => {
+    setFormData((prev) => ({
+      ...prev,
+      id_user: selected ? selected.value : null,
     }));
   };
 
@@ -128,6 +145,21 @@ const EditKelasForm = ({
             className="w-full border rounded-md px-3 py-2"
             rows="3"
             required
+          />
+        </div>
+
+        {/* Wali Kelas */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Wali Kelas</label>
+          <Select
+            options={mentorOptions}
+            value={
+              mentorOptions.find((opt) => opt.value === formData.id_user) ||
+              null
+            }
+            onChange={handleSelectMentor}
+            placeholder="Pilih wali kelas..."
+            isSearchable
           />
         </div>
 
