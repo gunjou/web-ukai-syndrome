@@ -147,7 +147,7 @@ const DaftarKelas = () => {
               kelas.total_mentor
             )}`}
           >
-            {kelas.total_mentor} Peserta
+            {kelas.total_mentor} Mentor
           </button>
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
@@ -159,7 +159,7 @@ const DaftarKelas = () => {
               kelas.total_modul
             )}`}
           >
-            {kelas.total_modul} Peserta
+            {kelas.total_modul} Modul
           </button>
         </td>
 
