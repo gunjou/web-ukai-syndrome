@@ -117,6 +117,9 @@ const DaftarKelas = () => {
           {kelas.nama_kelas}
         </td>
         <td className="px-4 py-2 text-sm border capitalize">
+          {kelas.wali_kelas}
+        </td>
+        <td className="px-4 py-2 text-sm border capitalize">
           {kelas.nama_paket}
         </td>
         <td className="px-4 py-2 text-sm border">{kelas.nama_batch}</td>
@@ -246,6 +249,7 @@ const DaftarKelas = () => {
                 <tr>
                   <th className="px-4 py-2 text-sm ">No</th>
                   <th className="px-4 py-2 text-sm ">Nama Kelas</th>
+                  <th className="px-4 py-2 text-sm ">Wali Kelas</th>
                   <th className="px-4 py-2 text-sm ">Paket</th>
                   <th className="px-4 py-2 text-sm ">Batch</th>
                   <th className="px-4 py-2 text-sm ">Deskripsi</th>
