@@ -52,47 +52,50 @@ const VideoListContent = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [materiRes, modulRes] = await Promise.all([
-          Api.get("/materi/mentor"),
-          Api.get("/modul"),
-        ]);
-
-        const materiData = materiRes.data.data || [];
-        const modulData = modulRes.data.data || [];
-
-        const selectedModul = modulData.find((modul) => {
-          const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
-          return slug === folder;
-        });
-
-        if (!selectedModul) {
-          setVideoList([]);
-          setError("Modul tidak ditemukan.");
-          setLoading(false);
-          return;
-        }
-
-        const filtered = materiData.filter(
-          (item) =>
-            item.id_modul === selectedModul.id_modul &&
-            item.tipe_materi === "video" &&
-            isValidVideoUrl(item.url_file)
-        );
-
-        setVideoList(filtered);
-        setSelectedVideo(null);
-      } catch (err) {
-        console.error(err);
-        setError("Gagal memuat video.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    const id = localStorage.getItem("kelas");
+    if (id) fetchData(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder]);
+
+  const fetchData = async (id_paketkelas) => {
+    try {
+      setLoading(true);
+      const [materiRes, modulRes] = await Promise.all([
+        Api.get(`/materi/mentor/${id_paketkelas}`), // ✅ pakai id_paketkelas
+        Api.get("/modul"),
+      ]);
+
+      const materiData = materiRes.data.data || [];
+      const modulData = modulRes.data.data || [];
+
+      const selectedModul = modulData.find((modul) => {
+        const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
+        return slug === folder;
+      });
+
+      if (!selectedModul) {
+        setVideoList([]);
+        setError("Modul tidak ditemukan.");
+        setLoading(false);
+        return;
+      }
+
+      const filtered = materiData.filter(
+        (item) =>
+          item.id_modul === selectedModul.id_modul &&
+          item.tipe_materi === "video" &&
+          isValidVideoUrl(item.url_file)
+      );
+
+      setVideoList(filtered);
+      setSelectedVideo(null);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal memuat video.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     commentRefs.current = {};
@@ -335,6 +338,7 @@ const VideoListContent = () => {
               {selectedVideo.url_file.includes("drive.google.com") ? (
                 <>
                   <iframe
+                    title="Video Player"
                     src={formatDriveUrl(selectedVideo.url_file)}
                     width="100%"
                     height="100%"
@@ -435,17 +439,27 @@ const VideoListContent = () => {
                       : ""
                   }`}
                 >
-                  <img
-                    src={thumbnailDefault}
-                    alt={video.judul}
-                    className="w-28 h-16 object-contain rounded"
-                  />
+                  <div className="flex gap-3">
+                    <img
+                      src={thumbnailDefault}
+                      alt={video.judul}
+                      className="w-28 h-16 object-contain rounded"
+                    />
 
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800 truncate capitalize">
-                      {video.judul}
-                    </p>
-                    <p className="text-xs text-gray-500">Klik untuk putar</p>
+                    <div className="flex-1 flex flex-col justify-center">
+                      <p
+                        className="font-medium text-gray-800 capitalize overflow-hidden text-ellipsis"
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2, // maksimal 2 baris
+                          WebkitBoxOrient: "vertical",
+                        }}
+                        title={video.judul} // tooltip untuk judul lengkap saat hover
+                      >
+                        {video.judul}
+                      </p>
+                      <p className="text-xs text-gray-500">Klik untuk putar</p>
+                    </div>
                   </div>
                 </div>
               ))
@@ -464,7 +478,9 @@ const VideoListContent = () => {
       </h2>
       <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-2">
         {loading ? (
-          <p className="text-gray-500">Memuat...</p>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+          </div>
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : videoList.length > 0 ? (

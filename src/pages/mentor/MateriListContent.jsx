@@ -22,48 +22,49 @@ const MateriListContent = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [materiRes, modulRes] = await Promise.all([
-          Api.get("/materi/mentor"),
-          Api.get("/modul"),
-        ]);
+    const id = localStorage.getItem("kelas");
+    if (!id) return;
 
-        const materiData = materiRes.data.data || [];
-        const modulData = modulRes.data.data || [];
-
-        const selectedModul = modulData.find((modul) => {
-          const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
-          return slug === folder;
-        });
-
-        if (!selectedModul) {
-          setMateriList([]);
-          setError("Modul tidak ditemukan.");
-          setLoading(false);
-          return;
-        }
-
-        const filtered = materiData.filter(
-          (item) =>
-            item.id_modul === selectedModul.id_modul &&
-            item.tipe_materi === "document"
-        );
-
-        // Debug untuk lihat isi visibility
-        // console.log("Filtered materi:", filtered);
-
-        setMateriList(filtered);
-      } catch (err) {
-        console.error(err);
-        setError("Gagal memuat materi.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchData(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder]);
+
+  const fetchData = async (id_paketkelas) => {
+    try {
+      const [materiRes, modulRes] = await Promise.all([
+        Api.get(`/materi/mentor/${id_paketkelas}`), // ✅ pakai id_paketkelas
+        Api.get("/modul"),
+      ]);
+
+      const materiData = materiRes.data.data || [];
+      const modulData = modulRes.data.data || [];
+
+      const selectedModul = modulData.find((modul) => {
+        const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
+        return slug === folder;
+      });
+
+      if (!selectedModul) {
+        setMateriList([]);
+        setError("Modul tidak ditemukan.");
+        setLoading(false);
+        return;
+      }
+
+      const filtered = materiData.filter(
+        (item) =>
+          item.id_modul === selectedModul.id_modul &&
+          item.tipe_materi === "document"
+      );
+
+      setMateriList(filtered);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal memuat materi.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getEmbedUrl = (url) => {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -102,7 +103,9 @@ const MateriListContent = () => {
       </h2>
 
       {loading ? (
-        <p className="text-gray-500">Memuat...</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+        </div>
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : materiList.length > 0 ? (

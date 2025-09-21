@@ -27,7 +27,7 @@ const MateriList = ({
       {modulItems.map((modul) => (
         <div
           key={modul.id_modul}
-          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
+          className="relative bg-white w-[165px] h-[135px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
           onClick={() => onFolderClick(modul)}
         >
           <img
@@ -35,8 +35,11 @@ const MateriList = ({
             alt="Folder Icon"
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />
-          <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center ">
-            <span className="text-gray-700 font-medium text-base capitalize">
+          <div className="mt-4 text-center px-2 flex-1 flex items-center justify-center">
+            <span
+              className="text-gray-700 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
+              title={modul.judul}
+            >
               {modul.judul}
             </span>
           </div>
@@ -53,7 +56,7 @@ const MateriList = ({
           </button>
 
           {/* Select visibility */}
-          <div className="mt-1">
+          <div className="mt-1 pb-1">
             <select
               value={modul.visibility}
               onClick={(e) => e.stopPropagation()}
@@ -226,10 +229,10 @@ const Materi = () => {
 
   const handleVisibilityChange = async (id_modul, newVisibility) => {
     try {
+      setLoading(true);
       await Api.put(`/modul/${id_modul}/visibility`, {
         visibility: newVisibility,
       });
-
       setModulItems((prev) =>
         prev.map((modul) =>
           modul.id_modul === id_modul
@@ -237,7 +240,6 @@ const Materi = () => {
             : modul
         )
       );
-
       // ✅ toast sukses
       toast.success(
         `Visibility berhasil diubah ke ${newVisibility.toUpperCase()}`,
@@ -246,6 +248,7 @@ const Materi = () => {
           autoClose: 3000,
         }
       );
+      setLoading(false);
     } catch (error) {
       console.error("Gagal mengubah visibility:", error);
 
@@ -254,6 +257,7 @@ const Materi = () => {
         position: "top-right",
         autoClose: 4000,
       });
+      setLoading(false);
     }
   };
 
@@ -423,20 +427,26 @@ const Materi = () => {
           ))}
         </div>
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <MateriList
-                onFolderClick={handleFolderClick}
-                onEditClick={handleEditClick}
-                onChangeVisibility={handleVisibilityChange}
-                modulItems={modulItems}
-              />
-            }
-          />
-          <Route path=":folder" element={<FolderContent />} />
-        </Routes>
+        {loading ? (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <MateriList
+                  onFolderClick={handleFolderClick}
+                  onEditClick={handleEditClick}
+                  onChangeVisibility={handleVisibilityChange}
+                  modulItems={modulItems}
+                />
+              }
+            />
+            <Route path=":folder" element={<FolderContent />} />
+          </Routes>
+        )}
       </div>
 
       {/* Edit Modal */}

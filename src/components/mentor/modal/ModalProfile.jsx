@@ -198,11 +198,11 @@ const ModalProfile = ({ isOpen, onClose }) => {
               <h2 className="mt-4 text-2xl font-bold text-gray-800 text-center capitalize">
                 {editData.nama}
               </h2>
-              <div className="flex justify-center mt-3">
+              {/* <div className="flex justify-center mt-3">
                 <span className="inline-block px-4 py-1 text-sm bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow">
                   {kelasUser?.nama_kelas || "Belum ada kelas"}
                 </span>
-              </div>
+              </div> */}
 
               <hr className="my-4 border-gray-200" />
 

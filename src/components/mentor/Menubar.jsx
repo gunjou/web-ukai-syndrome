@@ -1,19 +1,29 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { KelasContext } from "./KelasContext";
+import { AiOutlineClose } from "react-icons/ai";
+import { FaChalkboardTeacher } from "react-icons/fa";
 
 import ModalProfile from "./modal/ModalProfile";
+import Api from "../../utils/Api";
 
 const MenuBar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showListKelasModal, setShowListKelasModal] = useState(false);
+  const [kelasList, setKelasList] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isWaliKelas, setIsWaliKelas] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [selectedKelas, setSelectedKelas] = useState(null);
   const menuRef = useRef(null);
 
-  const { kelasList, kelasUser, gantiKelas } = useContext(KelasContext);
+  // const { kelasList, kelasUser, gantiKelas } = useContext(KelasContext);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
+  const storedKelas = JSON.parse(localStorage.getItem("namaKelas"));
   const userName = storedUser?.nama || "User";
 
   const initials = userName
@@ -35,27 +45,36 @@ const MenuBar = () => {
 
   const avatarColor = stringToColor(userName);
 
-  // helper ambil label batch
-  const getBatchLabel = (kelas) => {
-    if (!kelas) return "";
-    return kelas.batch || kelas.batch_ke || kelas.angkatan || null;
+  // ambil kelas yang diampu mentor
+  useEffect(() => {
+    const fetchKelas = async () => {
+      setLoading(true);
+      try {
+        const response = await Api.get("/paket-kelas/mentor");
+        setKelasList(response.data.data || []);
+        console.log(response.data.data);
+      } catch (error) {
+        console.error("Gagal mengambil kelas mentor:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchKelas();
+  }, []);
+
+  const handleKelasClick = (kelas) => {
+    setSelectedKelas(kelas);
+    localStorage.setItem("kelas", kelas.id_paketkelas);
+    localStorage.setItem(
+      "namaKelas",
+      JSON.stringify({ namaKelas: kelas.nama_kelas })
+    );
+    setShowListKelasModal(false);
+    window.location.href = "/mentor-dashboard/materi";
   };
 
-  const handleChangeKelas = (e) => {
-    const id = e.target.value;
-    const selected = kelasList.find((k) => k.id_paketkelas == id);
-    if (selected) {
-      gantiKelas(selected); // update global state
-      toast.success(
-        `Kelas diganti ke ${selected.nama_kelas}${
-          selected.batch ? ` (Batch ${selected.batch})` : ""
-        }`
-      );
-
-      setTimeout(() => {
-        window.location.reload(); // 🔄 reload halaman
-      }, 800); // kasih delay biar toast sempat tampil
-    }
+  const onToggleWaliKelas = () => {
+    setIsWaliKelas(true);
   };
 
   const handleLogout = () => {
@@ -84,26 +103,31 @@ const MenuBar = () => {
           </div>
         </div>
 
-        {/* Kanan: Dropdown Kelas */}
+        {/* Kanan: Button Kelas */}
         <div className="relative inline-block mr-4">
           <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
             Kelas
           </span>
-          <select
-            value={kelasUser?.id_paketkelas || ""}
-            onChange={handleChangeKelas}
-            className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm"
+          <button
+            onClick={() => setShowListKelasModal(true)}
+            className="w-full text-left px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm flex justify-between items-center hover:bg-gray-50"
           >
-            <option value="" disabled>
-              Pilih Kelas
-            </option>
-            {kelasList.map((kelas) => (
-              <option key={kelas.id_paketkelas} value={kelas.id_paketkelas}>
-                {kelas.nama_kelas}{" "}
-                {getBatchLabel(kelas) ? `(Batch ${getBatchLabel(kelas)})` : ""}
-              </option>
-            ))}
-          </select>
+            {storedKelas ? storedKelas.namaKelas : "Pilih Kelas"}
+            <svg
+              className="w-4 h-4 ml-2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Avatar + Menu */}
@@ -145,6 +169,84 @@ const MenuBar = () => {
         avatarColor={avatarColor}
         initials={initials}
       />
+
+      {/* Modal List Kelas */}
+      {showListKelasModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setShowListKelasModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close */}
+            <button
+              onClick={() => setShowListKelasModal(false)}
+              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+            <div className="flex items-center space-x-4 pb-3">
+              {/* Toggle Wali Kelas */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-600">
+                  Wali Kelas
+                </span>
+                <button
+                  onClick={onToggleWaliKelas}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
+                    isWaliKelas ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
+                      isWaliKelas ? "translate-x-6" : "translate-x-0"
+                    }`}
+                  ></div>
+                </button>
+              </div>
+            </div>
+            <div className="w-full max-h-[60vh] overflow-y-auto py-4">
+              {loading ? (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                  <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+                </div>
+              ) : kelasList.length === 0 ? (
+                <div className="text-white">Anda belum memiliki kelas.</div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-10 py-4 sticky z-10">
+                  {kelasList.map((kelas, idx) => (
+                    <div key={idx} className="relative">
+                      <div
+                        onClick={() => handleKelasClick(kelas)}
+                        className="flex w-full h-14 pr-8 rounded-lg overflow-hidden shadow-md bg-[#f9f9f9] hover:brightness-95 transition cursor-pointer"
+                      >
+                        {/* Left Icon */}
+                        <div className="lg:w-[40%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
+                          <div className="bg-white rounded-full p-3 mx-1.5">
+                            <FaChalkboardTeacher className="text-yellow-500 text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Right Text */}
+                        <div className="lg:w-[80%] flex flex-col justify-center pl-2 pr-2">
+                          <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f] capitalize">
+                            {kelas.nama_kelas}
+                          </div>
+                          <div className="text-[10px] text-left text-gray-600">
+                            {kelas.nama_batch}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
