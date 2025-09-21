@@ -106,7 +106,7 @@ const Pembayaran = () => {
 
             <div className="text-left pt-8">
               <a
-                href={`https://wa.me/6281917250391?text=${encodeURIComponent(
+                href={`https://wa.me/6285732012878?text=${encodeURIComponent(
                   (() => {
                     const user = JSON.parse(localStorage.getItem("user")) || {};
                     return `Halo Admin, saya ingin memesan paket:\n\nID User: ${
