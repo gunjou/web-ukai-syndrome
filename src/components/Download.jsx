@@ -55,7 +55,7 @@ const Download = () => {
 
             {/* APK (pakai link Google Drive) */}
             <a
-              href="https://drive.google.com/file/d/xxx/view?usp=sharing" // ganti dengan link Google Drive APK kamu
+              href="https://drive.google.com/file/d/1-RFd2-aUSHtFBMTWu9FTtuwiqN2JkVVM/view?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-white text-black px-5 py-3 rounded-2xl shadow-md hover:shadow-xl transition"
