@@ -167,9 +167,13 @@ const HomeMentor = () => {
                       className="flex w-full h-14 pr-8 rounded-lg overflow-hidden shadow-md bg-[#f9f9f9] hover:brightness-95 transition cursor-pointer"
                     >
                       {/* Left Icon */}
-                      <div className="lg:w-[40%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
-                        <div className="bg-white rounded-full p-3 mx-1.5">
+                      <div className="relative lg:w-[40%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
+                        <div className="bg-white rounded-full p-3 mx-1.5 relative">
                           <FaChalkboardTeacher className="text-yellow-500 text-sm" />
+                          {/* Badge Notifikasi */}
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            5
+                          </span>
                         </div>
                       </div>
 

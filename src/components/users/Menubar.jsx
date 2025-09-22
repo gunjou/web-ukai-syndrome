@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Api from "../../utils/Api";
 import ModalProfile from "./modal/ModalProfile";
+import { FiBell } from "react-icons/fi";
+
 const MenuBar = () => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
@@ -96,16 +98,27 @@ const MenuBar = () => {
           </div>
         </div>
 
-        {/* Kanan: Kelas */}
-        <div className="relative inline-block mr-4">
-          <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
-            Kelas
-          </span>
-          <div className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm">
-            {kelasUser.nama_kelas}
+        {/* Kanan: Kelas + Notifikasi */}
+        <div className="flex items-center mr-4 space-x-3">
+          {/* Kelas */}
+          <div className="relative inline-block">
+            <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
+              Kelas
+            </span>
+            <div className="px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm">
+              {kelasUser.nama_kelas}
+            </div>
+          </div>
+
+          {/* Notifikasi */}
+          <div className="relative">
+            <FiBell className="w-6 h-6 text-gray-700 cursor-pointer" />
+            {/* Badge notif */}
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              3
+            </span>
           </div>
         </div>
-
         {/* Avatar + Menu */}
         <div className="relative mr-3" ref={menuRef}>
           <button
