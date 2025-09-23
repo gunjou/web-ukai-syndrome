@@ -27,9 +27,11 @@ const EditProfileModal = ({
           <label className="text-sm text-gray-600">Email</label>
           <input
             type="email"
-            className="w-full border px-3 py-2 rounded-lg bg-gray-100"
+            className="w-full border px-3 py-2 rounded-lg"
             value={editData.email}
-            disabled
+            onChange={(e) =>
+              setEditData({ ...editData, email: e.target.value })
+            }
           />
         </div>
 

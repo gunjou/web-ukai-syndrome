@@ -98,6 +98,7 @@ const ModalProfile = ({ isOpen, onClose }) => {
       setSaving(true);
       await Api.put("/profile", {
         nama: editData.nama,
+        email: editData.email,
         no_hp: editData.no_hp,
       });
 
