@@ -67,6 +67,16 @@ const Navbar = () => {
           </li>
           <li>
             <Link
+              to="download"
+              smooth={true}
+              offset={-70}
+              className="flex items-center hover:bg-yellow-500 hover:rounded-lg px-1.5"
+            >
+              Download
+            </Link>
+          </li>
+          <li>
+            <Link
               to="about"
               smooth={true}
               offset={-70}

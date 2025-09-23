@@ -5,6 +5,7 @@ import Modul from "../components/Modul";
 import Features from "../components/Features";
 import Footer from "../components/Footer";
 import About from "../components/About";
+import Download from "../components/Download";
 
 const LandingPage = () => {
   return (
@@ -14,6 +15,7 @@ const LandingPage = () => {
       <Mentor />
       <Modul />
       <Features />
+      <Download />
       <About />
       <Footer />
     </div>

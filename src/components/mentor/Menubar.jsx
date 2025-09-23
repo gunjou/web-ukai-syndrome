@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { KelasContext } from "./KelasContext";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaChalkboardTeacher } from "react-icons/fa";
+import { FiBell } from "react-icons/fi";
 
 import ModalProfile from "./modal/ModalProfile";
 import Api from "../../utils/Api";
@@ -104,10 +105,7 @@ const MenuBar = () => {
         </div>
 
         {/* Kanan: Button Kelas */}
-        <div className="relative inline-block mr-4">
-          <span className="absolute -top-2 left-3 bg-white px-1 text-xs text-gray-500">
-            Kelas
-          </span>
+        <div className="flex items-center mr-4 space-x-3">
           <button
             onClick={() => setShowListKelasModal(true)}
             className="w-full text-left px-4 py-1 border rounded-[15px] bg-white text-black shadow-sm flex justify-between items-center hover:bg-gray-50"
@@ -128,6 +126,14 @@ const MenuBar = () => {
               />
             </svg>
           </button>
+          {/* Notifikasi */}
+          <div className="relative">
+            <FiBell className="w-6 h-6 text-gray-700 cursor-pointer" />
+            {/* Badge notif */}
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              3
+            </span>
+          </div>
         </div>
 
         {/* Avatar + Menu */}

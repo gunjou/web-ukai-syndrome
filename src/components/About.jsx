@@ -77,6 +77,12 @@ const About = () => {
           >
             Modul
           </a>
+          <a
+            href="#download"
+            className="text-sm text-white mb-2 block cursor-pointer"
+          >
+            Download
+          </a>
         </div>
 
         {/* Kolom Kanan */}
