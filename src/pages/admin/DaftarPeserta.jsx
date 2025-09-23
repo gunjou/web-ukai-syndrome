@@ -38,6 +38,7 @@ const DaftarPeserta = () => {
     setError("");
     try {
       const { data } = await Api.get("/peserta");
+      // const { data } = await Api.get("/peserta/aktif");
 
       // SALIN dulu, baru sort (hindari mutasi)
       const sorted = [...data].sort((a, b) =>
@@ -123,6 +124,9 @@ const DaftarPeserta = () => {
           {user.nama}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.kode_pemulihan}
+        </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.no_hp || "-"}
         </td>
@@ -253,6 +257,7 @@ const DaftarPeserta = () => {
                         : "▼"
                       : ""}
                   </th>
+                  <th className="px-4 py-2 border">Token</th>
                   <th className="px-4 py-2 border">No HP</th>
                   <th
                     onClick={() => handleSort("nama_batch")}
@@ -298,7 +303,7 @@ const DaftarPeserta = () => {
 
       {showModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => {
             setShowModal(false);
             setEditMode(false);
@@ -306,7 +311,7 @@ const DaftarPeserta = () => {
           }}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-lg p-6 relative"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol close */}
