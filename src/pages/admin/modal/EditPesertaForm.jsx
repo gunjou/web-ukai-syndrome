@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import Select from "react-select";
 import Api from "../../../utils/Api";
 
+import { ConfirmToast } from "./ConfirmToast";
+import { toast } from "react-toastify";
+import { RiResetLeftFill } from "react-icons/ri";
+
 const EditPesertaForm = ({
   setShowModal,
   setEditMode,
@@ -9,6 +13,7 @@ const EditPesertaForm = ({
   initialData,
 }) => {
   const [formData, setFormData] = useState({
+    id_user: initialData.id_user || null,
     nama: initialData.nama || "",
     email: initialData.email || "",
     password: "", // kosongkan jika tidak diubah
@@ -99,6 +104,18 @@ const EditPesertaForm = ({
     }
   };
 
+  const handleResetPassword = () => {
+    console.log(true);
+    ConfirmToast("Yakin ingin reset password peserta ini?", async () => {
+      await Api.put(`/peserta/reset-password/${formData.id_user}`);
+      toast.success(
+        `Password dengan email ${formData.email} berhasil di-reset.`
+      );
+      setShowModal(false);
+      setEditMode(false);
+    });
+  };
+
   return (
     <>
       <h2 className="text-lg font-bold mb-4 text-center">Edit Data Peserta</h2>
@@ -165,16 +182,30 @@ const EditPesertaForm = ({
         </div>
 
         {/* Password (kosongkan jika tidak diubah) */}
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium mb-1">Password</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Kosongkan jika tidak diubah"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full border rounded-md px-3 py-2"
-          />
+          <div className="flex items-center">
+            <input
+              type="password"
+              name="password"
+              placeholder="Kosongkan jika tidak diubah"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 pr-10"
+            />
+            {/* Reset Button */}
+            <button
+              type="button"
+              onClick={() => handleResetPassword()}
+              className="absolute right-3 text-red-500 hover:text-red-800 transition-colors group"
+            >
+              <RiResetLeftFill size={18} />
+              {/* Tooltip */}
+              <span className="absolute bottom-full z-10 mb-1 right-1/2 translate-x-3 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                Reset password ke default
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Tombol Submit */}
