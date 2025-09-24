@@ -92,6 +92,13 @@ const DaftarMateri = () => {
     }
   };
 
+  const toTitleCase = (str) =>
+    str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
   const renderTableRows = () =>
     filteredData.map((materi, index) => (
       <tr
@@ -102,6 +109,9 @@ const DaftarMateri = () => {
           {index + 1}
         </td>
         <td className="px-4 py-2 text-sm border">{materi.judul}</td>
+        <td className="px-4 py-2 text-sm border">
+          {materi.owner ? toTitleCase(materi.owner) : "-"}
+        </td>
         <td className="px-4 py-2 text-sm border">{materi.judul_modul}</td>
         <td className="px-1 py-2 text-xs sm:text-sm border text-center">
           <div className="flex justify-center">
@@ -253,6 +263,7 @@ const DaftarMateri = () => {
                 <tr>
                   <th className="px-4 py-2 text-sm">No</th>
                   <th className="px-4 py-2 text-sm">Judul</th>
+                  <th className="px-4 py-2 text-sm">Owner</th>
                   <th className="px-4 py-2 text-sm">Modul</th>
                   <th className="px-4 py-2 text-sm">Tipe (Preview)</th>
                   <th className="px-4 py-2 text-sm">Status</th>

@@ -100,7 +100,13 @@ const Video = () => {
 
   const [judul, setJudul] = useState("");
   const [urlFile, setUrlFile] = useState("");
+  const [tipeVideo, setTipeVideo] = useState("full");
+  const [timeTerjeda, setTimeTerjeda] = useState(null);
+  const [tanggalMateri, setTanggalMateri] = useState("");
   const [visibility, setVisibility] = useState("hold");
+
+  const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+  const nickname = storedUser.nickname || "Mentor";
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,6 +142,7 @@ const Video = () => {
     setForwardStack([]);
     // simpan modul id ke localStorage supaya VideoListContent bisa ambil
     localStorage.setItem("activeModulId", modul.id_modul);
+    localStorage.setItem("activeModulNama", modul.judul);
     navigate(`${basePath}/${slug}`);
   };
 
@@ -293,14 +300,15 @@ const Video = () => {
     e.preventDefault();
 
     const activeModulId = localStorage.getItem("activeModulId");
+    const activeModulNama = localStorage.getItem("activeModulNama");
 
-    if (!judul.trim()) {
-      toast.warning("Judul materi tidak boleh kosong ⚠️", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      return;
-    }
+    // if (!judul.trim()) {
+    //   toast.warning("Judul materi tidak boleh kosong ⚠️", {
+    //     position: "top-right",
+    //     autoClose: 3000,
+    //   });
+    //   return;
+    // }
 
     if (!isValidVideoUrl(urlFile)) {
       toast.error(
@@ -315,9 +323,64 @@ const Video = () => {
 
     setLoading(true);
 
+    const formatTanggal = (tanggal) => {
+      const bulan = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const d = new Date(tanggal);
+      const day = d.getDate();
+      const month = bulan[d.getMonth()];
+      const year = d.getFullYear().toString().slice(-2);
+
+      return `${day} ${month} ${year}`;
+    };
+
+    const generateJudulVideo = (
+      tanggalMateri,
+      nickname,
+      namaModul,
+      tipeVideo,
+      timeTerjeda
+    ) => {
+      if (!tanggalMateri || !nickname || !namaModul || !tipeVideo) return "";
+      const base = `${formatTanggal(tanggalMateri)}_${nickname}_${namaModul}`;
+      if (tipeVideo === "full") {
+        return `${base}_full`;
+      }
+      if (tipeVideo.startsWith("part_")) {
+        return `${base}_${tipeVideo}`;
+      }
+      if (tipeVideo === "terjeda" && timeTerjeda) {
+        // format HH:MM → HH.MM
+        const formattedTime = timeTerjeda.replace(":", ".");
+        return `${base}_part_${formattedTime}`;
+      }
+      return base; // fallback
+    };
+
+    const judulVideo = generateJudulVideo(
+      tanggalMateri,
+      nickname,
+      activeModulNama,
+      tipeVideo,
+      timeTerjeda
+    );
+
     const payload = {
       id_modul: activeModulId,
-      judul,
+      judul: judulVideo,
       tipe_materi: "video",
       url_file: urlFile,
       visibility: "open",
@@ -362,7 +425,7 @@ const Video = () => {
                 onClick={() => setShowAddMateriModal(true)}
                 className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
               >
-                Tambah Materi
+                Tambah Video
               </button>
             )}
 
@@ -609,22 +672,76 @@ const Video = () => {
             </button>
             <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
             <form onSubmit={handleAddMateriSubmit} className="space-y-4">
-              <input
+              {/* 📅 Tanggal */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Tanggal
+                </label>
+                <input
+                  type="date"
+                  name="tanggal"
+                  value={tanggalMateri}
+                  onChange={(e) => setTanggalMateri(e.target.value)}
+                  required
+                  className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+                />
+              </div>
+              {/* <input
                 type="text"
                 value={judul}
                 onChange={(e) => setJudul(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Judul Materi"
                 required
-              />
-              <input
-                type="text"
-                value={urlFile}
-                onChange={(e) => setUrlFile(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="URL atau Path File"
-                required
-              />
+              /> */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  URL File
+                </label>
+                <input
+                  type="text"
+                  value={urlFile}
+                  onChange={(e) => setUrlFile(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  placeholder="https://example.com/video_materi.mp4"
+                  required
+                />
+              </div>
+              {/* Tipe Video (muncul kalau tipe_materi = video) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Tipe Video
+                </label>
+                <select
+                  name="tipeVideo"
+                  value={tipeVideo}
+                  onChange={(e) => setTipeVideo(e.target.value)}
+                  className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+                >
+                  <option value="">Pilih tipe video</option>
+                  <option value="full">Full</option>
+                  <option value="part_1">Part 1</option>
+                  <option value="part_2">Part 2</option>
+                  <option value="part_3">Part 3</option>
+                  <option value="terjeda">Terjeda</option>
+                </select>
+              </div>
+              {/* Time (muncul kalau tipe_video = terjeda) */}
+              {tipeVideo === "terjeda" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Waktu (HH:MM)
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    value={timeTerjeda}
+                    onChange={(e) => setTimeTerjeda(e.target.value)}
+                    required={tipeVideo === "terjeda"}
+                    className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+                  />
+                </div>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

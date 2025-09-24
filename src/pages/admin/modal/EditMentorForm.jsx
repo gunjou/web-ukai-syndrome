@@ -13,6 +13,7 @@ const EditMentorForm = ({
 }) => {
   const [formData, setFormData] = useState({
     nama: "",
+    nickname: "",
     email: "",
     password: "",
     no_hp: "",
@@ -32,6 +33,7 @@ const EditMentorForm = ({
     if (initialData && showModal) {
       setFormData({
         nama: initialData.nama || "",
+        nickname: initialData.nickname || "",
         email: initialData.email || "",
         password: "", // kosong default
         no_hp: initialData.no_hp || "",
@@ -111,6 +113,21 @@ const EditMentorForm = ({
             type="text"
             name="nama"
             value={formData.nama}
+            onChange={handleChange}
+            required
+            className="w-full border rounded-md px-3 py-2"
+          />
+        </div>
+
+        {/* Nickname */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Nama Panggilan
+          </label>
+          <input
+            type="text"
+            name="nickname"
+            value={formData.nickname}
             onChange={handleChange}
             required
             className="w-full border rounded-md px-3 py-2"

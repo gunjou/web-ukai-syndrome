@@ -61,6 +61,7 @@ const LoginPage = () => {
         access_token,
         id_user,
         nama,
+        nickname,
         email: userEmail,
         role,
       } = response.data;
@@ -68,7 +69,7 @@ const LoginPage = () => {
       localStorage.setItem("token", access_token);
       localStorage.setItem(
         "user",
-        JSON.stringify({ id_user, nama, email: userEmail, role })
+        JSON.stringify({ id_user, nama, nickname, email: userEmail, role })
       );
 
       setTimeout(() => {

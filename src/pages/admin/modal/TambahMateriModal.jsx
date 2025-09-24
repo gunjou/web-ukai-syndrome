@@ -8,6 +8,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
   const [formData, setFormData] = useState({
     id_modul: "",
     tipe_materi: "document",
+    id_owner: null,
     judul: "", // ✅ judul materi tetap ada
     url_file: "",
     visibility: "hold", // default visibility materi
@@ -15,6 +16,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
 
   const [loading, setLoading] = useState(false);
   const [modulOptions, setModulOptions] = useState([]);
+  const [mentorOptions, setMentorOptions] = useState([]);
 
   // Fetch modul aktif
   useEffect(() => {
@@ -30,6 +32,21 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
     fetchModul();
   }, []);
 
+  // ✅ Fetch mentor
+  useEffect(() => {
+    const fetchMentor = async () => {
+      try {
+        const res = await Api.get("/mentor/bio-mentor");
+        // pastikan responsenya sesuai (misal array of mentor dengan field nickname)
+        setMentorOptions(res.data.data);
+      } catch (err) {
+        console.error("Gagal fetch mentor:", err);
+        toast.error("Gagal mengambil data mentor");
+      }
+    };
+    fetchMentor();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -40,7 +57,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
     setLoading(true);
 
     try {
-      await Api.post("/materi", formData);
+      await Api.post("/materi/autogenerate-title", formData);
       toast.success(`Materi "${formData.judul}" berhasil ditambahkan!`);
       if (onRefresh) onRefresh();
       onClose();
@@ -52,6 +69,13 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
     }
   };
 
+  const toTitleCase = (str) =>
+    str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
   return (
     <div className="relative">
       <div className="flex justify-between items-center mb-3">
@@ -60,6 +84,22 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Modul (searchable dropdown) */}
+        {/* 📅 Tanggal */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Tanggal
+          </label>
+          <input
+            type="date"
+            name="tanggal"
+            value={formData.tanggal}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+          />
+        </div>
+
+        {/* Modul */}
         <div>
           <label className="block text-sm font-medium mb-1">Modul</label>
           <Select
@@ -83,6 +123,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
               setFormData((prev) => ({
                 ...prev,
                 id_modul: selected?.value || "",
+                nama_modul: selected?.label || "", // simpan nama modul
               }))
             }
             placeholder="Pilih modul..."
@@ -91,37 +132,91 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
           />
         </div>
 
-        {/* Judul Materi */}
+        {/* Nickname Mentor */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Judul Materi
-          </label>
-          <input
-            type="text"
-            name="judul"
-            value={formData.judul}
-            onChange={handleChange}
-            required
-            placeholder="Masukkan judul materi"
-            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          <label className="block text-sm font-medium mb-1">Owner</label>
+          <Select
+            options={mentorOptions.map((m) => ({
+              value: m.nickname,
+              label: m.nama,
+              id_user: m.id_user,
+            }))}
+            value={
+              formData.nickname_mentor
+                ? {
+                    value: formData.nickname_mentor,
+                    label: formData.nickname_mentor,
+                  }
+                : null
+            }
+            onChange={(selected) =>
+              setFormData((prev) => ({
+                ...prev,
+                nickname_mentor: toTitleCase(selected?.value) || "",
+                id_owner: selected?.id_user || null,
+              }))
+            }
+            placeholder="Pilih mentor..."
+            isClearable
+            isSearchable
           />
         </div>
 
-        {/* Tipe Materi */}
+        {/* Jenis Materi */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Tipe Materi
+            Jenis Materi
           </label>
           <select
             name="tipe_materi"
             value={formData.tipe_materi}
             onChange={handleChange}
-            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
           >
             <option value="document">Document</option>
             <option value="video">Video</option>
           </select>
         </div>
+
+        {/* Tipe Video (muncul kalau tipe_materi = video) */}
+        {formData.tipe_materi === "video" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Tipe Video
+            </label>
+            <select
+              name="tipe_video"
+              value={formData.tipe_video}
+              onChange={handleChange}
+              className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+            >
+              <option value="">Pilih tipe video</option>
+              <option value="full">Full</option>
+              <option value="part_1">Part 1</option>
+              <option value="part_2">Part 2</option>
+              <option value="part_3">Part 3</option>
+              <option value="terjeda">Terjeda</option>
+            </select>
+          </div>
+        )}
+
+        {/* Time (muncul kalau tipe_video = terjeda) */}
+        {formData.tipe_video === "terjeda" &&
+          formData.tipe_materi === "video" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Waktu (HH:MM)
+              </label>
+              <input
+                type="time"
+                name="time"
+                value={formData.time}
+                onChange={handleChange}
+                required={formData.tipe_video === "terjeda"}
+                className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+              />
+            </div>
+          )}
 
         {/* URL File */}
         <div>
@@ -135,11 +230,11 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
             onChange={handleChange}
             required
             placeholder="https://example.com/file.pdf"
-            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
           />
         </div>
 
-        {/* Visibility Materi */}
+        {/* Visibility */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Visibility Materi
@@ -148,14 +243,14 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
             name="visibility"
             value={formData.visibility}
             onChange={handleChange}
-            className={`mt-1 block w-full border font-semibold px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
-              ${
-                formData.visibility === "hold"
-                  ? "text-yellow-600"
-                  : formData.visibility === "open"
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
+            className={`mt-1 block w-full border font-semibold px-3 py-2 rounded-md shadow-sm
+        ${
+          formData.visibility === "hold"
+            ? "text-yellow-600"
+            : formData.visibility === "open"
+            ? "text-green-600"
+            : "text-red-600"
+        }`}
           >
             <option value="hold">Hold</option>
             <option value="open">Open</option>

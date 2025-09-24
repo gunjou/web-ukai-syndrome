@@ -50,6 +50,7 @@ const DaftarMentor = () => {
       .filter((user) =>
         [
           user.nama,
+          user.nickname,
           user.email,
           user.no_hp,
           user.nama_batch,
@@ -95,6 +96,9 @@ const DaftarMentor = () => {
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border capitalize">
           {user.nama}
+        </td>
+        <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border capitalize">
+          {user.nickname}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm text-gray-800 border">
           {user.email}
@@ -200,7 +204,8 @@ const DaftarMentor = () => {
               <thead className="bg-gray-200 sticky top-0 z-10">
                 <tr className="text-xs sm:text-sm">
                   <th className="px-2 py-2 border">No</th>
-                  <th className="px-4 py-2 border">Nama</th>
+                  <th className="px-4 py-2 border">Nama Lengkap</th>
+                  <th className="px-4 py-2 border">Nama Panggilan</th>
                   <th className="px-2 py-2 border">Email</th>
                   <th className="px-2 py-2 border">No HP</th>
                   <th className="px-2 py-2 border">List Kelas</th>

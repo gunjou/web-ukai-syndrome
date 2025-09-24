@@ -107,12 +107,18 @@ const Materi = () => {
   const [kelasOptions, setKelasOptions] = useState([]);
 
   const [judul, setJudul] = useState("");
+  const [tanggalMateri, setTanggalMateri] = useState("");
   const [tipeMateri, setTipeMateri] = useState("document");
   const [urlFile, setUrlFile] = useState("");
   const [visibility, setVisibility] = useState("hold");
   const [viewerOnly, setViewerOnly] = useState(true);
 
-  const [activeModulId, setActiveModulId] = useState(null);
+  // const [activeModulId, setActiveModulId] = useState(null);
+  // const [activeModulNama, setActiveModulNama] = useState(null);
+
+  // ambil nickname dari localStorage user
+  const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+  const nickname = storedUser.nickname || "Mentor";
 
   useEffect(() => {
     const id = localStorage.getItem("kelas");
@@ -156,7 +162,10 @@ const Materi = () => {
     const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
     setBackStack((prev) => [...prev, location.pathname]);
     setForwardStack([]);
-    setActiveModulId(modul.id_modul);
+    localStorage.setItem("activeModulId", modul.id_modul);
+    localStorage.setItem("setActiveModulNama", modul.judul);
+    // setActiveModulId(modul.id_modul);
+    // setActiveModulNama(modul.judul);
     navigate(`${basePath}/${slug}`);
   };
 
@@ -304,16 +313,58 @@ const Materi = () => {
     }
   };
 
+  const toTitleCase = (str) =>
+    str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
+  const formatTanggal = (tanggal) => {
+    const bulan = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const d = new Date(tanggal);
+    const day = d.getDate();
+    const month = bulan[d.getMonth()];
+    const year = d.getFullYear().toString().slice(-2); // ambil 2 digit terakhir
+
+    return `${day} ${month} ${year}`;
+  };
+
+  const generateJudulDocument = (tanggalMateri, nickname, namaModul) => {
+    if (!tanggalMateri || !nickname || !namaModul) return "";
+    return `${formatTanggal(tanggalMateri)}_${nickname}_${namaModul}`;
+  };
+
   const handleAddMateriSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const activeModulId = localStorage.getItem("activeModulId");
+    const activeModulNama = localStorage.getItem("activeModulNama");
 
     const payload = {
       id_modul: activeModulId,
-      judul,
+      judul: generateJudulDocument(
+        tanggalMateri,
+        toTitleCase(nickname),
+        activeModulNama
+      ),
       tipe_materi: "document",
       url_file: urlFile,
-      visibility: "open",
+      visibility: "hold",
     };
 
     try {
@@ -613,14 +664,23 @@ const Materi = () => {
             <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
 
             <form onSubmit={handleAddMateriSubmit} className="space-y-4">
+              {/* 📅 Tanggal */}
               <input
+                type="date"
+                name="tanggal"
+                value={tanggalMateri}
+                onChange={(e) => setTanggalMateri(e.target.value)}
+                required
+                className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+              />
+              {/* <input
                 type="text"
                 value={judul}
                 onChange={(e) => setJudul(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Judul Materi"
                 required
-              />
+              /> */}
               <input
                 type="text"
                 value={urlFile}

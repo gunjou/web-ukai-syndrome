@@ -5,6 +5,7 @@ import Api from "../../../utils/Api";
 const TambahMentorForm = ({ showModal, fetchMentorData, onSuccess }) => {
   const [formData, setFormData] = useState({
     nama: "",
+    nickname: "",
     email: "",
     password: "123456",
     no_hp: "",
@@ -56,6 +57,7 @@ const TambahMentorForm = ({ showModal, fetchMentorData, onSuccess }) => {
         // 🔹 Reset form
         setFormData({
           nama: "",
+          nickname: "",
           email: "",
           password: "123456",
           no_hp: "",
@@ -133,6 +135,22 @@ const TambahMentorForm = ({ showModal, fetchMentorData, onSuccess }) => {
             onChange={handleChange}
             required
             placeholder="Nama Mentor"
+            className="w-full border rounded-md px-3 py-2"
+          />
+        </div>
+
+        {/* Nickname */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Nama Panggilan
+          </label>
+          <input
+            type="text"
+            name="nickname"
+            value={formData.nickname}
+            onChange={handleChange}
+            required
+            placeholder="Nama Panggilan"
             className="w-full border rounded-md px-3 py-2"
           />
         </div>

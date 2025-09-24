@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 const EditMateriForm = ({ materi, onClose, onRefresh }) => {
   const [formData, setFormData] = useState({
     id_materi: "",
+    id_owner: "",
     id_modul: "",
     tipe_materi: "document",
     judul: "",
@@ -16,12 +17,14 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
 
   const [loading, setLoading] = useState(false);
   const [modulOptions, setModulOptions] = useState([]);
+  const [mentorOptions, setMentorOptions] = useState([]);
 
   // Load data materi ke form saat modal dibuka
   useEffect(() => {
     if (materi) {
       setFormData({
         id_materi: materi.id_materi || "",
+        id_owner: materi.id_owner || "",
         id_modul: materi.id_modul || "",
         tipe_materi: materi.tipe_materi || "document",
         judul: materi.judul || "",
@@ -45,9 +48,44 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
     fetchModul();
   }, []);
 
+  // Fetch mentor
+  useEffect(() => {
+    const fetchMentor = async () => {
+      try {
+        const res = await Api.get("/mentor/bio-mentor");
+        // pastikan responsenya sesuai (misal array of mentor dengan field nickname)
+        setMentorOptions(res.data.data);
+      } catch (err) {
+        console.error("Gagal fetch mentor:", err);
+        toast.error("Gagal mengambil data mentor");
+      }
+    };
+    fetchMentor();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // helper untuk update judul
+  const updateJudul = (prevJudul, mentor, modul) => {
+    // pecah judul jadi bagian-bagian dipisah "_"
+    const parts = prevJudul ? prevJudul.split("_") : [];
+
+    // pastikan minimal ada 4 bagian: tanggal, mentor, modul, part
+    // kalau tidak lengkap, buat default
+    if (parts.length < 4) {
+      parts[0] = parts[0] || "Tanggal"; // manual input
+      parts[1] = mentor || "Mentor";
+      parts[2] = modul || "Modul";
+      parts[3] = parts[3] || "";
+    } else {
+      if (mentor) parts[1] = mentor;
+      if (modul) parts[2] = modul;
+    }
+
+    return parts.join("_");
   };
 
   const handleSubmit = async (e) => {
@@ -55,7 +93,10 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
     setLoading(true);
 
     try {
-      await Api.put(`/materi/${formData.id_materi}`, formData);
+      await Api.put(
+        `/materi/autogenerate-title/${formData.id_materi}`,
+        formData
+      );
       toast.success(`Materi "${formData.judul}" berhasil diperbarui!`);
       if (onRefresh) onRefresh();
       onClose();
@@ -75,34 +116,67 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Modul */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Modul</label>
-          <Select
-            options={modulOptions.map((m) => ({
-              value: m.id_modul,
-              label: m.judul,
-            }))}
-            value={
-              formData.id_modul
-                ? modulOptions
-                    .map((m) => ({
-                      value: m.id_modul,
-                      label: m.judul,
-                    }))
-                    .find((opt) => opt.value === formData.id_modul)
-                : null
-            }
-            onChange={(selected) =>
-              setFormData((prev) => ({
-                ...prev,
-                id_modul: selected?.value || "",
-              }))
-            }
-            placeholder="Pilih modul..."
-            isClearable
-            isSearchable
-          />
-        </div>
+        <label className="block text-sm font-medium text-gray-700">Modul</label>
+        <Select
+          options={modulOptions.map((m) => ({
+            value: m.id_modul,
+            label: m.judul,
+          }))}
+          value={
+            formData.id_modul
+              ? modulOptions
+                  .map((m) => ({ value: m.id_modul, label: m.judul }))
+                  .find((opt) => opt.value === formData.id_modul)
+              : null
+          }
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              id_modul: selected?.value || "",
+              nama_modul: selected?.label || "",
+              judul: updateJudul(
+                prev.judul,
+                prev.nickname_mentor,
+                selected?.label
+              ),
+            }))
+          }
+          placeholder="Pilih modul..."
+          isClearable
+          isSearchable
+        />
+
+        {/* Mentor */}
+        <label className="block text-sm font-medium text-gray-700">Owner</label>
+        <Select
+          options={mentorOptions.map((m) => ({
+            value: m.nickname,
+            label: m.nama,
+            id_user: m.id_user,
+          }))}
+          value={
+            formData.id_owner
+              ? mentorOptions
+                  .map((m) => ({
+                    value: m.nickname,
+                    label: m.nama,
+                    id_user: m.id_user,
+                  }))
+                  .find((opt) => opt.id_user === formData.id_owner)
+              : null
+          }
+          onChange={(selected) =>
+            setFormData((prev) => ({
+              ...prev,
+              nickname_mentor: selected?.value || "",
+              id_owner: selected?.id_user || "",
+              judul: updateJudul(prev.judul, selected?.value, prev.nama_modul),
+            }))
+          }
+          placeholder="Pilih mentor owner..."
+          isClearable
+          isSearchable
+        />
 
         {/* Judul Materi */}
         <div>
@@ -113,27 +187,13 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
             type="text"
             name="judul"
             value={formData.judul}
-            onChange={handleChange}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, judul: e.target.value }))
+            }
             required
             placeholder="Masukkan judul materi"
             className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
-        </div>
-
-        {/* Tipe Materi */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Tipe Materi
-          </label>
-          <select
-            name="tipe_materi"
-            value={formData.tipe_materi}
-            onChange={handleChange}
-            className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="document">Document</option>
-            <option value="video">Video</option>
-          </select>
         </div>
 
         {/* URL File */}
