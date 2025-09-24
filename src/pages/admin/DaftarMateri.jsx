@@ -279,17 +279,17 @@ const DaftarMateri = () => {
       {/* Modal Tambah Materi */}
       {showAddMateriModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setShowAddMateriModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol close */}
             <button
               onClick={() => setShowAddMateriModal(false)}
-              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
@@ -306,17 +306,17 @@ const DaftarMateri = () => {
       {/* Modal Edit Materi */}
       {showEditMateriModal && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center overflow-y-auto"
           onClick={() => setShowEditMateriModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down my-10 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Tombol close */}
             <button
               onClick={() => setShowEditMateriModal(false)}
-              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
