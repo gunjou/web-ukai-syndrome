@@ -210,7 +210,7 @@ const DaftarModul = () => {
         alt=""
       />
       <Header />
-      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
+      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
           {/* Kolom kiri (Search) */}
           <div className="flex justify-start">
@@ -262,6 +262,9 @@ const DaftarModul = () => {
             </table>
           </div>
         )}
+        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
+          <sup>*</sup>Jumlah modul: {modulData.length} modul
+        </p>
       </div>
 
       {/* Modal Tambah Modul */}

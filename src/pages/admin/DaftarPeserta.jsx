@@ -300,7 +300,7 @@ const DaftarPeserta = () => {
           </div>
         )}
         <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah Peserta: {userData.length} orang
+          <sup>*</sup>Jumlah peserta: {userData.length} orang
         </p>
       </div>
 
