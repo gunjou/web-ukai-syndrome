@@ -6,6 +6,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { FiBell } from "react-icons/fi";
 
+import LoadingOverlay from "../../utils/LoadingOverlay";
 import ModalProfile from "./modal/ModalProfile";
 import Api from "../../utils/Api";
 
@@ -51,17 +52,22 @@ const MenuBar = () => {
     const fetchKelas = async () => {
       setLoading(true);
       try {
-        const response = await Api.get("/paket-kelas/mentor");
+        const endpoint = isWaliKelas
+          ? "/paket-kelas/wali-kelas"
+          : "/paket-kelas/mentor";
+
+        const response = await Api.get(endpoint);
         setKelasList(response.data.data || []);
-        console.log(response.data.data);
+        console.log("Data kelas:", response.data.data);
       } catch (error) {
-        console.error("Gagal mengambil kelas mentor:", error);
+        console.error("Gagal mengambil kelas:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchKelas();
-  }, []);
+  }, [isWaliKelas]);
 
   const handleKelasClick = (kelas) => {
     setSelectedKelas(kelas);
@@ -75,7 +81,7 @@ const MenuBar = () => {
   };
 
   const onToggleWaliKelas = () => {
-    setIsWaliKelas(true);
+    setIsWaliKelas((prev) => !prev); // toggle true/false
   };
 
   const handleLogout = () => {
@@ -85,6 +91,9 @@ const MenuBar = () => {
 
   return (
     <>
+      {/* Loading Overlay */}
+      {loading && <LoadingOverlay />}
+
       <div className="bg-white text-white flex justify-between items-center p-4 sticky top-0 z-10">
         {/* Tengah: Search */}
         <div className="flex-1 flex justify-center">
