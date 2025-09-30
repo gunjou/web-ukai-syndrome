@@ -48,8 +48,11 @@ const MateriList = ({ onFolderClick }) => {
             alt="Folder Icon"
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />
-          <div className="mt-2 text-center px-2 flex-1 flex items-center justify-center">
-            <span className="text-gray-700 font-medium text-base capitalize">
+          <div className="mt-4 text-center px-2 flex-1 flex items-center justify-center">
+            <span
+              className="text-gray-700 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
+              title={modul.judul}
+            >
               {modul.judul}
             </span>
           </div>

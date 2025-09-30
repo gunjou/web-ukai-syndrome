@@ -121,7 +121,10 @@ const MateriListContent = () => {
             >
               <HiDocumentText className="text-red-500 text-3xl flex-shrink-0 mt-1" />
               <div className="flex flex-col flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1 capitalize">
+                <h3
+                  className="text-lg font-semibold text-gray-800 mb-1 capitalize"
+                  title={materi.judul}
+                >
                   {materi.judul}
                 </h3>
 

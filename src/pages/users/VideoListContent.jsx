@@ -482,7 +482,10 @@ const VideoListContent = () => {
               />
 
               <div className="flex flex-col p-4 overflow-hidden">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
+                <h3
+                  className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize"
+                  title={video.judul}
+                >
                   {video.judul}
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2">
