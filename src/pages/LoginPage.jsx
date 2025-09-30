@@ -155,10 +155,10 @@ const LoginPage = () => {
             </div>
           </form>
           <p className="text-sm text-center text-gray-500 mt-4">
-            Belum punya akun?{" "}
-            <a href="/register" className="text-blue-600 hover:underline">
+            Belum punya akun? Silahkan hubungi admin untuk mendaftar.
+            {/* <a href="/register" className="text-blue-600 hover:underline">
               Daftar
-            </a>
+            </a> */}
           </p>
         </div>
       </div>

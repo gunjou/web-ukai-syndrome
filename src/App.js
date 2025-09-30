@@ -58,7 +58,7 @@ function App() {
         {/* Routes for landing, login, and register pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* <Route path="/register" element={<RegisterPage />} />  */}
         {/* Routes for admin dashboard */}
         <Route path="/admin-home" element={<HomeAdmin />} />
         <Route path="/peserta" element={<PesertaPage />} />
