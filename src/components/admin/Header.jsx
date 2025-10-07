@@ -10,6 +10,7 @@ const Header = () => {
   const navigate = useNavigate();
 
   const navItems = [
+    { name: "Akun Publik", href: "/akun-publik" },
     { name: "Peserta", href: "/peserta" },
     { name: "Mentor", href: "/mentor" },
     { name: "Batch", href: "/batch" },

@@ -11,7 +11,7 @@ import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import { toast } from "react-toastify";
 
-const DaftarPeserta = () => {
+const DaftarAkunPublik = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
   const [editMode, setEditMode] = useState(false);
@@ -37,21 +37,23 @@ const DaftarPeserta = () => {
     setIsLoading(true);
     setError("");
     try {
-      // const { data } = await Api.get("/peserta");
-      const { data } = await Api.get("/peserta/aktif");
+      const { data } = await Api.get("/peserta/public");
+      // Salin dulu, lalu sort
+      const sorted = [...data].sort((a, b) => {
+        const namaA = (a.nama ?? "").trim();
+        const namaB = (b.nama ?? "").trim();
+        // Jika salah satu kosong, taruh paling bawah
+        if (!namaA && namaB) return 1; // a kosong → setelah b
+        if (namaA && !namaB) return -1; // b kosong → setelah a
+        if (!namaA && !namaB) return 0; // dua-duanya kosong → dianggap sama
+        // Kalau keduanya ada nama → urutkan A-Z
+        return namaA.localeCompare(namaB, "id", { sensitivity: "base" });
+      });
 
-      // SALIN dulu, baru sort (hindari mutasi)
-      const sorted = [...data].sort((a, b) =>
-        (a.nama ?? "").localeCompare(b.nama ?? "", "id", {
-          sensitivity: "base",
-        })
-      );
-
-      // (opsional) deduplicate berdasarkan id_user untuk amankan render
+      // (opsional) deduplicate berdasarkan id_user
       const deduped = Array.from(
         new Map(sorted.map((u) => [u.id_user, u])).values()
       );
-
       setUserData(deduped);
     } catch (err) {
       setError("Gagal mengambil data peserta.");
@@ -78,14 +80,9 @@ const DaftarPeserta = () => {
   const filteredData = useMemo(() => {
     const k = searchTerm.toLowerCase();
     return userData.filter((user) =>
-      [
-        user.nama,
-        user.email,
-        user.no_hp,
-        user.nama_batch,
-        user.nama_kelas,
-        user.nama_paket,
-      ].some((v) => (v ?? "").toLowerCase().includes(k))
+      [user.nama, user.email, user.no_hp].some((v) =>
+        (v ?? "").toLowerCase().includes(k)
+      )
     );
   }, [userData, searchTerm]);
 
@@ -124,37 +121,28 @@ const DaftarPeserta = () => {
           {user.nama}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.kode_pemulihan}
+        <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
+          {user.kode_pemulihan || "-"}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.no_hp || "-"}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.nama_batch || "-"}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.nama_paket || "-"}
-        </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.nama_kelas || "-"}
         </td>
         {/* Kolom aksi */}
         <td className="px-4 py-2 text-xs sm:text-sm border w-[80px]">
           <div className="flex justify-center gap-2">
             {/* Tombol Edit */}
-            <div className="relative group">
+            {/* <div className="relative group">
               <button
                 onClick={() => handleEdit(user)}
                 className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <LuPencil className="w-4 h-4" />
-              </button>
-              {/* Tooltip */}
-              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+              </button> */}
+            {/* Tooltip */}
+            {/* <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
                 Edit data
               </span>
-            </div>
+            </div> */}
 
             {/* Tombol Hapus */}
             <div className="relative group">
@@ -187,7 +175,7 @@ const DaftarPeserta = () => {
         alt=""
       />
       <Header />
-      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 relative">
+      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
           {/* Kolom kiri (Search) */}
           <div className="flex justify-start">
@@ -203,12 +191,12 @@ const DaftarPeserta = () => {
           {/* Kolom tengah (Judul) */}
           <div className="flex justify-center">
             <h1 className="text-xl font-bold text-center">
-              Peserta Ukai Syndrome
+              Akun Publik - Ukai Syndrome
             </h1>
           </div>
 
           {/* Kolom kanan (Button) */}
-          <div className="flex justify-end">
+          {/* <div className="flex justify-end">
             <button
               onClick={() => {
                 setShowModal(true);
@@ -219,7 +207,7 @@ const DaftarPeserta = () => {
             >
               <AiOutlinePlus size={18} /> Tambah Peserta
             </button>
-          </div>
+          </div> */}
         </div>
 
         {isLoading ? (
@@ -257,41 +245,8 @@ const DaftarPeserta = () => {
                         : "▼"
                       : ""}
                   </th>
-                  <th className="px-4 py-2 border">Token</th>
+                  <th className="px-4 py-2 border">Kode Pemulihan</th>
                   <th className="px-4 py-2 border">No HP</th>
-                  <th
-                    onClick={() => handleSort("nama_batch")}
-                    className="px-4 py-2 border cursor-pointer"
-                  >
-                    Batch{" "}
-                    {sortConfig.key === "nama_batch"
-                      ? sortConfig.direction === "asc"
-                        ? "▲"
-                        : "▼"
-                      : ""}
-                  </th>
-                  <th
-                    onClick={() => handleSort("nama_paket")}
-                    className="px-4 py-2 border cursor-pointer"
-                  >
-                    Paket{" "}
-                    {sortConfig.key === "nama_paket"
-                      ? sortConfig.direction === "asc"
-                        ? "▲"
-                        : "▼"
-                      : ""}
-                  </th>
-                  <th
-                    onClick={() => handleSort("nama_kelas")}
-                    className="px-4 py-2 border cursor-pointer"
-                  >
-                    Kelas{" "}
-                    {sortConfig.key === "nama_kelas"
-                      ? sortConfig.direction === "asc"
-                        ? "▲"
-                        : "▼"
-                      : ""}
-                  </th>
                   <th className="px-4 py-2 border">Aksi</th>
                 </tr>
               </thead>
@@ -299,8 +254,9 @@ const DaftarPeserta = () => {
             </table>
           </div>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah peserta: {userData.length} orang
+        <p className="pl-4 pt-2 text-xs font-semibold text-red-600">
+          <sup>*</sup>Akun publik (tidak terdaftar di batch maupun kelas)
+          {" - "}Jumlah akun: {userData.length} akun
         </p>
       </div>
 
@@ -383,4 +339,4 @@ const DaftarPeserta = () => {
   );
 };
 
-export default DaftarPeserta;
+export default DaftarAkunPublik;

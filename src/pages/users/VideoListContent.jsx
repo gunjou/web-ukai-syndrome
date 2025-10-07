@@ -319,6 +319,7 @@ const VideoListContent = () => {
       <div className="relative w-full h-full">
         <iframe
           src={formatDriveUrl(selectedVideo.url_file)}
+          title="Google Drive Video Player"
           width="100%"
           height="100%"
           allow="autoplay; encrypted-media"

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  FaGlobe,
   FaUsers,
   FaChalkboardTeacher,
   FaLayerGroup,
@@ -35,6 +36,11 @@ const HomeAdmin = () => {
   };
 
   const menus = [
+    {
+      label: "AKUN PUBLIK",
+      link: "/akun-publik",
+      icon: <FaGlobe className="text-yellow-500 text-sm" />,
+    },
     {
       label: "PESERTA",
       link: "/peserta",
@@ -155,7 +161,7 @@ const HomeAdmin = () => {
 
                     {/* Right Text */}
                     <div className="lg:w-[70%] flex flex-col justify-center pl-3 pr-2">
-                      <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f]">
+                      <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f] whitespace-nowrap">
                         {item.label}
                       </div>
                     </div>
