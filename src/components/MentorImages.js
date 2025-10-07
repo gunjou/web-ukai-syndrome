@@ -9,8 +9,8 @@ import mentor8 from "../assets/mentor/8.png";
 import mentor9 from "../assets/mentor/9.png";
 import mentor10 from "../assets/mentor/10.png";
 import mentor11 from "../assets/mentor/11.png";
-import mentor12 from "../assets/mentor/12.png";
-import mentor13 from "../assets/mentor/13.png";
+// import mentor12 from "../assets/mentor/12.png";
+// import mentor13 from "../assets/mentor/13.png";
 import mentor14 from "../assets/mentor/14.png";
 import mentor15 from "../assets/mentor/15.png";
 import mentor16 from "../assets/mentor/16.png";
@@ -59,8 +59,8 @@ const MentorImages = [
   mentor9,
   mentor10,
   mentor11,
-  mentor12,
-  mentor13,
+  // mentor12,
+  // mentor13,
   mentor14,
   mentor15,
   mentor16,
