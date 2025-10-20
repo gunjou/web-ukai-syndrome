@@ -344,6 +344,7 @@ const VideoListContent = () => {
     );
   };
 
+  // Render UI komentar dan video player
   if (selectedVideo) {
     return (
       <div className="p-4 min-h-screen bg-gray-100">
@@ -381,6 +382,7 @@ const VideoListContent = () => {
             </h2>
             <p>{selectedVideo.des}</p>
 
+            {/* Komenta mulai dari sini */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-1">Komentar</h3>
               <p className="text-sm text-gray-500 mb-3">
@@ -439,8 +441,16 @@ const VideoListContent = () => {
                     className="w-28 h-16 object-contain rounded"
                   />
 
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800 truncate capitalize">
+                  <div className="flex-1 flex flex-col justify-center">
+                    <p
+                      className="font-medium text-gray-800 capitalize overflow-hidden text-ellipsis"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2, // maksimal 2 baris
+                        WebkitBoxOrient: "vertical",
+                      }}
+                      title={video.judul} // tooltip untuk judul lengkap saat hover
+                    >
                       {video.judul}
                     </p>
                     <p className="text-xs text-gray-500">Klik untuk putar</p>
