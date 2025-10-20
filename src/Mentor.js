@@ -5,7 +5,7 @@ import Sidebar from "./components/mentor/Sidebar";
 import MenuBar from "./components/mentor/Menubar";
 import Video from "./pages/mentor/Video";
 import Materi from "./pages/mentor/Materi";
-import SoalTO from "./pages/mentor/SoalTO";
+import Tryout from "./pages/mentor/TryOut";
 import HasilTO from "./pages/mentor/HasilTO";
 import { KelasProvider } from "./components/mentor/KelasContext";
 
@@ -18,7 +18,7 @@ const User = () => {
           <MenuBar />
           <div className="p-6">
             <Routes>
-              <Route path="/soal-to" element={<SoalTO />} />
+              <Route path="/tryout" element={<Tryout />} />
               <Route path="/hasil-to" element={<HasilTO />} />
 
               {/* Route induk untuk video dengan nested routing */}

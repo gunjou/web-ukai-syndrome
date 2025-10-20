@@ -67,9 +67,9 @@ const Sidebar = () => {
               <span>Video</span>
             </NavLink>
           </li>
-          {/* <li>
+          <li>
             <NavLink
-              to="/mentor-dashboard/soal-to"
+              to="/mentor-dashboard/tryout"
               className={({ isActive }) =>
                 `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
@@ -98,7 +98,7 @@ const Sidebar = () => {
               <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
               <span>Hasil TO</span>
             </NavLink>
-          </li> */}
+          </li>
           {/* <li>
             <NavLink
               to="/mentor-dashboard/settings"
