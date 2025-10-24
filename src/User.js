@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/users/Sidebar";
 import MenuBar from "./components/users/Menubar";
@@ -9,6 +9,8 @@ import HasilTO from "./pages/users/HasilTO";
 import Modul from "./pages/users/Modul";
 
 const User = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => {
     // Proteksi aktif
     const handleContextMenu = (e) => e.preventDefault();
@@ -35,21 +37,26 @@ const User = () => {
   }, []);
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="ml-64 flex-1">
-        <MenuBar />
-        <div className="p-6">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Navbar / MenuBar */}
+      <MenuBar onToggleSidebar={setSidebarOpen} />
+
+      {/* Sidebar + Konten */}
+      <div className="flex pt-[65px]">
+        <Sidebar
+          isOpenExternal={sidebarOpen}
+          onCloseExternal={setSidebarOpen}
+        />
+
+        <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
           <Routes>
             <Route path="/tryout/*" element={<TryOut />} />
             <Route path="/hasil-to" element={<HasilTO />} />
-
-            {/* Route induk untuk video dengan nested routing */}
             <Route path="/video/*" element={<Video />} />
             <Route path="/materi/*" element={<Materi />} />
             <Route path="/modul/*" element={<Modul />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </div>
   );

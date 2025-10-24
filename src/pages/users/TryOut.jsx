@@ -205,9 +205,7 @@ const Tryout = () => {
                   <h2 className="text-md font-semibold capitalize">
                     {to.judul}
                   </h2>
-                  <p className="text-sm text-gray-600">
-                    Jumlah Soal: {to.jumlah_soal}
-                  </p>
+                  <p className="text-sm text-gray-600">{to.jumlah_soal} Soal</p>
                   <p className="text-sm text-gray-600">
                     Durasi: {to.durasi} Menit
                   </p>
@@ -227,23 +225,6 @@ const Tryout = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Kanan: status visibility */}
-              <span
-                className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                  to.visibility === "open"
-                    ? "bg-green-100 text-green-700"
-                    : to.visibility === "hold"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {to.visibility === "open"
-                  ? "Open"
-                  : to.visibility === "hold"
-                  ? "Hold"
-                  : "Closed"}
-              </span>
             </div>
           ))}
         </div>
