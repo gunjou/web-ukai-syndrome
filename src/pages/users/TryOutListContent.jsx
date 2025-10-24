@@ -1,17 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import Api from "../../utils/Api.jsx";
-import {
-  FiMaximize2,
-  FiMinimize2,
-  FiX,
-  FiHelpCircle,
-  FiClock,
-} from "react-icons/fi";
+import { FiX, FiHelpCircle, FiClock } from "react-icons/fi";
 import { BsCalculator } from "react-icons/bs";
 import CalculatorModal from "./components/CalculatorModal.jsx";
 import QuestionNavigator from "./components/QuestionNavigator.jsx";
 import ExitFullscreenModal from "./components/ExitFullscreenModal.jsx";
 import ConfirmEndModal from "./components/ConfirmEndModal.jsx";
+import TimeUpModal from "./components/TimeUpModal.jsx";
 
 const TryoutListContent = ({ tryout, onBack }) => {
   const [questions, setQuestions] = useState([]);
@@ -24,7 +19,9 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const containerRef = useRef(null);
   const [showExitFullscreenModal, setShowExitFullscreenModal] = useState(false);
   const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
+  const [isTimeUp, setIsTimeUp] = useState(false);
 
+  // ambil soal
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -39,14 +36,23 @@ const TryoutListContent = ({ tryout, onBack }) => {
     fetchQuestions();
   }, [tryout]);
 
+  // set durasi
   useEffect(() => {
     if (tryout.durasi) setTimeLeft(tryout.durasi * 60);
   }, [tryout]);
 
+  // timer jalan
   useEffect(() => {
     if (timeLeft <= 0) return;
     const interval = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsTimeUp(true); // waktu habis → munculkan modal
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, [timeLeft]);
@@ -68,12 +74,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
   const handleSubmit = () => {
     alert("Tryout selesai! Jawaban sudah disimpan");
-    // console.log("Jawaban:", answers);
-    // console.log("Soal ragu-ragu:", raguRagu);
-
     onBack();
   };
 
+  // fullscreen listener
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
@@ -82,8 +86,6 @@ const TryoutListContent = ({ tryout, onBack }) => {
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-
-    // masuk fullscreen saat mount
     containerRef.current?.requestFullscreen().catch(() => {});
 
     return () => {
@@ -107,14 +109,18 @@ const TryoutListContent = ({ tryout, onBack }) => {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-4 sticky top-0 bg-gray-100 z-50 pb-3 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-semibold">{tryout.judul}</h1>
+          <h1 className="text-2xl font-semibold capitalize">{tryout.judul}</h1>
           <p className="text-gray-500 text-sm">
             {questions.length} Soal • Durasi: {tryout.durasi} menit
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 font-semibold text-lg text-red-500">
+          <span
+            className={`flex items-center gap-1 font-semibold text-lg ${
+              timeLeft <= 600 ? "text-red-500" : "text-green-600"
+            }`}
+          >
             <FiClock /> {formatTime(timeLeft)}
           </span>
 
@@ -133,7 +139,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
           </button>
         </div>
       </div>
-      {/* ISI SOAL DAN NAVIGASI */}
+
+      {/* ISI SOAL */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-10 space-y-2">
           <div className="w-8 h-8 border-4 border-red-500 border-dashed rounded-full animate-spin"></div>
@@ -241,11 +248,12 @@ const TryoutListContent = ({ tryout, onBack }) => {
           </div>
         </div>
       )}
-      {/* Kalkulator */}
+
+      {/* MODALS */}
       {showCalculator && (
         <CalculatorModal onClose={() => setShowCalculator(false)} />
       )}
-      {/* Modal ExitFullscreen */}
+
       {showExitFullscreenModal && (
         <ExitFullscreenModal
           onContinue={() => {
@@ -253,10 +261,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
             setShowExitFullscreenModal(false);
           }}
           onEnd={handleSubmit}
-          onTimeout={handleSubmit} // otomatis akhiri jika 2 menit habis
+          onTimeout={handleSubmit}
         />
       )}
-      {/* Modal konfirmasi */}
+
       {showConfirmEndModal && (
         <ConfirmEndModal
           onCancel={() => setShowConfirmEndModal(false)}
@@ -264,6 +272,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
           raguCount={raguRagu.length}
         />
       )}
+
+      {isTimeUp && <TimeUpModal onConfirm={handleSubmit} />}
     </div>
   );
 };

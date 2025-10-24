@@ -1,32 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiClock } from "react-icons/fi";
 
-const TimeUpModal = ({ isOpen, onConfirm }) => {
-  if (!isOpen) return null;
+const TimeUpModal = ({ onConfirm }) => {
+  const [autoEndCountdown, setAutoEndCountdown] = useState(10);
+
+  // Hitung mundur otomatis 10 detik
+  useEffect(() => {
+    if (autoEndCountdown <= 0) {
+      onConfirm(); // otomatis akhiri tryout
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setAutoEndCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [autoEndCountdown, onConfirm]);
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-xl w-[400px] p-6 text-center animate-fadeIn">
-        <div className="flex justify-center mb-4">
-          <div className="p-3 bg-red-100 rounded-full">
-            <FiClock className="text-red-500 text-3xl" />
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[9999] bg-black bg-opacity-80 flex items-center justify-center animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-lg text-center space-y-6 relative">
+        <FiClock className="text-red-500 text-7xl mx-auto animate-pulse" />
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
-          Waktu Habis!
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Waktu pengerjaan tryout telah berakhir. Jawabanmu akan disimpan
-          otomatis.
+        <h2 className="text-3xl font-bold text-gray-800">Waktu Habis!</h2>
+        <p className="text-gray-600 text-lg">
+          Waktu pengerjaan tryout Anda telah berakhir. Klik tombol di bawah
+          untuk mengakhiri tryout.
         </p>
 
-        <button
-          onClick={onConfirm}
-          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-all"
-        >
-          Akhiri Tryout
-        </button>
+        <div className="flex justify-center">
+          <button
+            onClick={onConfirm}
+            className="bg-red-600 hover:bg-red-700 text-white text-lg font-semibold px-8 py-3 rounded-xl transition-all shadow-lg"
+          >
+            Akhiri Tryout Sekarang
+          </button>
+        </div>
+
+        <p className="text-gray-400 text-sm">
+          Tryout akan diakhiri otomatis dalam{" "}
+          <span className="font-semibold text-red-500">{autoEndCountdown}</span>{" "}
+          detik.
+        </p>
       </div>
     </div>
   );

@@ -19,9 +19,12 @@ const Tryout = () => {
         const response = await Api.get("/tryout/list");
         const list = response.data.data || [];
 
-        // 🔹 Ambil remaining attempts untuk setiap tryout
+        // 🔹 Hanya ambil tryout dengan visibility "open"
+        const openTryouts = list.filter((to) => to.visibility === "open");
+
+        // 🔹 Ambil remaining attempts untuk setiap tryout open
         const updatedList = await Promise.all(
-          list.map(async (to) => {
+          openTryouts.map(async (to) => {
             try {
               const res = await Api.get(
                 `/tryout/${to.id_tryout}/remaining-attempts`
