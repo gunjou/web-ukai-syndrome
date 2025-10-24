@@ -83,10 +83,10 @@ const Tryout = () => {
                 }`}
               >
                 {to.visibility === "open"
-                  ? "Tersedia"
+                  ? "Open"
                   : to.visibility === "hold"
-                  ? "Ditahan"
-                  : "Tutup"}
+                  ? "Hold"
+                  : "Closed"}
               </span>
             </div>
           ))}
