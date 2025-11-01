@@ -25,7 +25,7 @@ const MateriListContent = () => {
     const fetchData = async () => {
       try {
         const [materiRes, modulRes] = await Promise.all([
-          Api.get("/materi/peserta"),
+          Api.get("/materi/web/peserta"),
           Api.get("/modul/user"),
         ]);
 
@@ -179,7 +179,7 @@ const MateriListContent = () => {
                   />
 
                   {/* overlay transparan untuk blok tombol popup gdrive */}
-                  <div className="absolute top-0 right-0 w-16 h-12 bg-transparent z-10"></div>
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-transparent z-10"></div>
                 </div>
               )}
             </div>
