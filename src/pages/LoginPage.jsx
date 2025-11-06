@@ -39,6 +39,23 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
+const safeLocalStorageSet = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn("localStorage error:", e);
+  }
+};
+
+const safeLocalStorageGet = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn("localStorage error:", e);
+    return null;
+  }
+};
+
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,11 +83,17 @@ const LoginPage = () => {
         role,
       } = response.data;
 
-      localStorage.setItem("token", access_token);
-      localStorage.setItem(
+      safeLocalStorageSet("token", access_token);
+      safeLocalStorageSet(
         "user",
         JSON.stringify({ id_user, nama, nickname, email: userEmail, role })
       );
+
+      // localStorage.setItem("token", access_token);
+      // localStorage.setItem(
+      //   "user",
+      //   JSON.stringify({ id_user, nama, nickname, email: userEmail, role })
+      // );
 
       setTimeout(() => {
         if (role === "admin") {
