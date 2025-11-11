@@ -48,7 +48,7 @@ import mentor47 from "../assets/mentor/47.png";
 import mentor48 from "../assets/mentor/48.png";
 
 const MentorImages = [
-  mentor1,
+  // mentor1,
   mentor2,
   mentor3,
   mentor4,
