@@ -1,121 +1,173 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FiX } from "react-icons/fi";
 import homepage_img from "../../assets/logo-1.svg";
 import icon_file from "../../assets/icon_file.png";
 import icon_folder from "../../assets/icon_folder.png";
 import icon_pesan from "../../assets/icon_pesan.png";
 import icon_video from "../../assets/icon_video.png";
 
-const Sidebar = ({ isOpenExternal, onCloseExternal }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const Sidebar = () => {
+  const [open, setOpen] = useState(false);
 
-  // Sinkronisasi state dari luar (dipicu oleh MenuBar)
-  useEffect(() => {
-    if (isOpenExternal !== undefined) setIsOpen(isOpenExternal);
-  }, [isOpenExternal]);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    if (onCloseExternal) onCloseExternal(false);
-  };
-
-  const menuItems = [
-    { to: "/dashboard/materi", icon: icon_folder, label: "Materi" },
-    { to: "/dashboard/video", icon: icon_video, label: "Video" },
-    { to: "/dashboard/tryout", icon: icon_file, label: "TryOut" },
-    { to: "/dashboard/hasil-to", icon: icon_pesan, label: "Hasil TO" },
-  ];
+  const MenuItems = () => (
+    <nav>
+      <ul className="space-y-2 px-4">
+        <li>
+          <NavLink
+            to="/dashboard/materi"
+            className={({ isActive }) =>
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+               ${
+                 isActive
+                   ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
+                   : "hover:bg-gray-200 text-gray-700"
+               }`
+            }
+          >
+            <img src={icon_folder} alt="Materi" className="h-auto w-7" />
+            <span>Materi</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/dashboard/video"
+            className={({ isActive }) =>
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+                ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
+                    : "hover:bg-gray-200 text-gray-700"
+                }`
+            }
+          >
+            <img src={icon_video} alt="Video" className="h-auto w-7" />
+            <span>Video</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/dashboard/tryout"
+            className={({ isActive }) =>
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+                ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
+                    : "hover:bg-gray-200 text-gray-700"
+                }`
+            }
+          >
+            <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
+            <span>TryOut</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/dashboard/hasil-to"
+            className={({ isActive }) =>
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+                ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
+                    : "hover:bg-gray-200 text-gray-700"
+                }`
+            }
+          >
+            <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
+            <span>Hasil TO</span>
+          </NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
 
   return (
     <>
-      {/* ===== Desktop Sidebar ===== */}
-      <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-[2000]">
-        <div className="p-6 pl-4">
-          <a href="/home" className="flex justify-left">
-            <img src={homepage_img} alt="Homepage Logo" className="h-12" />
-          </a>
-        </div>
-        <nav>
-          <ul className="space-y-2 px-4">
-            {menuItems.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer transition-all ${
-                      isActive
-                        ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                        : "hover:bg-gray-200 text-gray-700"
-                    }`
-                  }
-                >
-                  <img
-                    src={item.icon}
-                    alt={item.label}
-                    className="h-auto w-7"
-                  />
-                  <span>{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
-
-      {/* ===== Mobile Sidebar (Drawer) ===== */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-[3000] ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <img src={homepage_img} alt="Logo" className="h-10" />
-          <button onClick={handleClose}>
-            <FiX
-              size={24}
-              className="text-gray-700 hover:text-black transition"
+      {/* Mobile: hamburger button */}
+      <div className="md:hidden fixed top-4 left-4 z-30">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="p-2 rounded-md bg-white shadow-md focus:outline-none focus:ring"
+        >
+          <svg
+            className="w-6 h-6 text-gray-800"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
             />
-          </button>
-        </div>
-
-        {/* Menu */}
-        <nav className="p-4">
-          <ul className="space-y-3">
-            {menuItems.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  onClick={handleClose}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 text-base font-semibold rounded-lg py-2 px-2 transition-all ${
-                      isActive
-                        ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                        : "hover:bg-gray-200 text-gray-700"
-                    }`
-                  }
-                >
-                  <img
-                    src={item.icon}
-                    alt={item.label}
-                    className="h-auto w-6"
-                  />
-                  <span>{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+          </svg>
+        </button>
       </div>
 
-      {/* ===== Overlay (blur + transparan) ===== */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-[1px] transition-opacity duration-300 z-[2500]"
-          onClick={handleClose}
-        />
+      {/* Mobile overlay sidebar */}
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-30"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+
+          <aside className="fixed left-0 top-0 w-64 bg-white h-full shadow-md z-40 md:hidden transform transition-transform">
+            <div className="p-6 pl-4 text-2xl font-bold text-blue-600 flex items-center justify-between">
+              <a className="flex justify-left" href="/home">
+                <img
+                  src={homepage_img}
+                  alt="Homepage Logo"
+                  className="h-12 cursor-pointer"
+                />
+              </a>
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Close menu"
+                className="p-1 rounded-md hover:bg-gray-200"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-800"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-2">
+              <MenuItems />
+            </div>
+          </aside>
+        </>
       )}
+
+      {/* Desktop sidebar (unchanged) */}
+      <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
+        <div className="p-6 pl-4 text-2xl font-bold text-blue-600">
+          <a className="flex justify-left" href="/home">
+            <img
+              src={homepage_img}
+              alt="Homepage Logo"
+              className="h-12 cursor-pointer"
+            />
+          </a>
+        </div>
+        <div className="pt-4">
+          <MenuItems />
+        </div>
+      </aside>
     </>
   );
 };

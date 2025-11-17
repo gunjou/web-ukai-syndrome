@@ -21,6 +21,33 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
 
+  // ------------------------------------------------------------------------------------------------
+  // 🔥 ADDED: SIMPAN JAWABAN SEMENTARA
+  const saveTemporaryAnswer = async (nomor, jawaban = "", ragu = 0) => {
+    try {
+      await Api.post("/tryout/attempts/answer", {
+        attempt_token: tryout?.attempt?.attempt_token,
+        nomor,
+        jawaban,
+        ragu,
+      });
+    } catch (err) {
+      console.error("Gagal menyimpan jawaban sementara:", err);
+    }
+  };
+
+  // 🔥 ADDED: SUBMIT FINAL ATTEMPT
+  const submitFinalAttempt = async () => {
+    try {
+      await Api.post("/tryout/attempts/submit", {
+        attempt_token: tryout?.attempt?.attempt_token,
+      });
+    } catch (err) {
+      console.error("Gagal submit attempt:", err);
+    }
+  };
+  // ------------------------------------------------------------------------------------------------
+
   // ambil soal
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -48,7 +75,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          setIsTimeUp(true); // waktu habis → munculkan modal
+          setIsTimeUp(true);
           return 0;
         }
         return prev - 1;
@@ -57,23 +84,35 @@ const TryoutListContent = ({ tryout, onBack }) => {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
+  // ------------------------------------------------------------------------------------------------
+  // 🔥 ADDED → SIMPAN JAWABAN OTOMATIS SAAT USER MEMILIH
   const handleAnswerChange = (id_soal, option) => {
     setAnswers((prev) => ({
       ...prev,
       [id_soal]: option,
     }));
+
+    const nomor = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
+    saveTemporaryAnswer(nomor, option, raguRagu.includes(id_soal) ? 1 : 0);
   };
 
+  // 🔥 ADDED → SIMPAN STATUS RAGU-RAGU
   const toggleRaguRagu = (id_soal) => {
+    const isRagu = raguRagu.includes(id_soal);
     setRaguRagu((prev) =>
-      prev.includes(id_soal)
-        ? prev.filter((id) => id !== id_soal)
-        : [...prev, id_soal]
+      isRagu ? prev.filter((id) => id !== id_soal) : [...prev, id_soal]
     );
-  };
 
-  const handleSubmit = () => {
-    alert("Tryout selesai! Jawaban sudah disimpan");
+    const nomor = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
+    const jawaban = answers[id_soal] || "";
+
+    saveTemporaryAnswer(nomor, jawaban, isRagu ? 0 : 1);
+  };
+  // ------------------------------------------------------------------------------------------------
+
+  const handleSubmit = async () => {
+    await submitFinalAttempt(); // 🔥 ADDED
+    alert("Tryout selesai! Jawaban dan attempt telah disubmit.");
     onBack();
   };
 
@@ -199,7 +238,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
               )}
             </div>
 
-            {/* Tombol Ragu-Ragu + Navigasi */}
+            {/* Tombol Ragu + Navigasi */}
             <div className="flex justify-between items-center mt-6">
               <button
                 onClick={() => toggleRaguRagu(currentQuestion.id_soaltryout)}
