@@ -92,7 +92,7 @@ const TryoutPage = () => {
   // === DELETE TRYOUT ===
   const handleDelete = (id) => {
     ConfirmToast("Yakin ingin menghapus tryout ini?", async () => {
-      await Api.delete(`/tryout/${id}`);
+      await Api.delete(`/tryout/delete/${id}`);
       toast.success("Tryout berhasil dihapus.");
       fetchTryoutData();
     });

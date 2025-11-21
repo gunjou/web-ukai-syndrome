@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { FiX, FiPlus, FiUploadCloud, FiEdit3 } from "react-icons/fi";
+import { FiX, FiPlus, FiUploadCloud, FiEdit3, FiTrash2 } from "react-icons/fi"; // ➜ DITAMBAHKAN FiTrash2
 import Api from "../../../utils/Api.jsx";
 import TambahSoalModal from "./TambahSoalModal.jsx";
 import UploadSoalModal from "./UploadSoalModal.jsx";
 import EditSoalModal from "./EditSoalModal.jsx";
+import DeleteSoalModal from "./DeleteSoalTryoutModal.jsx";
 
 // Fungsi ambil gambar dari link Google Drive di dalam teks
 const extractDriveLink = (text) => {
   if (!text) return null;
 
-  // Ambil ID dari berbagai format Google Drive
   const patterns = [
     /https?:\/\/drive\.google\.com\/file\/d\/([^\/\s]+)/,
     /id=([^&\s]+)/,
@@ -27,8 +27,6 @@ const extractDriveLink = (text) => {
   }
 
   if (!fileId) return null;
-
-  // Link directGoogleusercontent (lebih stabil)
   return `https://drive.google.com/uc?export=view&id=${fileId}`;
 };
 
@@ -44,6 +42,7 @@ const LihatSoalModal = ({ tryout, onClose }) => {
   const [showTambah, setShowTambah] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [deleteData, setDeleteData] = useState(null); // ➜ DITAMBAHKAN
 
   const getSoal = async () => {
     try {
@@ -59,6 +58,18 @@ const LihatSoalModal = ({ tryout, onClose }) => {
   useEffect(() => {
     getSoal();
   }, []);
+
+  // ➜ DITAMBAHKAN — Fungsi hapus soal
+  const deleteSoal = async () => {
+    try {
+      await Api.delete(`/soal-tryout/soal-delete/${deleteData}`);
+      setDeleteData(null);
+      getSoal();
+    } catch (err) {
+      console.error("Gagal menghapus:", err);
+      alert("Gagal menghapus soal");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex justify-center items-center">
@@ -86,6 +97,7 @@ const LihatSoalModal = ({ tryout, onClose }) => {
             >
               <FiPlus size={16} /> Tambah Soal
             </button>
+
             <button
               onClick={() => setShowUpload(true)}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm transition"
@@ -93,6 +105,7 @@ const LihatSoalModal = ({ tryout, onClose }) => {
               <FiUploadCloud size={16} /> Upload Soal
             </button>
           </div>
+
           <p className="text-sm text-gray-500">
             Total Soal:{" "}
             <span className="font-semibold text-gray-800">{soal.length}</span>
@@ -116,21 +129,27 @@ const LihatSoalModal = ({ tryout, onClose }) => {
               {soal.map((s, i) => {
                 const cleanPertanyaan = removeDriveLinks(s.pertanyaan);
                 const imgPertanyaan = extractDriveLink(s.pertanyaan);
-                console.log("Pertanyaan:", s.pertanyaan);
-                console.log("Gambar:", extractDriveLink(s.pertanyaan));
 
                 return (
                   <div
                     key={s.id_soaltryout}
                     className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 relative"
                   >
-                    {/* Tombol Edit */}
-                    <button
-                      onClick={() => setEditData(s)}
-                      className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 transition"
-                    >
-                      <FiEdit3 size={18} />
-                    </button>
+                    {/* ➜ DITAMBAHKAN: Tombol Edit + Hapus */}
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <button
+                        onClick={() => setEditData(s)}
+                        className="text-gray-400 hover:text-blue-600 transition"
+                      >
+                        <FiEdit3 size={18} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteData(s.id_soaltryout)}
+                        className="text-gray-400 hover:text-red-600 transition"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </div>
 
                     <div className="flex justify-start items-start mb-2">
                       <h3 className="font-semibold text-gray-800 text-base leading-snug whitespace-pre-line">
@@ -248,6 +267,13 @@ const LihatSoalModal = ({ tryout, onClose }) => {
               setEditData(null);
               getSoal();
             }}
+          />
+        )}
+        {deleteData && (
+          <DeleteSoalModal
+            text="Soal yang sudah dihapus tidak dapat dikembalikan."
+            onClose={() => setDeleteData(null)}
+            onConfirm={deleteSoal}
           />
         )}
       </div>
