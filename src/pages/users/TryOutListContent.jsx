@@ -23,11 +23,11 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
   // ------------------------------------------------------------------------------------------------
   // 🔥 ADDED: SIMPAN JAWABAN SEMENTARA
-  const saveTemporaryAnswer = async (nomor, jawaban = "", ragu = 0) => {
+  const saveTemporaryAnswer = async (soal, jawaban = "", ragu = 0) => {
     try {
       await Api.post("/tryout/attempts/answer", {
         attempt_token: tryout?.attempt?.attempt_token,
-        nomor,
+        soal,
         jawaban,
         ragu,
       });
@@ -92,8 +92,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
       [id_soal]: option,
     }));
 
-    const nomor = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
-    saveTemporaryAnswer(nomor, option, raguRagu.includes(id_soal) ? 1 : 0);
+    const soal = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
+    saveTemporaryAnswer(soal, option, raguRagu.includes(id_soal) ? 1 : 0);
   };
 
   // 🔥 ADDED → SIMPAN STATUS RAGU-RAGU
@@ -103,10 +103,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
       isRagu ? prev.filter((id) => id !== id_soal) : [...prev, id_soal]
     );
 
-    const nomor = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
+    const soal = questions.findIndex((q) => q.id_soaltryout === id_soal) + 1;
     const jawaban = answers[id_soal] || "";
 
-    saveTemporaryAnswer(nomor, jawaban, isRagu ? 0 : 1);
+    saveTemporaryAnswer(soal, jawaban, isRagu ? 0 : 1);
   };
   // ------------------------------------------------------------------------------------------------
 
