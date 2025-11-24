@@ -12,6 +12,8 @@
     "flowbite-react": "^0.11.8",
     "framer-motion": "^12.23.12",
     "install": "^0.13.0",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.13.0",
@@ -36,7 +38,8 @@
     "slick-carousel": "^1.8.1",
     "tw-elements-react": "^1.0.0-alpha-end",
     "video.js": "^8.23.4",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
