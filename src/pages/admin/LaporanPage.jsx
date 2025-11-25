@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Header from "../../components/admin/Header.jsx";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
+import StatistikTryoutModal from "./modal/laporan/StatistikTryoutModal.jsx";
 
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -27,6 +28,8 @@ export default function LaporanPage() {
 
   // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStatModalOpen, setIsStatModalOpen] = useState(false);
+  const [statistik, setStatistik] = useState(null);
 
   // filter states
   const [filters, setFilters] = useState({
@@ -73,6 +76,29 @@ export default function LaporanPage() {
     fetchTryoutList();
     fetchData({});
   }, []);
+
+  // FETCH STATISTIK
+  const fetchStatistik = async () => {
+    try {
+      // Ambil id_tryout dari filter yg aktif
+      const idTryout = filters.selectedTryouts[0];
+
+      if (!idTryout) {
+        alert("Pilih salah satu tryout untuk melihat statistik!");
+        return;
+      }
+
+      const res = await Api.get("/hasil-tryout/statistik", {
+        params: { id_tryout: idTryout },
+      });
+
+      setStatistik(res.data.data);
+      setIsStatModalOpen(true); // buka modal
+    } catch (e) {
+      console.error("Gagal mengambil statistik:", e);
+      alert("Gagal mengambil statistik");
+    }
+  };
 
   // AUTO SEARCH (debounced)
   // --------------------------------------------------------
@@ -239,6 +265,13 @@ export default function LaporanPage() {
 
           <div className="flex gap-2">
             <button
+              onClick={() => setIsStatModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm"
+            >
+              Statistik
+            </button>
+
+            <button
               onClick={exportExcel}
               className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 text-sm"
             >
@@ -392,6 +425,12 @@ export default function LaporanPage() {
         setFilters={setFilters}
         onApply={applyFilters}
         onReset={resetFilter}
+      />
+
+      <StatistikTryoutModal
+        open={isStatModalOpen}
+        setOpen={setIsStatModalOpen}
+        statistik={statistik}
       />
     </div>
   );
