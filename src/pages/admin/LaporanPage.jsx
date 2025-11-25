@@ -3,6 +3,7 @@ import Header from "../../components/admin/Header.jsx";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import StatistikTryoutModal from "./modal/laporan/StatistikTryoutModal.jsx";
+import LeaderboardTryoutModal from "./modal/laporan/LeaderboardTryoutModal.jsx";
 
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -30,6 +31,7 @@ export default function LaporanPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStatModalOpen, setIsStatModalOpen] = useState(false);
   const [statistik, setStatistik] = useState(null);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   // filter states
   const [filters, setFilters] = useState({
@@ -272,6 +274,15 @@ export default function LaporanPage() {
             </button>
 
             <button
+              onClick={() => {
+                setIsLeaderboardOpen(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm"
+            >
+              Leaderboard
+            </button>
+
+            <button
               onClick={exportExcel}
               className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 text-sm"
             >
@@ -431,6 +442,12 @@ export default function LaporanPage() {
         open={isStatModalOpen}
         setOpen={setIsStatModalOpen}
         statistik={statistik}
+      />
+
+      <LeaderboardTryoutModal
+        open={isLeaderboardOpen}
+        setOpen={setIsLeaderboardOpen}
+        idTryout={filters.selectedTryouts[0]}
       />
     </div>
   );
