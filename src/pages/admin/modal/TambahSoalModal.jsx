@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiX, FiSave } from "react-icons/fi";
+import { FiX, FiSave, FiImage } from "react-icons/fi";
 import Api from "../../../utils/Api";
 
 const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
@@ -14,19 +14,47 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
     jawaban_benar: "A",
     pembahasan: "",
   });
+
+  const [gambar, setGambar] = useState(null); // <-- FILE IMAGE
   const [loading, setLoading] = useState(false);
 
+  // Change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  // Upload file (frontend hanya simpan, backend yang handle)
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) setGambar(file);
+  };
+
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const payload = { id_tryout: idTryout, ...formData };
-      await Api.post("/soal-tryout", payload);
+      const form = new FormData();
+
+      form.append("id_tryout", idTryout);
+      form.append("nomor_urut", formData.nomor_urut);
+      form.append("pertanyaan", formData.pertanyaan);
+      form.append("pilihan_a", formData.pilihan_a);
+      form.append("pilihan_b", formData.pilihan_b);
+      form.append("pilihan_c", formData.pilihan_c);
+      form.append("pilihan_d", formData.pilihan_d);
+      form.append("pilihan_e", formData.pilihan_e);
+      form.append("jawaban_benar", formData.jawaban_benar);
+      form.append("pembahasan", formData.pembahasan);
+
+      if (gambar) form.append("gambar", gambar); // <-- INI FILE GAMBAR
+
+      await Api.post("/soal-tryout", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       onSuccess();
       onClose();
     } catch (error) {
@@ -52,46 +80,59 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
           </button>
         </div>
 
-        {/* Scrollable content */}
+        {/* CONTENT */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {/* Nomor urut */}
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nomor Urut */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nomor Urut
-              </label>
+              <label className="block text-sm font-medium">Nomor Urut</label>
               <input
                 type="number"
                 name="nomor_urut"
                 value={formData.nomor_urut}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-1 focus:ring-red-400 outline-none"
+                className="w-full border rounded-md px-3 py-1.5"
               />
             </div>
 
             {/* Pertanyaan */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pertanyaan
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium">Pertanyaan</label>
+
+                <label className="text-blue-600 text-sm flex items-center gap-2 cursor-pointer hover:underline">
+                  <FiImage />
+                  Upload Gambar
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
+                </label>
+              </div>
+
               <textarea
                 name="pertanyaan"
                 value={formData.pertanyaan}
                 onChange={handleChange}
-                required
                 rows={3}
-                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-1 focus:ring-red-400 outline-none resize-none"
+                required
+                className="w-full border rounded-md px-3 py-1.5 resize-none"
               />
+
+              {gambar && (
+                <p className="text-xs text-green-600 mt-1">
+                  Gambar dipilih: {gambar.name}
+                </p>
+              )}
             </div>
 
-            {/* Pilihan A-E */}
+            {/* Pilihan Jawaban A–E */}
             {["a", "b", "c", "d", "e"].map((opt) => (
               <div key={opt}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium">
                   Pilihan {opt.toUpperCase()}
                 </label>
                 <input
@@ -100,21 +141,19 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
                   value={formData[`pilihan_${opt}`]}
                   onChange={handleChange}
                   required
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-1 focus:ring-red-400 outline-none"
+                  className="w-full border rounded-md px-3 py-1.5"
                 />
               </div>
             ))}
 
             {/* Jawaban Benar */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jawaban Benar
-              </label>
+              <label className="block text-sm font-medium">Jawaban Benar</label>
               <select
                 name="jawaban_benar"
                 value={formData.jawaban_benar}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-1 focus:ring-red-400 outline-none"
+                className="w-full border rounded-md px-3 py-1.5"
               >
                 {["A", "B", "C", "D", "E"].map((j) => (
                   <option key={j} value={j}>
@@ -126,33 +165,32 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
 
             {/* Pembahasan */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pembahasan (Opsional)
-              </label>
+              <label className="text-sm font-medium">Pembahasan</label>
               <textarea
                 name="pembahasan"
                 value={formData.pembahasan}
                 onChange={handleChange}
                 rows={3}
-                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-1 focus:ring-red-400 outline-none resize-none"
+                className="w-full border rounded-md px-3 py-1.5 resize-none"
               />
             </div>
           </form>
         </div>
 
         {/* Footer */}
-        <div className="border-t bg-gray-50 px-6 py-3 flex justify-end gap-3 sticky bottom-0">
+        <div className="border-t bg-gray-50 px-6 py-3 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-md border border-gray-400 text-gray-600 hover:bg-gray-100 text-sm transition"
+            className="px-4 py-1.5 border rounded-md text-gray-600 hover:bg-gray-100"
           >
             <FiX size={14} /> Batal
           </button>
+
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm transition disabled:opacity-60"
+            className="px-4 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-60"
           >
             <FiSave size={14} />
             {loading ? "Menyimpan..." : "Simpan"}
