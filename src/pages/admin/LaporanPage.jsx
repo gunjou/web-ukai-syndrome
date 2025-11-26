@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
+import {
+  AiOutlineBarChart,
+  AiOutlineFilePdf,
+  AiOutlineFileExcel,
+  AiOutlineSearch,
+  AiOutlineFilter,
+  AiOutlineReload,
+} from "react-icons/ai";
+import { BsTrophy, BsFolder2Open } from "react-icons/bs";
 import Header from "../../components/admin/Header.jsx";
 import garisKanan from "../../assets/garis-kanan.png";
 import Api from "../../utils/Api.jsx";
 import StatistikTryoutModal from "./modal/laporan/StatistikTryoutModal.jsx";
 import LeaderboardTryoutModal from "./modal/laporan/LeaderboardTryoutModal.jsx";
+import RekapTryoutModal from "./modal/laporan/RekapTryoutModal.jsx";
 
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-import { AiOutlineFilter } from "react-icons/ai";
 import FilterLaporanModal from "./modal/laporan/FilterLaporanModal.jsx";
 // UTILITY: debounce
 const debounce = (func, delay) => {
@@ -32,6 +41,8 @@ export default function LaporanPage() {
   const [isStatModalOpen, setIsStatModalOpen] = useState(false);
   const [statistik, setStatistik] = useState(null);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isRekapModalOpen, setIsRekapModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // filter states
   const [filters, setFilters] = useState({
@@ -78,29 +89,6 @@ export default function LaporanPage() {
     fetchTryoutList();
     fetchData({});
   }, []);
-
-  // FETCH STATISTIK
-  const fetchStatistik = async () => {
-    try {
-      // Ambil id_tryout dari filter yg aktif
-      const idTryout = filters.selectedTryouts[0];
-
-      if (!idTryout) {
-        alert("Pilih salah satu tryout untuk melihat statistik!");
-        return;
-      }
-
-      const res = await Api.get("/hasil-tryout/statistik", {
-        params: { id_tryout: idTryout },
-      });
-
-      setStatistik(res.data.data);
-      setIsStatModalOpen(true); // buka modal
-    } catch (e) {
-      console.error("Gagal mengambil statistik:", e);
-      alert("Gagal mengambil statistik");
-    }
-  };
 
   // AUTO SEARCH (debounced)
   // --------------------------------------------------------
@@ -266,61 +254,82 @@ export default function LaporanPage() {
           <h1 className="text-xl font-bold">Laporan Hasil Tryout</h1>
 
           <div className="flex gap-2">
-            <button
-              onClick={() => setIsStatModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm"
-            >
-              Statistik
-            </button>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button
+                onClick={() => setIsStatModalOpen(true)}
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              >
+                <AiOutlineBarChart size={18} /> Statistik
+              </button>
 
-            <button
-              onClick={() => {
-                setIsLeaderboardOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm"
-            >
-              Leaderboard
-            </button>
+              <button
+                onClick={() => {
+                  if (!data.length)
+                    return alert("Tidak ada data untuk direkap!");
+                  setSelectedUser(data[0].id_user || null);
+                  setIsRekapModalOpen(true);
+                }}
+                className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              >
+                <BsFolder2Open size={18} /> Rekapan
+              </button>
 
-            <button
-              onClick={exportExcel}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 text-sm"
-            >
-              Excel
-            </button>
-            <button
-              onClick={exportPDF}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm"
-            >
-              PDF
-            </button>
+              <button
+                onClick={() => setIsLeaderboardOpen(true)}
+                className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              >
+                <BsTrophy size={18} /> Leaderboard
+              </button>
+
+              <button
+                onClick={exportExcel}
+                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              >
+                <AiOutlineFileExcel size={18} /> Excel
+              </button>
+
+              <button
+                onClick={exportPDF}
+                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              >
+                <AiOutlineFilePdf size={18} /> PDF
+              </button>
+            </div>
           </div>
         </div>
 
         {/* SEARCH & FILTER */}
         <div className="px-8 pb-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+          {/* Search Box */}
           <div className="flex gap-2 w-full md:w-2/3">
-            <input
-              value={search}
-              onChange={handleSearchChange}
-              placeholder="Cari user / judul..."
-              className="border rounded-lg px-3 py-2 text-sm w-full"
-            />
+            <div className="relative w-full">
+              <AiOutlineSearch
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                value={search}
+                onChange={handleSearchChange}
+                placeholder="Cari user / judul tryout..."
+                className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 outline-none pl-10 pr-3 py-2 rounded-lg text-sm w-full transition"
+              />
+            </div>
           </div>
 
+          {/* Buttons */}
           <div className="flex gap-2">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2 text-sm"
+              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
             >
-              <AiOutlineFilter /> Filter
+              <AiOutlineFilter size={18} /> Filter
             </button>
 
             <button
               onClick={resetFilter}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm"
+              className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
             >
-              Reset
+              <AiOutlineReload size={18} /> Reset
             </button>
           </div>
         </div>
@@ -448,6 +457,12 @@ export default function LaporanPage() {
         open={isLeaderboardOpen}
         setOpen={setIsLeaderboardOpen}
         idTryout={filters.selectedTryouts[0]}
+      />
+
+      <RekapTryoutModal
+        open={isRekapModalOpen}
+        setOpen={setIsRekapModalOpen}
+        idUser={selectedUser}
       />
     </div>
   );
