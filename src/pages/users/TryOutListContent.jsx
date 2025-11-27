@@ -302,13 +302,16 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
               <div className="flex-1 bg-white rounded-xl shadow p-6 border border-gray-200 overflow-y-auto max-h-[calc(100vh-6rem)]">
                 <div className="text-lg font-medium mb-4 leading-relaxed">
-                  <span>{currentIndex + 1}. </span>
-                  <div
-                    className="soal-content [&_img]:max-w-full [&_img]:object-contain"
-                    dangerouslySetInnerHTML={{
-                      __html: currentQuestion?.pertanyaan,
-                    }}
-                  />
+                  <div className="text-lg font-medium mb-4 leading-relaxed">
+                    <div className="soal-content capitalize flex gap-2 [&_img]:max-w-[450px] [&_img]:max-h-[4500px] [&_img]:object-contain">
+                      <span>{currentIndex + 1}.</span>
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: currentQuestion?.pertanyaan,
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

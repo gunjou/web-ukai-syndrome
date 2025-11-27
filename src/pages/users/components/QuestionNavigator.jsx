@@ -11,8 +11,9 @@ const QuestionNavigator = ({
   return (
     <div className="flex flex-wrap gap-2 w-full justify-center">
       {questions.map((q, i) => {
-        const isAnswered = !!answers[q.id_soaltryout];
-        const isRagu = raguRagu.includes(q.id_soaltryout);
+        const nomor = q.nomor_urut; // gunakan nomor soal
+        const isAnswered = !!answers[nomor];
+        const isRagu = raguRagu.includes(nomor);
         const isActive = i === currentIndex;
 
         let btnClass =
