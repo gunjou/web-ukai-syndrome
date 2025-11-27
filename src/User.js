@@ -11,30 +11,30 @@ import Modul from "./pages/users/Modul";
 const User = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    // Proteksi aktif
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
+  // useEffect(() => {
+  //   // Proteksi aktif
+  //   const handleContextMenu = (e) => e.preventDefault();
+  //   document.addEventListener("contextmenu", handleContextMenu);
 
-    const handleKeyDown = (e) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
-        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
-        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
-        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
-        (e.ctrlKey && (e.key === "X" || e.key === "x"))
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
+  //   const handleKeyDown = (e) => {
+  //     if (
+  //       e.key === "F12" ||
+  //       (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
+  //       (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
+  //       (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
+  //       (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
+  //       (e.ctrlKey && (e.key === "X" || e.key === "x"))
+  //     ) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   document.addEventListener("keydown", handleKeyDown);
 
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("contextmenu", handleContextMenu);
+  //     document.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

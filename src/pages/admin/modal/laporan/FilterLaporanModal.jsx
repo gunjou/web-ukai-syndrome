@@ -156,6 +156,7 @@ export default function FilterLaporanModal({
 
           <button
             onClick={() => onApply(filters)}
+            setOpen={false}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg"
           >
             Terapkan

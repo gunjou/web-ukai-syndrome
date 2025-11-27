@@ -355,7 +355,7 @@ export default function LaporanPage() {
                   <th className="px-4 py-2 text-sm">Nilai</th>
                   {/* <th className="px-4 py-2 text-sm">Jawaban</th> */}
                   <th className="px-4 py-2 text-sm">Mulai</th>
-                  {/* <th className="px-4 py-2 text-sm">Selesai</th> */}
+                  <th className="px-4 py-2 text-sm">Selesai</th>
                   {/* <th className="px-4 py-2 text-sm">Submit</th> */}
                   <th className="px-4 py-2 text-sm">Status</th>
                 </tr>
@@ -394,9 +394,9 @@ export default function LaporanPage() {
                     <td className="px-4 py-2 text-sm border text-center">
                       {formatTanggal(d.start_time)}
                     </td>
-                    {/* <td className="px-4 py-2 text-sm border text-center">
+                    <td className="px-4 py-2 text-sm border text-center">
                       {formatTanggal(d.end_time)}
-                    </td> */}
+                    </td>
                     {/* <td className="px-4 py-2 text-sm border text-center">
                       {formatTanggal(d.tanggal_pengerjaan)}
                     </td> */}
