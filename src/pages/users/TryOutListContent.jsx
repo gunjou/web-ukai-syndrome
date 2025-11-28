@@ -7,6 +7,7 @@ import QuestionNavigator from "./components/QuestionNavigator.jsx";
 import ExitFullscreenModal from "./components/ExitFullscreenModal.jsx";
 import ConfirmEndModal from "./components/ConfirmEndModal.jsx";
 import TimeUpModal from "./components/TimeUpModal.jsx";
+import ResultModal from "./components/ResultModal.jsx";
 
 const TryoutListContent = ({ tryout, onBack }) => {
   const [questions, setQuestions] = useState([]);
@@ -23,6 +24,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [attemptToken, setAttemptToken] = useState(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [finalScore, setFinalScore] = useState(null);
 
   // Start attempt
   useEffect(() => {
@@ -46,7 +49,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
           Object.entries(result.jawaban_user).forEach(([key, val]) => {
             const nomor = parseInt(key.replace("soal_", ""));
-            if (val.jawaban) restoredAnswers[nomor] = val.jawaban;
+            if (val.jawaban) {
+              // Pastikan jawaban match format radio
+              restoredAnswers[nomor] = val.jawaban.trim().toUpperCase();
+            }
             if (val.ragu === 1) restoredRagu.push(nomor);
           });
 
@@ -200,8 +206,13 @@ const TryoutListContent = ({ tryout, onBack }) => {
         attempt_token: attempt?.attempt_token,
       });
 
-      alert(`Tryout selesai! Nilai Anda: ${res.data?.result?.nilai}`);
-      onBack();
+      const nilai = res.data?.result?.nilai ?? 0;
+
+      setFinalScore(nilai);
+      setShowResultModal(true);
+
+      // Hapus timer dari LocalStorage
+      localStorage.removeItem(`timer_${attempt?.id_hasiltryout}`);
     } catch (err) {
       console.error("Gagal submit attempt:", err);
       alert("Terjadi kesalahan saat submit.");
@@ -407,6 +418,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
           onEnd={handleSubmit}
         />
       )}
+
       {showConfirmEndModal && (
         <ConfirmEndModal
           onCancel={() => setShowConfirmEndModal(false)}
@@ -415,6 +427,20 @@ const TryoutListContent = ({ tryout, onBack }) => {
         />
       )}
       {isTimeUp && <TimeUpModal onConfirm={handleSubmit} />}
+      {showResultModal && (
+        <ResultModal
+          open={showResultModal}
+          nilai={finalScore}
+          onClose={() => {
+            document.exitFullscreen?.(); // keluar fullscreen
+
+            setTimeout(() => {
+              setShowResultModal(false);
+              onBack();
+            }, 300); // delay kecil supaya fullscreen benar benar exit
+          }}
+        />
+      )}
     </div>
   );
 };
