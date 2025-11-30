@@ -48,3 +48,12 @@ html {
   transform: translateY(-10px) scale(1.03);
   transition: all 0.3s ease;
 }
+.watermark-static {
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+.watermark-static span {
+  opacity: 0.35; /* bisa diubah jika terlalu jelas */
+}

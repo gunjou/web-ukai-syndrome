@@ -26,6 +26,9 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [attemptToken, setAttemptToken] = useState(null);
   const [showResultModal, setShowResultModal] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
+  const [showNavigator, setShowNavigator] = useState(true);
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userName = storedUser?.nama || "Peserta";
 
   // Start attempt
   useEffect(() => {
@@ -249,6 +252,15 @@ const TryoutListContent = ({ tryout, onBack }) => {
       ref={containerRef}
       className="fixed inset-0 bg-gray-100 z-50 flex flex-col p-6 overflow-y-auto"
     >
+      {/* WATERMARK STATIC */}
+      <div className="pointer-events-none fixed inset-0 flex flex-wrap justify-center items-center opacity-10 select-none text-gray-500 text-4xl font-bold tracking-widest watermark-static">
+        {Array.from({ length: 25 }).map((_, i) => (
+          <span key={i} className="rotate-[-25deg] mx-10 my-6">
+            {userName}
+          </span>
+        ))}
+      </div>
+
       {/* LOADING ATTEMPT */}
       {loadingAttempt ? (
         <div className="flex flex-col items-center justify-center py-10 space-y-2">
@@ -301,7 +313,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
             </div>
           ) : (
             <div className="flex gap-4">
-              <div className="w-full md:w-64 sticky top-6 h-max">
+              <div className="w-full md:w-64 sticky top-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 rounded-lg">
                 <QuestionNavigator
                   questions={questions}
                   currentIndex={currentIndex}
@@ -314,7 +326,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
               <div className="flex-1 bg-white rounded-xl shadow p-6 border border-gray-200 overflow-y-auto max-h-[calc(100vh-6rem)]">
                 <div className="text-lg font-medium mb-4 leading-relaxed">
                   <div className="text-lg font-medium mb-4 leading-relaxed">
-                    <div className="soal-content capitalize flex gap-2 [&_img]:max-w-[450px] [&_img]:max-h-[4500px] [&_img]:object-contain">
+                    <div className="soal-content capitalize flex gap-2 [&_img]:max-w-[350px] [&_img]:max-h-[350px] [&_img]:object-contain">
                       <span>{currentIndex + 1}.</span>
                       <div
                         dangerouslySetInnerHTML={{
