@@ -31,58 +31,56 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [showNavigator, setShowNavigator] = useState(true);
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "Peserta";
+  const [showOngoingAttemptModal, setShowOngoingAttemptModal] = useState(false);
 
   // Start attempt with toast message
   useEffect(() => {
     const startAttempt = async () => {
       try {
+        // Memulai attempt dengan request POST
         const res = await Api.post(
           `/tryout/${tryout.id_tryout}/attempts/start`
         );
         const result = res.data.data;
 
+        // Periksa status kode HTTP
+        const isNewAttempt = res.status === 201; // Jika kode 201, berarti attempt baru
+
         setAttempt(result);
         setAttemptToken(result.attempt_token);
 
-        // Check if it's a new attempt (status 201) or continuing an old attempt (status 200)
-        const hasAnsweredBefore =
-          result?.jawaban_user &&
-          Object.values(result.jawaban_user).some(
-            (item) => item.jawaban !== null
-          );
-
-        const isNewAttempt = !hasAnsweredBefore;
-
-        if (!isNewAttempt && result?.jawaban_user) {
-          const restoredAnswers = {};
-          const restoredRagu = [];
-
-          Object.entries(result.jawaban_user).forEach(([key, val]) => {
-            const nomor = parseInt(key.replace("soal_", ""));
-            if (val.jawaban)
-              restoredAnswers[nomor] = val.jawaban.trim().toUpperCase();
-            if (val.ragu === 1) restoredRagu.push(nomor);
-          });
-
-          setAnswers(restoredAnswers);
-          setRaguRagu(restoredRagu);
-
-          const answeredCount = Object.keys(restoredAnswers).length;
-          const safeIndex = answeredCount > 0 ? answeredCount : 0;
-
-          setCurrentIndex(safeIndex);
-        } else {
+        // Jika attempt baru (status 201), reset jawaban dan timer
+        if (isNewAttempt) {
           setAnswers({});
           setRaguRagu([]);
           setCurrentIndex(0);
           localStorage.removeItem(`timer_${result?.id_hasiltryout}`); // Reset timer
+        } else {
+          // Jika attempt sebelumnya, restore jawaban yang ada
+          if (result?.jawaban_user) {
+            const restoredAnswers = {};
+            const restoredRagu = [];
+
+            Object.entries(result.jawaban_user).forEach(([key, val]) => {
+              const nomor = parseInt(key.replace("soal_", ""));
+              if (val.jawaban)
+                restoredAnswers[nomor] = val.jawaban.trim().toUpperCase();
+              if (val.ragu === 1) restoredRagu.push(nomor);
+            });
+
+            setAnswers(restoredAnswers);
+            setRaguRagu(restoredRagu);
+
+            const answeredCount = Object.keys(restoredAnswers).length;
+            const safeIndex = answeredCount > 0 ? answeredCount : 0;
+            setCurrentIndex(safeIndex);
+          }
         }
 
-        // Display toast message based on response status
-        const toastMessage =
-          res.status === 201
-            ? "Attempt baru dimulai."
-            : "Melanjutkan attempt yang masih aktif.";
+        // Menampilkan toast sesuai status attempt
+        const toastMessage = isNewAttempt
+          ? "Attempt baru dimulai."
+          : "Melanjutkan attempt yang masih aktif.";
 
         toast.success(toastMessage, {
           position: "top-right",
@@ -90,6 +88,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
           toastId: "start-attempt-toast",
         });
       } catch (error) {
+        console.error("Terjadi kesalahan saat memulai attempt:", error);
         onBack();
       } finally {
         setLoadingAttempt(false);
