@@ -117,16 +117,13 @@ const LihatSoalModal = ({ tryout, onClose }) => {
                   </div>
 
                   {/* PERTANYAAN (HTML FULL) */}
-                  <h3 className="font-semibold text-gray-800 text-base mb-2 leading-snug">
-                    <span className="text-blue-600 font-bold mr-2">
-                      {i + 1}.
-                    </span>
-                  </h3>
-
-                  <div
-                    className="text-gray-800"
-                    dangerouslySetInnerHTML={{ __html: s.pertanyaan }}
-                  />
+                  <div className="flex items-start gap-2 mb-3">
+                    <span className="text-blue-600 font-bold">{i + 1}.</span>
+                    <div
+                      className="text-gray-800 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: s.pertanyaan }}
+                    />
+                  </div>
 
                   {/* PILIHAN */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
