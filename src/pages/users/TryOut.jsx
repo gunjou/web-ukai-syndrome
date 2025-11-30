@@ -98,47 +98,98 @@ const Tryout = () => {
     }
   };
 
+  const refreshRemainingAttempts = async () => {
+    try {
+      const updatedList = await Promise.all(
+        tryouts.map(async (to) => {
+          try {
+            const res = await Api.get(
+              `/tryout/${to.id_tryout}/remaining-attempts`
+            );
+            return {
+              ...to,
+              remaining_attempts: res.data.data.remaining_attempts,
+            };
+          } catch {
+            return to;
+          }
+        })
+      );
+
+      setTryouts(updatedList);
+    } catch (err) {
+      console.error("Gagal memperbarui attempt:", err);
+    }
+  };
+
   // 🔹 Modal konfirmasi mulai tryout
   const renderModal = () => {
     if (!showModal || !tryoutToStart) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6">
-          <h2 className="text-xl font-semibold mb-3">Mulai Tryout</h2>
-          <p className="text-gray-700 mb-4">
-            Apakah kamu yakin ingin memulai tryout{" "}
-            <span className="font-semibold">{tryoutToStart.judul}</span>? <br />
-            Waktu pengerjaan akan dimulai setelah kamu menekan tombol “Mulai”.
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-7 animate-scaleIn">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-red-100 text-red-600 p-3 rounded-full text-xl">
+              ⚠️
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Konfirmasi Mulai Tryout
+            </h2>
+          </div>
+
+          {/* Body */}
+          <p className="text-gray-600 leading-relaxed">
+            Setelah kamu menekan tombol{" "}
+            <span className="font-semibold text-red-600">Mulai</span>, waktu
+            pengerjaan akan langsung berjalan dan mode fullscreen aktif.
+            Pastikan kamu sudah siap.
           </p>
 
-          {/* 🔹 Info Attempt */}
-          {attemptInfo && (
-            <div className="bg-gray-50 p-3 rounded-lg mb-4 text-sm">
-              <p>
-                Maksimum Attempt:{" "}
-                <span className="font-semibold">{attemptInfo.max_attempt}</span>
-              </p>
+          <div className="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm space-y-2">
+            <p className="flex justify-between">
+              <span className="text-gray-600">Judul Tryout:</span>
+              <span className="font-semibold">{tryoutToStart.judul}</span>
+            </p>
 
-              <p>
-                Sisa Attempt:{" "}
-                <span
-                  className={`font-semibold ${
-                    attemptInfo.remaining_attempts === 0
-                      ? "text-red-500"
-                      : "text-green-600"
-                  }`}
-                >
-                  {attemptInfo.remaining_attempts}
-                </span>
-              </p>
-            </div>
-          )}
+            <p className="flex justify-between">
+              <span className="text-gray-600">Jumlah Soal:</span>
+              <span className="font-semibold">{tryoutToStart.jumlah_soal}</span>
+            </p>
 
-          <div className="flex justify-end gap-3">
+            <p className="flex justify-between">
+              <span className="text-gray-600">Durasi:</span>
+              <span className="font-semibold">
+                {tryoutToStart.durasi} Menit
+              </span>
+            </p>
+
+            {/* Attempt Info */}
+            {attemptInfo && (
+              <>
+                <hr className="border-gray-200" />
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Sisa Attempt:</span>
+                  <span
+                    className={`px-3 py-1 rounded-lg font-semibold ${
+                      attemptInfo.remaining_attempts === 0
+                        ? "bg-red-100 text-red-600"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {attemptInfo.remaining_attempts}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={() => setShowModal(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+              className="px-5 py-2 rounded-lg border bg-gray-100 hover:bg-gray-200 transition font-medium text-gray-700"
             >
               Batal
             </button>
@@ -146,12 +197,12 @@ const Tryout = () => {
             <button
               onClick={handleStartTryout}
               disabled={loadingStart || attemptInfo?.remaining_attempts === 0}
-              className={`px-4 py-2 rounded-lg text-white transition ${
+              className={`px-5 py-2 rounded-lg text-white font-semibold shadow-md transition active:scale-95 ${
                 loadingStart
-                  ? "bg-red-300"
+                  ? "bg-red-300 cursor-not-allowed"
                   : attemptInfo?.remaining_attempts === 0
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-red-500 hover:bg-red-600"
+                  : "bg-red-600 hover:bg-red-700"
               }`}
             >
               {loadingStart
@@ -162,6 +213,24 @@ const Tryout = () => {
             </button>
           </div>
         </div>
+
+        {/* Animations */}
+        <style>{`
+        .animate-fadeIn {
+          animation: fadeIn .25s ease forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-scaleIn {
+          animation: scaleIn .28s ease forwards;
+        }
+        @keyframes scaleIn {
+          from { transform: scale(.85); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
       </div>
     );
   };
@@ -171,7 +240,10 @@ const Tryout = () => {
     return (
       <TryoutListContent
         tryout={selectedTryout}
-        onBack={() => setSelectedTryout(null)}
+        onBack={() => {
+          setSelectedTryout(null);
+          refreshRemainingAttempts(); // ← panggil refresh
+        }}
       />
     );
   }
@@ -195,34 +267,54 @@ const Tryout = () => {
           {tryouts.map((to) => (
             <div
               key={to.id_tryout}
-              className="p-4 bg-white rounded-lg cursor-pointer hover:bg-gray-200 transition flex items-center justify-between"
               onClick={() => handleSelectTryout(to)}
+              className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-200 cursor-pointer transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.98]"
             >
-              {/* Kiri: icon dan info */}
               <div className="flex items-center gap-4">
-                <IoBook className="text-red-500 text-xl flex items-center justify-center" />
-                <div>
-                  <h2 className="text-md font-semibold capitalize">
+                {/* Icon */}
+                <div className="bg-red-100 text-red-600 p-3 rounded-xl text-lg group-hover:bg-red-200 transition">
+                  <IoBook />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-gray-800 capitalize">
                     {to.judul}
                   </h2>
-                  <p className="text-sm text-gray-600">{to.jumlah_soal} Soal</p>
-                  <p className="text-sm text-gray-600">
-                    Durasi: {to.durasi} Menit
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Maks Attempt:{" "}
-                    <span className="font-semibold">{to.max_attempt}</span> •
-                    Sisa Attempt:{" "}
+
+                  <div className="flex items-center gap-3 mt-2">
+                    {/* Tag jumlah soal */}
+                    <span className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium border border-gray-200">
+                      📝 {to.jumlah_soal} Soal
+                    </span>
+
+                    {/* Tag durasi */}
+                    <span className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium border border-gray-200">
+                      ⏳ {to.durasi} Menit
+                    </span>
+                  </div>
+
+                  {/* Status attempt */}
+                  <div className="mt-3 flex gap-2">
+                    <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">
+                      Max Attempt: {to.max_attempt}
+                    </span>
+
                     <span
-                      className={`font-semibold ${
+                      className={`px-3 py-1 rounded-lg text-xs font-medium ${
                         to.remaining_attempts === 0
-                          ? "text-red-500"
-                          : "text-green-600"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-green-100 text-green-700"
                       }`}
                     >
-                      {to.remaining_attempts ?? "-"}
+                      Sisa: {to.remaining_attempts ?? "-"}
                     </span>
-                  </p>
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="text-gray-400 text-xl group-hover:text-red-500 transition">
+                  ➤
                 </div>
               </div>
             </div>

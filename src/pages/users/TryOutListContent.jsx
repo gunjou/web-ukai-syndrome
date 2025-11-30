@@ -8,6 +8,8 @@ import ExitFullscreenModal from "./components/ExitFullscreenModal.jsx";
 import ConfirmEndModal from "./components/ConfirmEndModal.jsx";
 import TimeUpModal from "./components/TimeUpModal.jsx";
 import ResultModal from "./components/ResultModal.jsx";
+import { toast } from "react-toastify"; // Import toast from react-toastify
+import "react-toastify/dist/ReactToastify.css"; // Import styles for toast notifications
 
 const TryoutListContent = ({ tryout, onBack }) => {
   const [questions, setQuestions] = useState([]);
@@ -30,7 +32,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "Peserta";
 
-  // Start attempt
+  // Start attempt with toast message
   useEffect(() => {
     const startAttempt = async () => {
       try {
@@ -39,34 +41,55 @@ const TryoutListContent = ({ tryout, onBack }) => {
         );
         const result = res.data.data;
 
-        console.log("Attempt started:", result);
-
         setAttempt(result);
-
-        // 🔥 WAJIB: simpan token untuk PUT answer
         setAttemptToken(result.attempt_token);
 
-        if (result?.jawaban_user) {
+        // Check if it's a new attempt (status 201) or continuing an old attempt (status 200)
+        const hasAnsweredBefore =
+          result?.jawaban_user &&
+          Object.values(result.jawaban_user).some(
+            (item) => item.jawaban !== null
+          );
+
+        const isNewAttempt = !hasAnsweredBefore;
+
+        if (!isNewAttempt && result?.jawaban_user) {
           const restoredAnswers = {};
           const restoredRagu = [];
 
           Object.entries(result.jawaban_user).forEach(([key, val]) => {
             const nomor = parseInt(key.replace("soal_", ""));
-            if (val.jawaban) {
-              // Pastikan jawaban match format radio
+            if (val.jawaban)
               restoredAnswers[nomor] = val.jawaban.trim().toUpperCase();
-            }
             if (val.ragu === 1) restoredRagu.push(nomor);
           });
 
           setAnswers(restoredAnswers);
           setRaguRagu(restoredRagu);
 
-          setCurrentIndex(Object.keys(restoredAnswers).length);
+          const answeredCount = Object.keys(restoredAnswers).length;
+          const safeIndex = answeredCount > 0 ? answeredCount : 0;
+
+          setCurrentIndex(safeIndex);
+        } else {
+          setAnswers({});
+          setRaguRagu([]);
+          setCurrentIndex(0);
+          localStorage.removeItem(`timer_${result?.id_hasiltryout}`); // Reset timer
         }
+
+        // Display toast message based on response status
+        const toastMessage =
+          res.status === 201
+            ? "Attempt baru dimulai."
+            : "Melanjutkan attempt yang masih aktif.";
+
+        toast.success(toastMessage, {
+          position: "top-right",
+          autoClose: 6000,
+          toastId: "start-attempt-toast",
+        });
       } catch (error) {
-        console.error("Gagal memulai attempt:", error);
-        alert(error?.response?.data?.message || "Gagal memulai attempt.");
         onBack();
       } finally {
         setLoadingAttempt(false);
@@ -150,12 +173,12 @@ const TryoutListContent = ({ tryout, onBack }) => {
   }, [timeLeft]);
 
   // Simpan jawaban ke server
-  const saveAnswerToServer = async (questionNumber, answer) => {
+  const saveAnswerToServer = async (nomor, jawaban, ragu = 0) => {
     const payload = {
-      attempt_token: attemptToken, // pastikan variabel attemptToken sudah ada
-      nomor: questionNumber,
-      jawaban: answer?.toLowerCase(), // backend pakai lower case
-      ragu: 0,
+      attempt_token: attemptToken,
+      nomor,
+      jawaban: jawaban?.toLowerCase(),
+      ragu,
     };
 
     console.log("📌 Payload yang dikirim ke server:", payload);
@@ -250,10 +273,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-gray-100 z-50 flex flex-col p-6 overflow-y-auto"
+      className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 select-none overflow-hidden"
     >
-      {/* WATERMARK STATIC */}
-      <div className="pointer-events-none fixed inset-0 flex flex-wrap justify-center items-center opacity-10 select-none text-gray-500 text-4xl font-bold tracking-widest watermark-static">
+      {/* WATERMARK */}
+      <div className="pointer-events-none fixed inset-0 flex flex-wrap justify-center items-center opacity-[0.06] text-gray-500 text-4xl font-bold tracking-widest">
         {Array.from({ length: 25 }).map((_, i) => (
           <span key={i} className="rotate-[-25deg] mx-10 my-6">
             {userName}
@@ -261,18 +284,18 @@ const TryoutListContent = ({ tryout, onBack }) => {
         ))}
       </div>
 
-      {/* LOADING ATTEMPT */}
+      {/* LOADING */}
       {loadingAttempt ? (
-        <div className="flex flex-col items-center justify-center py-10 space-y-2">
-          <div className="w-8 h-8 border-4 border-red-500 border-dashed rounded-full animate-spin"></div>
-          <p className="text-gray-600">Menyiapkan sesi tryout...</p>
+        <div className="flex flex-col h-full items-center justify-center gap-3">
+          <div className="w-10 h-10 border-4 border-red-500 rounded-full border-t-transparent animate-spin"></div>
+          <p className="text-gray-600 font-medium">Menyiapkan sesi tryout...</p>
         </div>
       ) : (
         <>
           {/* HEADER */}
-          <div className="flex items-center justify-between mb-4 sticky top-0 bg-gray-100 z-50 pb-3 border-b border-gray-200">
+          <div className="flex justify-between items-center bg-white shadow rounded-xl px-4 py-3 mb-4 border border-gray-200">
             <div>
-              <h1 className="text-2xl font-semibold capitalize">
+              <h1 className="text-xl font-semibold capitalize">
                 {tryout.judul}
               </h1>
               <p className="text-gray-500 text-sm">
@@ -280,10 +303,14 @@ const TryoutListContent = ({ tryout, onBack }) => {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Actions */}
+            <div className="flex items-center gap-4">
               <span
-                className={`flex items-center gap-1 font-semibold text-lg ${
-                  timeLeft <= 600 ? "text-red-500" : "text-green-600"
+                className={`flex items-center gap-2 px-4 py-1.5 text-lg font-semibold rounded-full shadow 
+                ${
+                  timeLeft <= 600
+                    ? "bg-red-100 text-red-600"
+                    : "bg-green-100 text-green-600"
                 }`}
               >
                 <FiClock /> {formatTime(timeLeft)}
@@ -291,129 +318,142 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
               <button
                 onClick={() => setShowCalculator(true)}
-                className="p-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition"
               >
-                <BsCalculator />
+                <BsCalculator size={18} />
               </button>
 
               <button
                 onClick={() => setShowConfirmEndModal(true)}
-                className="p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition shadow-sm"
               >
-                <FiX />
+                Selesai
               </button>
             </div>
           </div>
 
-          {/* SOAL */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-10 space-y-2">
-              <div className="w-8 h-8 border-4 border-red-500 border-dashed rounded-full animate-spin"></div>
-              <p className="text-gray-600">Memuat soal...</p>
+          {/* MAIN CONTENT */}
+          <div className="flex gap-4 h-full overflow-hidden">
+            {/* NAVIGATOR PANEL */}
+            <div className="hidden md:block w-64 bg-white rounded-xl shadow p-4 border border-gray-200 overflow-y-auto max-h-[80vh]">
+              <QuestionNavigator
+                questions={questions}
+                currentIndex={currentIndex}
+                answers={answers}
+                raguRagu={raguRagu}
+                setCurrentIndex={setCurrentIndex}
+              />
             </div>
-          ) : (
-            <div className="flex gap-4">
-              <div className="w-full md:w-64 sticky top-6 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 rounded-lg">
-                <QuestionNavigator
-                  questions={questions}
-                  currentIndex={currentIndex}
-                  answers={answers}
-                  raguRagu={raguRagu}
-                  setCurrentIndex={setCurrentIndex}
-                />
-              </div>
 
-              <div className="flex-1 bg-white rounded-xl shadow p-6 border border-gray-200 overflow-y-auto max-h-[calc(100vh-6rem)]">
-                <div className="text-lg font-medium mb-4 leading-relaxed">
-                  <div className="text-lg font-medium mb-4 leading-relaxed">
-                    <div className="soal-content capitalize flex gap-2 [&_img]:max-w-[350px] [&_img]:max-h-[350px] [&_img]:object-contain">
-                      <span>{currentIndex + 1}.</span>
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: currentQuestion?.pertanyaan,
-                        }}
-                      />
-                    </div>
-                  </div>
+            {/* QUESTION CARD */}
+            <div className="flex-1 bg-white rounded-xl shadow-md pt-4 px-4 border border-gray-200 overflow-y-auto max-h-[85vh]">
+              {/* SOAL */}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-2">
+                  <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-gray-600">Memuat soal...</p>
                 </div>
+              ) : (
+                <>
+                  <div className="text-[17px] leading-relaxed mb-5 font-medium flex gap-2">
+                    <span>{currentIndex + 1}.</span>
+                    <div
+                      className="[&_img]:max-w-[320px] [&_img]:max-h-[320px] leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: currentQuestion?.pertanyaan,
+                      }}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  {Object.entries(currentQuestion?.opsi || {}).map(
-                    ([key, value]) => (
-                      <label
-                        key={key}
-                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer border transition ${
-                          answers[currentQuestion.nomor_urut] === key
+                  {/* OPTIONS */}
+                  <div className="space-y-2">
+                    {Object.entries(currentQuestion?.opsi || {}).map(
+                      ([key, value]) => (
+                        <label
+                          key={key}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                        ${
+                          answers[currentQuestion?.nomor_urut] === key
                             ? "bg-red-50 border-red-400"
                             : "bg-gray-50 hover:bg-gray-100 border-gray-200"
                         }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`soal-${currentQuestion.id_soaltryout}`}
-                          value={key}
-                          checked={answers[currentQuestion.nomor_urut] === key}
-                          onChange={() =>
-                            handleAnswerChange(currentQuestion.nomor_urut, key)
-                          }
-                          className="accent-red-500"
-                        />
-                        <span className="font-semibold">{key}.</span>
-                        <span>{value}</span>
-                      </label>
-                    )
-                  )}
-                </div>
+                        >
+                          <input
+                            type="radio"
+                            name={`soal-${currentQuestion?.id_soaltryout}`}
+                            value={key}
+                            checked={
+                              answers[currentQuestion?.nomor_urut] === key
+                            }
+                            onChange={() =>
+                              handleAnswerChange(
+                                currentQuestion?.nomor_urut,
+                                key
+                              )
+                            }
+                            className="accent-red-500 scale-110"
+                          />
+                          <span className="font-semibold">{key}.</span>
+                          <span>{value}</span>
+                        </label>
+                      )
+                    )}
+                  </div>
 
-                {/* Navigation */}
-                <div className="flex justify-between items-center mt-6">
-                  <button
-                    onClick={() => toggleRaguRagu(currentQuestion.nomor_urut)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                      raguRagu.includes(currentQuestion.nomor_urut)
-                        ? "bg-yellow-400 hover:bg-yellow-500 text-white"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                    }`}
+                  {/* BOTTOM BUTTONS */}
+                  <div
+                    className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200
+  py-2 flex justify-between items-center mt-4 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
                   >
-                    <FiHelpCircle />
-                    {raguRagu.includes(currentQuestion.nomor_urut)
-                      ? "Hapus Ragu-Ragu"
-                      : "Tandai Ragu-Ragu"}
-                  </button>
-
-                  <div className="flex gap-2">
+                    {/* RAGU */}
                     <button
-                      disabled={currentIndex === 0}
-                      onClick={() => setCurrentIndex((prev) => prev - 1)}
-                      className={`px-4 py-2 rounded-lg transition ${
-                        currentIndex === 0
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      onClick={() => toggleRaguRagu(currentQuestion.nomor_urut)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                        raguRagu.includes(currentQuestion?.nomor_urut)
+                          ? "bg-yellow-400 hover:bg-yellow-500 text-white"
                           : "bg-gray-200 hover:bg-gray-300 text-gray-700"
                       }`}
                     >
-                      Sebelumnya
+                      <FiHelpCircle />
+                      {raguRagu.includes(currentQuestion?.nomor_urut)
+                        ? "Hapus Ragu-Ragu"
+                        : "Tandai Ragu-Ragu"}
                     </button>
 
-                    {currentIndex === questions.length - 1 ? (
+                    <div className="flex gap-1">
                       <button
-                        onClick={() => setShowConfirmEndModal(true)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
+                        disabled={currentIndex === 0}
+                        onClick={() => setCurrentIndex((prev) => prev - 1)}
+                        className={`px-4 py-2 rounded-lg transition ${
+                          currentIndex === 0
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                        }`}
                       >
-                        Selesai Tryout
+                        Sebelumnya
                       </button>
-                    ) : (
-                      <button
-                        onClick={() => setCurrentIndex((prev) => prev + 1)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
-                      >
-                        Selanjutnya
-                      </button>
-                    )}
+
+                      {currentIndex === questions.length - 1 ? (
+                        <button
+                          onClick={() => setShowConfirmEndModal(true)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
+                        >
+                          Selesai Tryout
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setCurrentIndex((prev) => prev + 1)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
+                        >
+                          Selanjutnya
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
         </>
       )}
 
@@ -430,7 +470,6 @@ const TryoutListContent = ({ tryout, onBack }) => {
           onEnd={handleSubmit}
         />
       )}
-
       {showConfirmEndModal && (
         <ConfirmEndModal
           onCancel={() => setShowConfirmEndModal(false)}
@@ -444,12 +483,11 @@ const TryoutListContent = ({ tryout, onBack }) => {
           open={showResultModal}
           nilai={finalScore}
           onClose={() => {
-            document.exitFullscreen?.(); // keluar fullscreen
-
+            document.exitFullscreen?.();
             setTimeout(() => {
               setShowResultModal(false);
               onBack();
-            }, 300); // delay kecil supaya fullscreen benar benar exit
+            }, 300);
           }}
         />
       )}
