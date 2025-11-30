@@ -341,7 +341,7 @@ export default function LaporanPage() {
             <p className="text-gray-600">Memuat data...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh] px-4">
+          <div className="overflow-x-auto max-h-[59vh] px-4">
             <table className="min-w-full bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>
