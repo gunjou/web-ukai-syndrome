@@ -28,6 +28,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Load saved email if "remember me" was activated
@@ -43,6 +44,8 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
 
     try {
       const response = await Api.post("/auth/login/web", {
@@ -84,10 +87,17 @@ export default function LoginPage() {
     } catch (error) {
       setErrorMsg("Email atau password salah.");
     }
+    setLoading(false);
   };
 
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-b from-[#a11d1d] to-[#531d1d] px-4 py-8">
+      {/* === LOADING SPINNER OVERLAY === */}
+      {loading && (
+        <div className="absolute inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+        </div>
+      )}
       <div className="flex items-center justify-center w-full md:w-1/2">
         <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md relative z-20">
           <h1 className="text-3xl font-bold text-left">Login</h1>
