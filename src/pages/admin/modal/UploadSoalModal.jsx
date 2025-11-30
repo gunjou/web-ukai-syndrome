@@ -19,6 +19,7 @@ const UploadSoalModal = ({ idTryout, onClose, onSuccess }) => {
     formData.append("file", file);
 
     setLoading(true);
+
     try {
       await Api.post(
         `/soal-tryout/upload-soal?id_tryout=${idTryout}`,
@@ -41,7 +42,14 @@ const UploadSoalModal = ({ idTryout, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-      <div className="bg-white w-[90%] md:w-[450px] p-6 rounded-2xl shadow-lg">
+      {/* === LOADING SPINNER OVERLAY === */}
+      {loading && (
+        <div className="absolute inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      <div className="relative bg-white w-[90%] md:w-[450px] p-6 rounded-2xl shadow-lg">
         {/* Header */}
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -86,7 +94,7 @@ const UploadSoalModal = ({ idTryout, onClose, onSuccess }) => {
           <button
             onClick={handleUpload}
             disabled={loading}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-2"
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50"
           >
             {loading ? "Mengunggah..." : "Upload"}
           </button>

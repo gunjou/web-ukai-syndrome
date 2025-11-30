@@ -1,4 +1,4 @@
-import mentor1 from "../assets/mentor/1.png";
+// import mentor1 from "../assets/mentor/1.png";
 import mentor2 from "../assets/mentor/2.png";
 import mentor3 from "../assets/mentor/3.png";
 import mentor4 from "../assets/mentor/4.png";
