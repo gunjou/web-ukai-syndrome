@@ -208,7 +208,7 @@ const HasilTO = () => {
                       </th>
                       <th
                         style={{ width: "12%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 capitalize"
+                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
                       >
                         Status
                       </th>
