@@ -60,7 +60,7 @@ const Sidebar = () => {
             <span>TryOut</span>
           </NavLink>
         </li>
-        {/* <li>
+        <li>
           <NavLink
             to="/dashboard/hasil-to"
             className={({ isActive }) =>
@@ -75,7 +75,7 @@ const Sidebar = () => {
             <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
             <span>Hasil TO</span>
           </NavLink>
-        </li> */}
+        </li>
       </ul>
     </nav>
   );
