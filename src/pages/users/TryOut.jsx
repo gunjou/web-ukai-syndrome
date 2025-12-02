@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { IoBook } from "react-icons/io5";
 import TryoutListContent from "./TryOutListContent";
 import Api from "../../utils/Api.jsx";
+import { toast } from "react-toastify";
 
 const Tryout = () => {
   const [tryouts, setTryouts] = useState([]);
@@ -69,7 +70,6 @@ const Tryout = () => {
     setLoadingStart(true);
 
     try {
-      // 🔹 Jalankan fullscreen di sini
       if (document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
       }
@@ -77,18 +77,27 @@ const Tryout = () => {
       const startRes = await Api.post(
         `/tryout/${tryoutToStart.id_tryout}/attempts/start`
       );
-      const { attempt_token } = startRes.data.data;
+      const attemptData = startRes.data.data;
+
+      const toastMessage =
+        startRes.status === 201
+          ? "Attempt baru dimulai."
+          : "Melanjutkan attempt yang masih aktif.";
+
+      toast.success(toastMessage, {
+        position: "top-right",
+        autoClose: 6000,
+        toastId: "start-attempt-toast",
+      });
 
       const detailRes = await Api.get(
-        `/tryout/${tryoutToStart.id_tryout}/attempts/${attempt_token}`
+        `/tryout/${tryoutToStart.id_tryout}/attempts/${attemptData.attempt_token}`
       );
-
-      const attemptData = detailRes.data.data;
 
       setShowModal(false);
       setSelectedTryout({
         ...tryoutToStart,
-        attempt: attemptData,
+        attempt: detailRes.data.data,
       });
     } catch (error) {
       console.error("Gagal memulai tryout:", error);

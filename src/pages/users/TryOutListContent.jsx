@@ -76,17 +76,6 @@ const TryoutListContent = ({ tryout, onBack }) => {
             setCurrentIndex(safeIndex);
           }
         }
-
-        // Menampilkan toast sesuai status attempt
-        const toastMessage = isNewAttempt
-          ? "Attempt baru dimulai."
-          : "Melanjutkan attempt yang masih aktif.";
-
-        toast.success(toastMessage, {
-          position: "top-right",
-          autoClose: 6000,
-          toastId: "start-attempt-toast",
-        });
       } catch (error) {
         console.error("Terjadi kesalahan saat memulai attempt:", error);
         onBack();
