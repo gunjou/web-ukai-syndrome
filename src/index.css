@@ -57,3 +57,11 @@ html {
 .watermark-static span {
   opacity: 0.35; /* bisa diubah jika terlalu jelas */
 }
+input,
+textarea {
+  -webkit-user-select: text;
+  -webkit-touch-callout: none;
+}
+:focus {
+  outline: none !important;
+}

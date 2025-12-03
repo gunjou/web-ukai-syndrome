@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import Api from "../utils/Api";
-import ukai from "../assets/logo_putih.png";
-import ukaibawah from "../assets/loginRegister/bg_samping_login.png";
 
-const safeLocalStorageSet = (key, value) => {
-  try {
-    localStorage.setItem(key, value);
-  } catch (e) {
-    console.warn("localStorage error:", e);
-  }
-};
-
-const safeLocalStorageGet = (key) => {
-  try {
-    return localStorage.getItem(key);
-  } catch (e) {
-    console.warn("localStorage error:", e);
-    return null;
-  }
+// ---- LocalStorage Safe ----
+const safeLocalStorage = {
+  set: (k, v) => {
+    try {
+      localStorage.setItem(k, v);
+    } catch {}
+  },
+  get: (k) => {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  remove: (k) => {
+    try {
+      localStorage.removeItem(k);
+    } catch {}
+  },
 };
 
 export default function LoginPage() {
@@ -27,155 +29,151 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
+  const mounted = useRef(true);
 
-  // Load saved email if "remember me" was activated
   useEffect(() => {
-    const savedRemember = safeLocalStorageGet("remember");
-    const savedEmail = safeLocalStorageGet("savedEmail");
+    mounted.current = true;
+    const saved = safeLocalStorage.get("savedEmail");
+    const rememberFlag = safeLocalStorage.get("remember") === "true";
 
-    if (savedRemember === "true" && savedEmail) {
-      setEmail(savedEmail);
+    if (saved && rememberFlag) {
+      setEmail(saved);
       setRemember(true);
     }
+
+    return () => (mounted.current = false);
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setLoading(true);
+    setErrorMsg("");
 
     try {
-      const response = await Api.post("/auth/login/web", {
-        email,
-        password,
-      });
+      const res = await Api.post("/auth/login/web", { email, password });
+      const { access_token, id_user, nama, nickname, role } = res.data || {};
 
-      const {
-        access_token,
-        id_user,
-        nama,
-        nickname,
-        email: userEmail,
-        role,
-      } = response.data;
-
-      safeLocalStorageSet("token", access_token);
-      safeLocalStorageSet(
+      safeLocalStorage.set("token", access_token);
+      safeLocalStorage.set(
         "user",
-        JSON.stringify({ id_user, nama, nickname, email: userEmail, role })
+        JSON.stringify({ id_user, nama, nickname, role })
       );
 
-      // Handle remember me storage
       if (remember) {
-        safeLocalStorageSet("savedEmail", email);
-        safeLocalStorageSet("remember", "true");
+        safeLocalStorage.set("savedEmail", email);
+        safeLocalStorage.set("remember", "true");
       } else {
-        localStorage.removeItem("savedEmail");
-        localStorage.removeItem("remember");
+        safeLocalStorage.remove("savedEmail");
+        safeLocalStorage.remove("remember");
       }
 
-      setErrorMsg("");
-
-      setTimeout(() => {
-        if (role === "admin") navigate("/admin-home");
-        else if (role === "mentor") navigate("/mentor-home");
-        else navigate("/home");
-      }, 300);
-    } catch (error) {
-      setErrorMsg("Email atau password salah.");
+      if (role === "admin") navigate("/admin-home");
+      else if (role === "mentor") navigate("/mentor-home");
+      else navigate("/home");
+    } catch (err) {
+      setErrorMsg(err?.response?.data?.message || "Email atau password salah.");
+    } finally {
+      if (mounted.current) setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-gradient-to-b from-[#a11d1d] to-[#531d1d] px-4 py-8">
-      {/* === LOADING SPINNER OVERLAY === */}
-      {loading && (
-        <div className="absolute inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
-        </div>
-      )}
-      <div className="flex items-center justify-center w-full md:w-1/2">
-        <div className="bg-white p-8 rounded-[20px] shadow-md w-full max-w-md relative z-20">
-          <h1 className="text-3xl font-bold text-left">Login</h1>
-          <p className="mb-6 text-gray-400">Login untuk menggunakan aplikasi</p>
-
-          <form className="space-y-4" onSubmit={handleLogin}>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Email
-              </label>
-              <input
-                type="email"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                placeholder="Masukkan email anda"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 pr-10"
-                  placeholder="Masukkan password anda"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <div
-                  className="absolute right-3 top-2.5 text-gray-600 cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
-                </div>
-              </div>
-            </div>
-
-            {/* Remember Me */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={() => setRemember(!remember)}
-              />
-              <span className="text-sm text-gray-600">Ingat saya</span>
-            </div>
-
-            {errorMsg && (
-              <p className="text-red-500 text-sm text-center mt-2">
-                {errorMsg}
-              </p>
-            )}
-
-            <div className="flex justify-center items-center">
-              <button
-                type="submit"
-                className="w-[100px] bg-yellow-500 text-white py-2 font-bold rounded-lg hover:bg-yellow-700 transition"
-              >
-                Login
-              </button>
-            </div>
-          </form>
-
-          <p className="text-sm text-center text-gray-500 mt-4">
-            Belum punya akun? Silahkan hubungi admin untuk mendaftar.
-          </p>
-        </div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#8f1a1a] via-[#742020] to-[#2b0f0f] flex items-center justify-center px-5 py-10">
+      {/* SAFE LOADING */}
+      <div
+        className={`fixed inset-0 flex items-center justify-center transition ${
+          loading
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        } bg-black/40 backdrop-blur-md`}
+      >
+        <div className="w-14 h-14 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      {/* Right Side */}
-      <div className="hidden md:flex flex-col justify-between items-end w-1/2 pl-8">
-        <img src={ukai} alt="Ukai atas" className="px-12 mb-2" />
-        <img src={ukaibawah} alt="Ukai bawah" className="px-12" />
+      {/* CARD */}
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 animate-[fadeIn_0.6s_ease]">
+        {/* Header */}
+        <h1 className="text-center text-white text-3xl font-bold tracking-wide drop-shadow-lg">
+          Selamat Datang Kembali
+        </h1>
+        <p className="text-center text-gray-200 text-sm mt-1 mb-6">
+          Silakan masuk untuk melanjutkan
+        </p>
+
+        {/* FORM */}
+        <form className="space-y-5" onSubmit={handleLogin}>
+          {/* Email */}
+          <div>
+            <label className="text-gray-100 text-sm font-medium">Email</label>
+            <input
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@gmail.com"
+              required
+              className="mt-1 w-full px-4 py-3 text-white bg-white/20 border border-white/30 rounded-xl placeholder-gray-300 focus:ring-2 focus:ring-yellow-400 outline-none transition"
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="text-gray-100 text-sm font-medium">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Masukkan password"
+                autoComplete="current-password"
+                required
+                className="mt-1 w-full px-4 py-3 text-white bg-white/20 border border-white/30 rounded-xl placeholder-gray-300 focus:ring-2 focus:ring-yellow-400 outline-none transition pr-12"
+                style={{ WebkitAppearance: "none" }}
+              />
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute top-4 right-4 text-gray-300 cursor-pointer"
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </span>
+            </div>
+          </div>
+
+          {/* Remember */}
+          <label className="flex items-center gap-2 cursor-pointer text-gray-200">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={() => setRemember(!remember)}
+            />
+            Ingat saya
+          </label>
+
+          {errorMsg && (
+            <p className="text-sm text-center text-red-400 bg-red-900/30 p-2 rounded-lg">
+              {errorMsg}
+            </p>
+          )}
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold text-lg py-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.03] disabled:opacity-50"
+          >
+            Login
+          </button>
+        </form>
+
+        <p className="text-center mt-5 text-gray-300 text-sm">
+          Belum punya akun? <br /> Hubungi admin untuk mendaftar.
+        </p>
       </div>
     </div>
   );
