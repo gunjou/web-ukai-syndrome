@@ -114,9 +114,15 @@ const MateriListContent = () => {
       {/* Modal PDF */}
       {selectedMateri && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex justify-center items-center"
+          className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex flex-col"
           onContextMenu={(e) => e.preventDefault()} // blok klik kanan
           onKeyDown={(e) => {
+            // tutup modal dengan Escape
+            if (e.key === "Escape") {
+              setSelectedMateri(null);
+              return;
+            }
+
             if (
               (e.ctrlKey &&
                 (e.key === "c" || e.key === "u" || e.key === "s")) || // copy, source, save
@@ -130,58 +136,63 @@ const MateriListContent = () => {
           }}
           tabIndex={0} // supaya modal bisa menangkap keyboard
         >
-          <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xl font-semibold text-gray-800 capitalize">
-                {selectedMateri.judul}
-              </h3>
-              <button
-                onClick={() => setSelectedMateri(null)}
-                className="text-gray-600 hover:text-red-600"
-              >
-                <MdClose size={24} />
-              </button>
+          {/* Fullscreen content */}
+          <div className="relative w-full h-full bg-white overflow-hidden select-none">
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-white z-20">
+              <div className="flex items-center gap-3">
+                <HiDocumentText className="text-red-500 text-xl" />
+                <h3 className="text-lg font-semibold text-gray-800 capitalize truncate max-w-[70vw]">
+                  {selectedMateri.judul}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedMateri(null);
+                  }}
+                  className="text-gray-600 hover:text-red-600 p-2 rounded-md"
+                  aria-label="Tutup"
+                >
+                  <MdClose size={22} />
+                </button>
+              </div>
             </div>
 
-            <div
-              className="relative border rounded-lg overflow-hidden select-none"
-              onContextMenu={(e) => e.preventDefault()}
-            >
+            <div className="relative w-full h-[calc(100vh-64px)]">
+              {" "}
+              {/* full height minus top bar */}
               {/* Watermark overlay */}
               <div
                 className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
                 style={{
                   transform: "rotate(-25deg)",
-                  opacity: 0.25,
+                  opacity: 0.12,
                   zIndex: 10,
                 }}
               >
-                {Array.from({ length: 80 }, (_, i) => (
+                {Array.from({ length: 120 }, (_, i) => (
                   <span
                     key={i}
                     className="text-gray-400 font-bold select-none m-6 whitespace-nowrap"
-                    style={{ fontSize: "2rem" }}
+                    style={{ fontSize: "1.6rem" }}
                   >
                     {userName}
                   </span>
                 ))}
               </div>
-
               {pdfUrl && (
-                <div className="relative w-full h-[500px]">
-                  <iframe
-                    title={selectedMateri.judul}
-                    src={pdfUrl}
-                    className="w-full h-[500px] border-none"
-                    allow="autoplay"
-                    sandbox="allow-same-origin allow-scripts allow-popups"
-                    referrerPolicy="no-referrer"
-                  />
-
-                  {/* overlay transparan untuk blok tombol popup gdrive */}
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-transparent z-10"></div>
-                </div>
+                <iframe
+                  title={selectedMateri.judul}
+                  src={pdfUrl}
+                  className="absolute inset-0 w-full h-full border-none z-0"
+                  allow="autoplay"
+                  sandbox="allow-same-origin allow-scripts allow-popups"
+                  referrerPolicy="no-referrer"
+                />
               )}
+              {/* overlay transparan untuk blok tombol popup gdrive */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-transparent z-20" />
             </div>
           </div>
         </div>

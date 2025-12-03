@@ -1,5 +1,5 @@
-// src/User.jsx
-import React from "react";
+// src/Mentor.jsx
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "./components/mentor/Sidebar";
 import MenuBar from "./components/mentor/Menubar";
@@ -9,27 +9,36 @@ import Tryout from "./pages/mentor/TryOut";
 import HasilTO from "./pages/mentor/HasilTO";
 import { KelasProvider } from "./components/mentor/KelasContext";
 
-const User = () => {
+const Mentor = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="ml-64 flex-1">
-        <KelasProvider>
-          <MenuBar />
-          <div className="p-6">
+    <KelasProvider>
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        {/* Top Navbar */}
+        <MenuBar onToggleSidebar={setSidebarOpen} />
+
+        {/* Layout Container */}
+        <div className="flex pt-[65px]">
+          {/* Sidebar */}
+          <Sidebar
+            isOpenExternal={sidebarOpen}
+            onCloseExternal={setSidebarOpen}
+          />
+
+          {/* Content */}
+          <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
             <Routes>
               <Route path="/tryout" element={<Tryout />} />
               <Route path="/hasil-to" element={<HasilTO />} />
-
-              {/* Route induk untuk video dengan nested routing */}
               <Route path="/video/*" element={<Video />} />
               <Route path="/materi/*" element={<Materi />} />
             </Routes>
-          </div>
-        </KelasProvider>
+          </main>
+        </div>
       </div>
-    </div>
+    </KelasProvider>
   );
 };
 
-export default User;
+export default Mentor;
