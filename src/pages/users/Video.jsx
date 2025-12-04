@@ -102,7 +102,9 @@ const Video = () => {
       <div className="w-full bg-gray-100 p-4 rounded-[20px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Video Explorer</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            Video Explorer
+          </h1>
 
           {/* Navigation Arrows */}
           <div className="flex items-center gap-3">

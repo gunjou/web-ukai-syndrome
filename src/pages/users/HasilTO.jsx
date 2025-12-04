@@ -86,12 +86,12 @@ const HasilTO = () => {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 flex justify-center">
-      <div className="bg-white w-full max-w-6xl h-auto p-6 rounded-2xl shadow-md relative">
+    <main className="min-h-screen bg-white flex justify-center">
+      <div className="bg-gray-100 w-full max-w-6xl h-auto p-4 rounded-[20px] shadow-md relative">
         {/* Header: Judul + Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
               Hasil Try Out
             </h1>
             <p className="text-sm text-gray-500 mt-1">

@@ -102,7 +102,9 @@ const Materi = () => {
       <div className="w-full bg-gray-100 p-4 rounded-[20px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Materi Explorer</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            Materi Explorer
+          </h1>
 
           {/* Tombol Navigasi */}
           <div className="flex items-center gap-3">

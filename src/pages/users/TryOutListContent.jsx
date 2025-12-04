@@ -290,6 +290,30 @@ const TryoutListContent = ({ tryout, onBack }) => {
                 {questions.length} Soal • Attempt ke-{attempt?.attempt_ke}
               </p>
             </div>
+            {/* MOBILE SMALL BUTTON NAVIGATOR */}
+            <button
+              onClick={() => setShowNavigator(true)}
+              className="
+    lg:hidden
+    fixed 
+    bottom-5
+    right-3 
+    w-11 
+    h-11
+    flex 
+    items-center 
+    justify-center
+    rounded-full
+    bg-red-500 
+    text-white
+    shadow-md 
+    z-[999]
+    active:scale-95 
+    transition
+  "
+            >
+              ☰
+            </button>
 
             {/* Actions */}
             <div className="flex items-center gap-4">
@@ -312,7 +336,18 @@ const TryoutListContent = ({ tryout, onBack }) => {
               </button>
 
               <button
-                onClick={() => setShowConfirmEndModal(true)}
+                onClick={() => {
+                  const unanswered =
+                    questions.length - Object.keys(answers).length;
+
+                  if (unanswered > 0) {
+                    toast.warning(
+                      `Masih ada ${unanswered} soal yang belum dijawab!`
+                    );
+                  }
+
+                  setShowConfirmEndModal(true);
+                }}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition shadow-sm"
               >
                 Selesai
@@ -321,9 +356,12 @@ const TryoutListContent = ({ tryout, onBack }) => {
           </div>
 
           {/* MAIN CONTENT */}
-          <div className="flex gap-4 h-full overflow-hidden">
+          <div
+            className="flex h-full gap-4 overflow-hidden 
+  max-md:flex-col-reverse max-md:gap-2"
+          >
             {/* NAVIGATOR PANEL */}
-            <div className="hidden md:block w-64 bg-white rounded-xl shadow p-4 border border-gray-200 overflow-y-auto max-h-[80vh]">
+            <div className="hidden lg:block w-64 bg-white rounded-xl shadow p-4 border border-gray-200 overflow-y-auto max-h-[80vh]">
               <QuestionNavigator
                 questions={questions}
                 currentIndex={currentIndex}
@@ -343,10 +381,17 @@ const TryoutListContent = ({ tryout, onBack }) => {
                 </div>
               ) : (
                 <>
-                  <div className="text-[17px] leading-relaxed mb-5 font-medium flex gap-2">
+                  <div className="text-[17px] max-md:text-[16px] max-sm:text-[15px] leading-relaxed mb-5 font-medium flex gap-2">
                     <span>{currentIndex + 1}.</span>
                     <div
-                      className="[&_img]:max-w-[320px] [&_img]:max-h-[320px] leading-relaxed"
+                      className="
+    [&_img]:max-w-full 
+    [&_img]:h-auto 
+    [&_img]:max-h-[350px] 
+    [&_img]:object-contain 
+    md:[&_img]:max-h-[300px] 
+    lg:[&_img]:max-h-[250px]
+  "
                       dangerouslySetInnerHTML={{
                         __html: currentQuestion?.pertanyaan,
                       }}
@@ -359,7 +404,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
                       ([key, value]) => (
                         <label
                           key={key}
-                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition  max-sm:p-2 max-sm:text-sm
                         ${
                           answers[currentQuestion?.nomor_urut] === key
                             ? "bg-red-50 border-red-400"
@@ -391,7 +436,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
                   {/* BOTTOM BUTTONS */}
                   <div
                     className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200
-  py-2 flex justify-between items-center mt-4 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]"
+  py-2 flex justify-between items-center mt-4 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]
+  max-md:flex-col max-md:gap-3 max-md:text-sm"
                   >
                     {/* RAGU */}
                     <button
@@ -463,8 +509,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
           onCancel={() => setShowConfirmEndModal(false)}
           onConfirm={handleSubmit}
           raguCount={raguRagu.length}
+          unanswered={questions.length - Object.keys(answers).length}
         />
       )}
+
       {isTimeUp && <TimeUpModal onConfirm={handleSubmit} />}
       {showResultModal && (
         <ResultModal
@@ -478,6 +526,29 @@ const TryoutListContent = ({ tryout, onBack }) => {
             }, 300);
           }}
         />
+      )}
+      {showNavigator && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center lg:hidden z-[999]">
+          <div className="bg-white w-[90%] max-h-[80%] rounded-xl p-4 overflow-y-auto shadow-lg">
+            <QuestionNavigator
+              questions={questions}
+              currentIndex={currentIndex}
+              answers={answers}
+              raguRagu={raguRagu}
+              setCurrentIndex={(val) => {
+                setCurrentIndex(val);
+                setShowNavigator(false);
+              }}
+            />
+
+            <button
+              onClick={() => setShowNavigator(false)}
+              className="mt-4 w-full bg-gray-200 rounded-lg py-2"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
