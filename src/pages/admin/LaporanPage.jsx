@@ -17,7 +17,7 @@ import RekapTryoutModal from "./modal/laporan/RekapTryoutModal.jsx";
 
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 import FilterLaporanModal from "./modal/laporan/FilterLaporanModal.jsx";
 // UTILITY: debounce
@@ -197,28 +197,27 @@ export default function LaporanPage() {
       d.nama_user,
       d.judul_tryout,
       d.attempt_ke,
-      d.nilai,
       d.benar,
       d.salah,
       d.kosong,
-      ringkasJawaban(d.jawaban_user),
+      d.nilai,
       formatTanggal(d.tanggal_pengerjaan),
       d.status_pengerjaan,
     ]);
 
-    doc.autoTable({
+    // use imported autoTable function instead of doc.autoTable to ensure compatibility
+    autoTable(doc, {
       startY: 20,
       head: [
         [
           "No",
           "User",
           "Tryout",
-          "Attempt",
-          "Nilai",
+          "Attempt Ke",
           "Benar",
           "Salah",
           "Kosong",
-          "Jawaban",
+          "Nilai",
           "Submit",
           "Status",
         ],
@@ -228,6 +227,22 @@ export default function LaporanPage() {
     });
 
     doc.save("laporan_tryout.pdf");
+  };
+
+  const deleteHasil = async (id) => {
+    if (!window.confirm("Yakin ingin menghapus hasil tryout ini?")) return;
+
+    try {
+      await Api.delete(`/hasil-tryout/${id}`);
+
+      // Refresh data setelah hapus
+      fetchData(lastAppliedParams);
+
+      alert("Data berhasil dihapus!");
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menghapus data!");
+    }
   };
 
   // UI
@@ -358,6 +373,7 @@ export default function LaporanPage() {
                   <th className="px-4 py-2 text-sm">Selesai</th>
                   {/* <th className="px-4 py-2 text-sm">Submit</th> */}
                   <th className="px-4 py-2 text-sm">Status</th>
+                  <th className="px-4 py-2 text-sm text-center">Aksi</th>
                 </tr>
               </thead>
 
@@ -415,6 +431,14 @@ export default function LaporanPage() {
                       >
                         {d.status_pengerjaan}
                       </span>
+                    </td>
+                    <td className="px-4 py-2 text-sm border text-center">
+                      <button
+                        onClick={() => deleteHasil(d.id_hasiltryout)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
+                      >
+                        Hapus
+                      </button>
                     </td>
                   </tr>
                 ))}

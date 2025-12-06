@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Api from "../../../../utils/Api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { AiOutlineFilePdf } from "react-icons/ai";
 
 export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [listTryout, setListTryout] = useState([]);
   const [selected, setSelected] = useState("");
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [limit, setLimit] = useState("");
 
-  // Fetch list tryout saat modal dibuka
   useEffect(() => {
     if (open) fetchTryoutList();
   }, [open]);
@@ -22,11 +25,15 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     }
   };
 
-  // Fetch leaderboard
   const fetchLeaderboard = async (id) => {
     try {
       setLoading(true);
-      const res = await Api.get(`/hasil-tryout/${id}/leaderboard`);
+
+      const url = limit
+        ? `/hasil-tryout/${id}/leaderboard?limit=${limit}`
+        : `/hasil-tryout/${id}/leaderboard`;
+
+      const res = await Api.get(url);
       setLeaderboard(res.data.data || []);
     } catch (err) {
       console.error("Gagal memuat leaderboard:", err);
@@ -35,10 +42,41 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     }
   };
 
-  // Trigger fetch on tryout change
   useEffect(() => {
     if (selected) fetchLeaderboard(selected);
-  }, [selected]);
+  }, [selected, limit]);
+
+  const downloadPDF = () => {
+    if (leaderboard.length === 0) return;
+
+    const doc = new jsPDF();
+    const tryoutName = listTryout.find((t) => t.id_tryout == selected)?.judul;
+
+    doc.setFontSize(16);
+    doc.text("Leaderboard Tryout", 14, 15);
+
+    doc.setFontSize(11);
+    doc.text(`Tryout: ${tryoutName}`, 14, 22);
+
+    const tableColumn = ["Rank", "Nama", "Benar", "Salah", "Kosong", "Nilai"];
+    const tableRows = leaderboard.map((d) => [
+      `#${d.rn}`,
+      d.nama_user,
+      d.benar,
+      d.salah,
+      d.kosong,
+      d.nilai,
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 28,
+      theme: "grid",
+    });
+
+    doc.save(`Leaderboard_${tryoutName || "Tryout"}.pdf`);
+  };
 
   return (
     <AnimatePresence>
@@ -55,7 +93,6 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
             exit={{ y: 60, opacity: 0 }}
             className="bg-white rounded-3xl shadow-2xl w-[92%] max-w-6xl max-h-[92vh] p-7 relative overflow-hidden flex flex-col border border-gray-200"
           >
-            {/* HEADER */}
             <div className="flex justify-between items-center border-b pb-3">
               <h2 className="text-xl font-bold">Leaderboard Tryout</h2>
               <button
@@ -66,29 +103,49 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
               </button>
             </div>
 
-            {/* SELECT TRYOUT */}
-            <div className="mt-4">
-              <label className="text-sm font-semibold text-gray-700">
-                Pilih Tryout
-              </label>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Pilih Tryout
+                </label>
+                <select
+                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  value={selected}
+                  onChange={(e) => setSelected(e.target.value)}
+                >
+                  <option value="">— Pilih Tryout —</option>
+                  {listTryout.map((t) => (
+                    <option key={t.id_tryout} value={t.id_tryout}>
+                      {t.judul}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <select
-                className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 
-                           focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
-                value={selected}
-                onChange={(e) => setSelected(e.target.value)}
-              >
-                <option value="">— Pilih Tryout —</option>
-
-                {listTryout.map((t) => (
-                  <option key={t.id_tryout} value={t.id_tryout}>
-                    {t.judul}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Batasi Rank (opsional)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Contoh: 5, 10"
+                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  value={limit}
+                  onChange={(e) => setLimit(e.target.value)}
+                />
+              </div>
             </div>
 
-            {/* CONTENT */}
+            {leaderboard.length > 0 && (
+              <button
+                onClick={downloadPDF}
+                className="mt-4 flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-5 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-semibold active:scale-95"
+              >
+                <AiOutlineFilePdf size={22} className="animate-pulse" />
+                Download PDF
+              </button>
+            )}
+
             <div className="mt-5 overflow-y-auto max-h-[60vh] pr-1">
               {!selected ? (
                 <p className="text-gray-500 text-center py-10">
@@ -109,21 +166,19 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     <tr>
                       <th className="p-2 border text-sm">Rank</th>
                       <th className="p-2 border text-sm">Nama</th>
-                      <th className="p-2 border text-sm">Nilai</th>
                       <th className="p-2 border text-sm">Benar</th>
                       <th className="p-2 border text-sm">Salah</th>
                       <th className="p-2 border text-sm">Kosong</th>
+                      <th className="p-2 border text-sm">Nilai</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {leaderboard.map((d, i) => (
                       <tr key={i} className="odd:bg-white even:bg-gray-50">
                         <td className="border p-2 text-center font-bold text-blue-700">
                           #{d.rn}
                         </td>
-                        <td className="border p-2 capitalize">{d.nama_user}</td>
-                        <td className="border p-2 text-center">{d.nilai}</td>
+                        <td className="border p-2">{d.nama_user}</td>
                         <td className="border p-2 text-center text-green-700 font-semibold">
                           {d.benar}
                         </td>
@@ -131,6 +186,9 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                           {d.salah}
                         </td>
                         <td className="border p-2 text-center">{d.kosong}</td>
+                        <td className="border p-2 text-center text-blue-800 font-bold">
+                          {d.nilai}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

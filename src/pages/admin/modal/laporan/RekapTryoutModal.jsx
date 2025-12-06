@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Api from "../../../../utils/Api";
-import { AiOutlineCloseCircle } from "react-icons/ai";
+import { AiOutlineCloseCircle, AiOutlineFilePdf } from "react-icons/ai";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function RekapTryoutModal({ open, setOpen, idUser }) {
   const [rekap, setRekap] = useState([]);
@@ -75,6 +77,56 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
 
   if (!open) return null;
 
+  const downloadPDF = () => {
+    if (rekap.length === 0) return;
+
+    const doc = new jsPDF();
+
+    const userName =
+      pesertaList.find((u) => u.id_user == selectedUser)?.nama_user || "-";
+    const tryoutName = selectedTryout
+      ? tryoutList.find((t) => t.id_tryout == selectedTryout)?.judul_tryout
+      : "Semua Tryout";
+
+    doc.setFontSize(16);
+    doc.text("Rekapan Tryout Peserta", 14, 15);
+
+    doc.setFontSize(11);
+    doc.text(`Nama Peserta: ${userName}`, 14, 23);
+    doc.text(`Filter Tryout: ${tryoutName}`, 14, 29);
+
+    const columns = [
+      "Attempt",
+      "Judul Tryout",
+      "Benar",
+      "Salah",
+      "Kosong",
+      "Nilai",
+      "Tanggal",
+      "Status",
+    ];
+
+    const rows = rekap.map((r) => [
+      r.attempt_ke,
+      r.judul_tryout,
+      r.benar,
+      r.salah,
+      r.kosong,
+      r.nilai,
+      formatTanggal(r.tanggal_pengerjaan),
+      r.status_pengerjaan,
+    ]);
+
+    autoTable(doc, {
+      head: [columns],
+      body: rows,
+      startY: 35,
+      theme: "grid",
+    });
+
+    doc.save(`Rekapan_${userName}.pdf`);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999]">
       <div className="bg-white rounded-3xl shadow-2xl w-[92%] max-w-6xl max-h-[92vh] p-7 relative overflow-hidden flex flex-col border border-gray-200">
@@ -131,6 +183,16 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
         <div className="p-4 overflow-auto max-h-[65vh]">
           {loading && (
             <p className="text-center text-gray-500 py-4">Memuat...</p>
+          )}
+
+          {rekap.length > 0 && (
+            <button
+              onClick={downloadPDF}
+              className="mb-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 font-semibold active:scale-95 w-fit"
+            >
+              <AiOutlineFilePdf size={20} />
+              Download PDF
+            </button>
           )}
 
           {!loading && selectedUser && rekap.length > 0 && (
