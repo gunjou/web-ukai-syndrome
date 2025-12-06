@@ -49,7 +49,7 @@ export default function FilterLaporanModal({
             >
               <option value="">Semua Status</option>
               <option value="submitted">Submitted</option>
-              <option value="in-progress">In Progress</option>
+              <option value="ongoing">In Progress</option>
             </select>
           </div>
 
