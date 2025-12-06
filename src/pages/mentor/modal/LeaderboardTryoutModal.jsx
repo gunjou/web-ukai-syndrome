@@ -16,9 +16,18 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
   const fetchTryoutList = async () => {
     try {
       const res = await Api.get("/tryout/list");
-      setListTryout(res.data.data || []);
+      const raw = res.data.data || [];
+
+      const uniqueList = raw
+        .filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t.id_tryout === item.id_tryout)
+        )
+        .sort((a, b) => a.judul.localeCompare(b.judul));
+
+      setListTryout(uniqueList);
     } catch (err) {
-      console.error("Gagal fetch list tryout", err);
+      console.error(err);
     }
   };
 

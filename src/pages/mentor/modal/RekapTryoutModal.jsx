@@ -18,7 +18,7 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
 
     const fetchData = async () => {
       try {
-        const res = await Api.get("/hasil-tryout");
+        const res = await Api.get("/hasil-tryout/mentor");
         const users = res.data.data || [];
 
         // Unique peserta

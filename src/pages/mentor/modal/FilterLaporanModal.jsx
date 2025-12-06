@@ -13,17 +13,10 @@ export default function FilterLaporanModal({
   if (!open) return null;
 
   const toggleTryout = (id) => {
-    if (filters.selectedTryouts.includes(id)) {
-      setFilters({
-        ...filters,
-        selectedTryouts: filters.selectedTryouts.filter((x) => x !== id),
-      });
-    } else {
-      setFilters({
-        ...filters,
-        selectedTryouts: [...filters.selectedTryouts, id],
-      });
-    }
+    setFilters({
+      ...filters,
+      selectedTryouts: [id], // hanya boleh satu
+    });
   };
 
   return (
@@ -120,7 +113,7 @@ export default function FilterLaporanModal({
           </div>
         </div>
 
-        {/* TRYOUT CHECKBOX */}
+        {/* TRYOUT SINGLE SELECT */}
         <div className="mt-4">
           <p className="text-xs font-semibold mb-1">Pilih Tryout</p>
 
@@ -132,11 +125,12 @@ export default function FilterLaporanModal({
             {listTryout.map((t) => (
               <label
                 key={t.id_tryout}
-                className="flex items-center gap-2 text-sm"
+                className="flex items-center gap-2 text-sm cursor-pointer"
               >
                 <input
-                  type="checkbox"
-                  checked={filters.selectedTryouts.includes(t.id_tryout)}
+                  type="radio"
+                  name="tryout"
+                  checked={filters.selectedTryouts[0] === t.id_tryout}
                   onChange={() => toggleTryout(t.id_tryout)}
                 />
                 {t.judul}
@@ -155,8 +149,10 @@ export default function FilterLaporanModal({
           </button>
 
           <button
-            onClick={() => onApply(filters)}
-            setOpen={false}
+            onClick={() => {
+              onApply(filters);
+              setOpen(false);
+            }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm rounded-lg"
           >
             Terapkan
