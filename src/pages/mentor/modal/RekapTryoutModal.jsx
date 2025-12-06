@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Api from "../../../utils/Api.jsx";
 import { AiOutlineCloseCircle } from "react-icons/ai";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function RekapTryoutModal({ open, setOpen, idUser }) {
   const [rekap, setRekap] = useState([]);
@@ -12,7 +14,6 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
   const [selectedUser, setSelectedUser] = useState(idUser || "");
   const [selectedTryout, setSelectedTryout] = useState("");
 
-  // Fetch daftar peserta + daftar tryout
   useEffect(() => {
     if (!open) return;
 
@@ -21,14 +22,12 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
         const res = await Api.get("/hasil-tryout/mentor");
         const users = res.data.data || [];
 
-        // Unique peserta
         const uniqueUsers = [
           ...new Map(users.map((item) => [item.id_user, item])).values(),
         ];
         setPesertaList(uniqueUsers);
         if (idUser) setSelectedUser(idUser);
 
-        // Unique list tryout
         const uniqueTryout = [
           ...new Map(users.map((item) => [item.id_tryout, item])).values(),
         ];
@@ -41,7 +40,6 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
     fetchData();
   }, [open]);
 
-  /** 🔍 Fetch Rekapan berdasarkan User & Tryout */
   const fetchRekap = async (uid, tid) => {
     if (!uid) return;
     setLoading(true);
@@ -60,7 +58,6 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
     }
   };
 
-  // Reload ketika filter berubah
   useEffect(() => {
     if (selectedUser) fetchRekap(selectedUser, selectedTryout);
   }, [selectedUser, selectedTryout]);
@@ -71,6 +68,53 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
       dateStyle: "medium",
       timeStyle: "short",
     });
+  };
+
+  // ==========================================
+  // 📄 EXPORT PDF
+  // ==========================================
+  const exportPDF = () => {
+    if (!rekap.length) return;
+
+    const namaPeserta =
+      pesertaList.find((p) => p.id_user === selectedUser)?.nama_user ||
+      "Peserta";
+
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(14);
+    doc.text(`Rekapan Tryout: ${namaPeserta}`, 14, 15);
+
+    const tableData = rekap.map((r) => [
+      r.attempt_ke,
+      r.judul_tryout,
+      r.benar,
+      r.salah,
+      r.kosong,
+      r.nilai,
+      formatTanggal(r.tanggal_pengerjaan),
+      r.status_pengerjaan,
+    ]);
+
+    doc.autoTable({
+      startY: 25,
+      head: [
+        [
+          "Attempt",
+          "Judul Tryout",
+          "Benar",
+          "Salah",
+          "Kosong",
+          "Nilai",
+          "Tanggal",
+          "Status",
+        ],
+      ],
+      body: tableData,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [33, 150, 243] },
+    });
+
+    doc.save(`Rekapan-${namaPeserta}.pdf`);
   };
 
   if (!open) return null;
@@ -92,7 +136,6 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
 
         {/* FILTERS */}
         <div className="grid grid-cols-2 gap-4 border-b p-4">
-          {/* Filter Peserta */}
           <div>
             <label className="font-medium text-sm">Filter Peserta</label>
             <select
@@ -109,7 +152,6 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
             </select>
           </div>
 
-          {/* Filter Tryout */}
           <div>
             <label className="font-medium text-sm">Filter Tryout</label>
             <select
@@ -134,60 +176,60 @@ export default function RekapTryoutModal({ open, setOpen, idUser }) {
           )}
 
           {!loading && selectedUser && rekap.length > 0 && (
-            <div className="rounded-xl overflow-hidden border border-gray-200">
-              <table className="min-w-full bg-white text-sm text-center">
-                <thead className="bg-gray-50 sticky top-0 z-10 border-b font-semibold">
-                  <tr>
-                    <th className="px-4 py-2">Attempt</th>
-                    <th className="px-4 py-2">Judul Tryout</th>
-                    <th className="px-4 py-2">Benar</th>
-                    <th className="px-4 py-2">Salah</th>
-                    <th className="px-4 py-2">Kosong</th>
-                    <th className="px-4 py-2">Nilai</th>
-                    <th className="px-4 py-2">Tanggal</th>
-                    <th className="px-4 py-2">Status</th>
-                  </tr>
-                </thead>
+            <>
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={exportPDF}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow text-sm"
+                >
+                  📄 Download PDF
+                </button>
+              </div>
 
-                <tbody>
-                  {rekap.map((r, i) => (
-                    <tr key={i} className="hover:bg-gray-100 transition">
-                      <td className="border px-4 py-2">{r.attempt_ke}</td>
-                      <td className="border px-4 py-2 capitalize">
-                        {r.judul_tryout}
-                      </td>
-                      <td className="border px-4 py-2 text-green-700 font-semibold">
-                        {r.benar}
-                      </td>
-                      <td className="border px-4 py-2 text-red-700 font-semibold">
-                        {r.salah}
-                      </td>
-                      <td className="border px-4 py-2">{r.kosong}</td>
-                      <td className="border px-4 py-2 font-semibold">
-                        {r.nilai}
-                      </td>
-                      <td className="border px-4 py-2 text-xs">
-                        {formatTanggal(r.tanggal_pengerjaan)}
-                      </td>
-
-                      <td className="border px-4 py-2">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                            r.status_pengerjaan === "submitted"
-                              ? "bg-green-100 text-green-700"
-                              : r.status_pengerjaan === "ongoing"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-200 text-gray-600"
-                          }`}
-                        >
-                          {r.status_pengerjaan}
-                        </span>
-                      </td>
+              <div className="rounded-xl overflow-hidden border border-gray-200">
+                <table className="min-w-full bg-white text-sm text-center">
+                  <thead className="bg-gray-50 sticky top-0 z-10 border-b font-semibold">
+                    <tr>
+                      <th className="px-4 py-2">Attempt</th>
+                      <th className="px-4 py-2">Judul Tryout</th>
+                      <th className="px-4 py-2">Benar</th>
+                      <th className="px-4 py-2">Salah</th>
+                      <th className="px-4 py-2">Kosong</th>
+                      <th className="px-4 py-2">Nilai</th>
+                      <th className="px-4 py-2">Tanggal</th>
+                      <th className="px-4 py-2">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+
+                  <tbody>
+                    {rekap.map((r, i) => (
+                      <tr key={i} className="hover:bg-gray-100 transition">
+                        <td className="border px-4 py-2">{r.attempt_ke}</td>
+                        <td className="border px-4 py-2 capitalize">
+                          {r.judul_tryout}
+                        </td>
+                        <td className="border px-4 py-2 text-green-700 font-semibold">
+                          {r.benar}
+                        </td>
+                        <td className="border px-4 py-2 text-red-700 font-semibold">
+                          {r.salah}
+                        </td>
+                        <td className="border px-4 py-2">{r.kosong}</td>
+                        <td className="border px-4 py-2 text-blue-600 font-bold">
+                          {r.nilai}
+                        </td>
+                        <td className="border px-4 py-2 text-xs">
+                          {formatTanggal(r.tanggal_pengerjaan)}
+                        </td>
+                        <td className="border px-4 py-2 capitalize">
+                          {r.status_pengerjaan}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {!loading && selectedUser && rekap.length === 0 && (

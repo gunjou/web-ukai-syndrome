@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Api from "../../../utils/Api";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [listTryout, setListTryout] = useState([]);
@@ -8,7 +10,6 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch list tryout saat modal dibuka
   useEffect(() => {
     if (open) fetchTryoutList();
   }, [open]);
@@ -31,7 +32,6 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     }
   };
 
-  // Fetch leaderboard
   const fetchLeaderboard = async (id) => {
     try {
       setLoading(true);
@@ -44,10 +44,43 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     }
   };
 
-  // Trigger fetch on tryout change
   useEffect(() => {
     if (selected) fetchLeaderboard(selected);
   }, [selected]);
+
+  // ======================================================
+  // 📌 EXPORT PDF FUNCTION
+  // ======================================================
+  const exportPDF = () => {
+    if (!leaderboard.length) return;
+
+    const selectedTryout =
+      listTryout.find((x) => x.id_tryout === selected)?.judul || "Tryout";
+
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    doc.setFontSize(14);
+    doc.text(`Leaderboard: ${selectedTryout}`, 14, 15);
+
+    const tableData = leaderboard.map((row) => [
+      `#${row.rn}`,
+      row.nama_user,
+      row.benar,
+      row.salah,
+      row.nilai,
+      row.kosong,
+    ]);
+
+    doc.autoTable({
+      startY: 25,
+      head: [["Rank", "Nama", "Benar", "Salah", "Kosong", "Nilai"]],
+      body: tableData,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [33, 150, 243] },
+    });
+
+    doc.save(`Leaderboard-${selectedTryout}.pdf`);
+  };
 
   return (
     <AnimatePresence>
@@ -113,37 +146,53 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                   Leaderboard masih kosong.
                 </p>
               ) : (
-                <table className="min-w-full mt-2 border">
-                  <thead className="bg-gray-100 sticky top-0 z-10">
-                    <tr>
-                      <th className="p-2 border text-sm">Rank</th>
-                      <th className="p-2 border text-sm">Nama</th>
-                      <th className="p-2 border text-sm">Nilai</th>
-                      <th className="p-2 border text-sm">Benar</th>
-                      <th className="p-2 border text-sm">Salah</th>
-                      <th className="p-2 border text-sm">Kosong</th>
-                    </tr>
-                  </thead>
+                <>
+                  {/* BUTTON DOWNLOAD */}
+                  <div className="flex justify-end mb-3">
+                    <button
+                      onClick={exportPDF}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow text-sm"
+                    >
+                      📄 Download PDF
+                    </button>
+                  </div>
 
-                  <tbody>
-                    {leaderboard.map((d, i) => (
-                      <tr key={i} className="odd:bg-white even:bg-gray-50">
-                        <td className="border p-2 text-center font-bold text-blue-700">
-                          #{d.rn}
-                        </td>
-                        <td className="border p-2 capitalize">{d.nama_user}</td>
-                        <td className="border p-2 text-center">{d.nilai}</td>
-                        <td className="border p-2 text-center text-green-700 font-semibold">
-                          {d.benar}
-                        </td>
-                        <td className="border p-2 text-center text-red-600 font-semibold">
-                          {d.salah}
-                        </td>
-                        <td className="border p-2 text-center">{d.kosong}</td>
+                  <table className="min-w-full mt-2 border">
+                    <thead className="bg-gray-100 sticky top-0 z-10">
+                      <tr>
+                        <th className="p-2 border text-sm">Rank</th>
+                        <th className="p-2 border text-sm">Nama</th>
+                        <th className="p-2 border text-sm">Benar</th>
+                        <th className="p-2 border text-sm">Salah</th>
+                        <th className="p-2 border text-sm">Kosong</th>
+                        <th className="p-2 border text-sm">Nilai</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+
+                    <tbody>
+                      {leaderboard.map((d, i) => (
+                        <tr key={i} className="odd:bg-white even:bg-gray-50">
+                          <td className="border p-2 text-center font-bold text-blue-700">
+                            #{d.rn}
+                          </td>
+                          <td className="border p-2 capitalize">
+                            {d.nama_user}
+                          </td>
+                          <td className="border p-2 text-center text-green-700 font-semibold">
+                            {d.benar}
+                          </td>
+                          <td className="border p-2 text-center text-red-600 font-semibold">
+                            {d.salah}
+                          </td>
+                          <td className="border p-2 text-center">{d.kosong}</td>
+                          <td className="border p-2 text-center text-blue-700 font-bold">
+                            {d.nilai}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
               )}
             </div>
           </motion.div>

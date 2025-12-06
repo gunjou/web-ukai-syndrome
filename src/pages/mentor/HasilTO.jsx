@@ -11,7 +11,7 @@ import { BsTrophy, BsFolder2Open } from "react-icons/bs";
 import Api from "../../utils/Api.jsx";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 import FilterLaporanModal from "../mentor/modal/FilterLaporanModal.jsx";
 import LeaderboardTryoutModal from "../mentor/modal/LeaderboardTryoutModal.jsx";
@@ -184,15 +184,16 @@ const HasilTO = () => {
       d.nama_user,
       d.judul_tryout,
       d.attempt_ke,
-      d.nilai,
       d.benar,
       d.salah,
       d.kosong,
+      d.nilai,
       formatDateTime(d.end_time),
       d.status_pengerjaan,
     ]);
 
-    doc.autoTable({
+    // use imported autoTable function for compatibility
+    autoTable(doc, {
       startY: 20,
       head: [
         [
@@ -200,10 +201,10 @@ const HasilTO = () => {
           "Nama",
           "Tryout",
           "Attempt",
-          "Nilai",
           "Benar",
           "Salah",
           "Kosong",
+          "Nilai",
           "Submit",
           "Status",
         ],
@@ -301,7 +302,7 @@ const HasilTO = () => {
             <thead className="bg-gray-200 text-gray-700 sticky top-0 z-10">
               <tr>
                 <th className="border px-3 py-2">No</th>
-                <th className="border px-3 py-2 text-left">Nama Peserta</th>
+                <th className="border px-3 py-2 text-left">Nama</th>
                 <th className="border px-3 py-2 text-left">Judul Tryout</th>
                 <th className="border px-3 py-2 text-center">Attempt</th>
                 <th className="border px-3 py-2 text-center">Benar</th>
@@ -354,7 +355,7 @@ const HasilTO = () => {
                     <td className="border px-3 py-2 text-center">
                       {item.kosong}
                     </td>
-                    <td className="border px-3 py-2 text-center font-semibold">
+                    <td className="border px-3 py-2 text-center text-blue-500 font-semibold">
                       {item.nilai}
                     </td>
                     <td className="border px-3 py-2 text-center">
