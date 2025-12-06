@@ -20,6 +20,8 @@ const TryoutPage = () => {
   const [selectedTryout, setSelectedTryout] = useState(null);
   const [selectedTryoutForQuestions, setSelectedTryoutForQuestions] =
     useState(null);
+  const [kelasModalData, setKelasModalData] = useState(null);
+  const [searchKelas, setSearchKelas] = useState("");
 
   // 🔹 Filter state
   const [paketKelas, setPaketKelas] = useState([]);
@@ -146,10 +148,14 @@ const TryoutPage = () => {
           {t.nama_batch || "-"}
         </td>
         <td className="px-4 py-2 text-sm border text-center">
-          {Array.isArray(t.nama_kelas)
-            ? t.nama_kelas.join(", ")
-            : t.nama_kelas || "-"}
+          <button
+            onClick={() => setKelasModalData(t)}
+            className="bg-blue-500 text-white px-3 py-1 text-xs rounded-full hover:bg-blue-600"
+          >
+            {t.nama_kelas?.filter(Boolean).length || 0} Kelas
+          </button>
         </td>
+
         <td className="px-4 py-2 text-sm border text-center">
           <select
             value={t.visibility || "hold"}
@@ -369,6 +375,69 @@ const TryoutPage = () => {
               onClose={() => setSelectedTryout(null)}
               onRefresh={fetchTryoutData}
             />
+          </div>
+        </div>
+      )}
+      {kelasModalData && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
+          onClick={() => setKelasModalData(null)}
+        >
+          <div
+            className="bg-white shadow-xl rounded-2xl w-[95%] max-w-3xl relative animate-slide-up 
+                 max-h-[85vh] overflow-hidden border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-200 p-6 flex flex-col gap-1">
+              {/* Close Button */}
+              <button
+                onClick={() => setKelasModalData(null)}
+                className="absolute top-5 right-6 text-gray-500 hover:text-gray-700 transition"
+              >
+                <AiOutlineClose size={24} />
+              </button>
+
+              <h2 className="text-xl font-semibold text-gray-800">
+                Daftar Kelas
+              </h2>
+              <p className="text-sm text-gray-500">
+                Tryout:{" "}
+                <span className="font-medium">{kelasModalData.judul}</span>
+              </p>
+
+              {/* Search Bar */}
+              <input
+                type="text"
+                placeholder="Cari kelas..."
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 mt-3
+                     focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+                onChange={(e) => setSearchKelas(e.target.value)}
+              />
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-6 overflow-y-auto max-h-[65vh]">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {kelasModalData.nama_kelas
+                  ?.filter(Boolean)
+                  ?.filter((kls) =>
+                    kls.toLowerCase().includes(searchKelas.toLowerCase())
+                  )
+                  ?.map((kls, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 border border-gray-200"
+                    >
+                      {kls}
+                    </div>
+                  ))}
+
+                {kelasModalData.nama_kelas?.filter(Boolean)?.length === 0 && (
+                  <p className="text-gray-500 text-sm">Tidak ada data kelas.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
