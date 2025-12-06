@@ -80,7 +80,7 @@ const MenuBar = ({ onToggleSidebar }) => {
     <>
       {loading && <LoadingOverlay />}
 
-      <div className="bg-white flex items-center justify-between px-3 sm:px-6 py-3 fixed top-0 w-full z-10 h-[65px] shadow-md">
+      <div className="bg-white flex items-center justify-between px-3 sm:px-6 py-3 fixed top-0 w-full z-10 h-[65px]">
         {/* LEFT: Hamburger */}
         <div className="flex items-center space-x-2">
           <button
