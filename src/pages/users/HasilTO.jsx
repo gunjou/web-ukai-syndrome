@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Api from "../../utils/Api.jsx";
 import dayjs from "dayjs";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Spinner = () => (
   <div className="flex justify-center items-center py-20">
@@ -85,6 +87,45 @@ const HasilTO = () => {
     );
   });
 
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    doc.setFontSize(14);
+    doc.text("Laporan Hasil Tryout", 14, 15);
+
+    const tableColumn = [
+      "Tryout",
+      "Attempt",
+      "Tanggal",
+      "Benar",
+      "Salah",
+      "Kosong",
+      "Nilai",
+      "Status",
+    ];
+
+    const tableRows = displayedHasil.map((item) => [
+      item.judul_tryout,
+      item.attempt_ke,
+      dayjs(item.tanggal_pengerjaan).format("DD MMM YYYY HH:mm"),
+      item.benar,
+      item.salah,
+      item.kosong,
+      item.nilai,
+      item.status_pengerjaan,
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229] }, // warna ungu indigo
+    });
+
+    doc.save(`hasil-tryout-${dayjs().format("DDMMYYYY")}.pdf`);
+  };
+
   return (
     <main className="min-h-screen bg-white flex justify-center">
       <div className="bg-gray-100 w-full max-w-6xl h-auto p-4 rounded-[20px] shadow-md relative">
@@ -141,6 +182,12 @@ const HasilTO = () => {
                 ))}
               </select>
             </div>
+            <button
+              onClick={exportPDF}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg shadow-md"
+            >
+              Download PDF
+            </button>
           </div>
         </div>
 
@@ -183,12 +230,6 @@ const HasilTO = () => {
                         Tanggal
                       </th>
                       <th
-                        style={{ width: "8%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
-                      >
-                        Nilai
-                      </th>
-                      <th
                         style={{ width: "7%" }}
                         className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
                       >
@@ -205,6 +246,12 @@ const HasilTO = () => {
                         className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
                       >
                         Kosong
+                      </th>
+                      <th
+                        style={{ width: "8%" }}
+                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                      >
+                        Nilai
                       </th>
                       <th
                         style={{ width: "12%" }}
@@ -231,17 +278,17 @@ const HasilTO = () => {
                             "DD MMM YYYY HH:mm"
                           )}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 text-center truncate">
-                          {item.nilai}
-                        </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-green-600 text-center truncate">
                           {item.benar}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-red-500 text-center truncate">
                           {item.salah}
                         </td>
                         <td className="px-6 py-4 align-top text-sm text-gray-700 text-center truncate">
                           {item.kosong}
+                        </td>
+                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 text-center truncate">
+                          {item.nilai}
                         </td>
                         <td className="px-6 py-4 align-top text-sm truncate">
                           <span

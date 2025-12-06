@@ -385,9 +385,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
                     <span>{currentIndex + 1}.</span>
                     <div
                       className="
+    whitespace-pre-line
     [&_img]:max-w-full 
     [&_img]:h-auto 
-    [&_img]:max-h-[350px] 
+    [&_img]:max-h-[350px]
     [&_img]:object-contain 
     md:[&_img]:max-h-[300px] 
     lg:[&_img]:max-h-[250px]
@@ -519,7 +520,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
           open={showResultModal}
           nilai={finalScore}
           onClose={() => {
-            document.exitFullscreen?.();
+            if (document.fullscreenElement) {
+              document.exitFullscreen().catch(() => {});
+            }
+
             setTimeout(() => {
               setShowResultModal(false);
               onBack();
