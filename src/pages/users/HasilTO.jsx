@@ -4,6 +4,14 @@ import Api from "../../utils/Api.jsx";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  AiOutlineBarChart,
+  AiOutlineFilePdf,
+  AiOutlineFileExcel,
+  AiOutlineSearch,
+  AiOutlineFilter,
+  AiOutlineReload,
+} from "react-icons/ai";
 
 const Spinner = () => (
   <div className="flex justify-center items-center py-20">
@@ -161,7 +169,7 @@ const HasilTO = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari judul, nilai, atau status..."
-                className="bg-transparent focus:outline-none text-sm text-gray-700 w-56"
+                className="bg-transparent focus:outline-none text-sm text-gray-700 w-40"
               />
             </div>
 
@@ -173,7 +181,7 @@ const HasilTO = () => {
                 id="filterTryout"
                 value={filterTryout}
                 onChange={(e) => setFilterTryout(e.target.value)}
-                className="block rounded-md border border-gray-200 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="block w-36 rounded-md border border-gray-200 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {uniqueTryouts.map((title) => (
                   <option key={title} value={title}>
@@ -184,9 +192,9 @@ const HasilTO = () => {
             </div>
             <button
               onClick={exportPDF}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg shadow-md"
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
             >
-              Download PDF
+              <AiOutlineFilePdf size={18} /> PDF
             </button>
           </div>
         </div>
