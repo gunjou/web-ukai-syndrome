@@ -103,6 +103,7 @@ const Video = () => {
   const [tipeVideo, setTipeVideo] = useState("full");
   const [timeTerjeda, setTimeTerjeda] = useState(null);
   const [tanggalMateri, setTanggalMateri] = useState("");
+  const [isDownloadable, setIsDownloadable] = useState("");
   const [visibility, setVisibility] = useState("hold");
 
   const storedUser = JSON.parse(localStorage.getItem("user")) || {};
@@ -213,6 +214,13 @@ const Video = () => {
     }
   };
 
+  const toTitleCase = (str) =>
+    str
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
   const handleVisibilityChange = async (id_modul, newVisibility) => {
     try {
       await Api.put(`/modul/${id_modul}/visibility`, {
@@ -300,7 +308,9 @@ const Video = () => {
     e.preventDefault();
 
     const activeModulId = localStorage.getItem("activeModulId");
-    const activeModulNama = localStorage.getItem("activeModulNama");
+    const path = window.location.pathname;
+    const lastSegment = path.split("/").filter(Boolean).pop();
+    const activeModulNama = lastSegment; //localStorage.getItem("activeModulNama");
 
     // if (!judul.trim()) {
     //   toast.warning("Judul materi tidak boleh kosong ⚠️", {
@@ -372,8 +382,8 @@ const Video = () => {
 
     const judulVideo = generateJudulVideo(
       tanggalMateri,
-      nickname,
-      activeModulNama,
+      toTitleCase(nickname),
+      toTitleCase(activeModulNama),
       tipeVideo,
       timeTerjeda
     );
@@ -383,6 +393,7 @@ const Video = () => {
       judul: judulVideo,
       tipe_materi: "video",
       url_file: urlFile,
+      is_downloadable: isDownloadable,
       visibility: "open",
     };
 
@@ -742,6 +753,23 @@ const Video = () => {
                   />
                 </div>
               )}
+              {/* Toggle "Dapat di-download" */}
+              <div className="flex items-center justify-between border p-3 rounded-md">
+                <span className="text-gray-700">Dapat di-download?</span>
+                <button
+                  type="button"
+                  onClick={() => setIsDownloadable(!isDownloadable)}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${
+                    isDownloadable ? "bg-blue-600" : "bg-gray-400"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-all ${
+                      isDownloadable ? "translate-x-6" : "translate-x-0"
+                    }`}
+                  ></div>
+                </button>
+              </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

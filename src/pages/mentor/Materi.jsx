@@ -110,6 +110,7 @@ const Materi = () => {
   const [tanggalMateri, setTanggalMateri] = useState("");
   const [tipeMateri, setTipeMateri] = useState("document");
   const [urlFile, setUrlFile] = useState("");
+  const [isDownloadable, setIsDownloadable] = useState("");
   const [visibility, setVisibility] = useState("hold");
   const [viewerOnly, setViewerOnly] = useState(true);
 
@@ -352,18 +353,21 @@ const Materi = () => {
   const handleAddMateriSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const path = window.location.pathname;
+    const lastSegment = path.split("/").filter(Boolean).pop();
     const activeModulId = localStorage.getItem("activeModulId");
-    const activeModulNama = localStorage.getItem("activeModulNama");
+    const activeModulNama = lastSegment; //localStorage.getItem("activeModulNama");
 
     const payload = {
       id_modul: activeModulId,
       judul: generateJudulDocument(
         tanggalMateri,
         toTitleCase(nickname),
-        activeModulNama
+        toTitleCase(activeModulNama)
       ),
       tipe_materi: "document",
       url_file: urlFile,
+      is_downloadable: isDownloadable,
       visibility: "hold",
     };
 
@@ -689,6 +693,23 @@ const Materi = () => {
                 placeholder="URL atau Path File"
                 required
               />
+              {/* Toggle "Dapat di-download" */}
+              <div className="flex items-center justify-between border p-3 rounded-md">
+                <span className="text-gray-700">Dapat di-download?</span>
+                <button
+                  type="button"
+                  onClick={() => setIsDownloadable(!isDownloadable)}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-all ${
+                    isDownloadable ? "bg-blue-600" : "bg-gray-400"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-all ${
+                      isDownloadable ? "translate-x-6" : "translate-x-0"
+                    }`}
+                  ></div>
+                </button>
+              </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
