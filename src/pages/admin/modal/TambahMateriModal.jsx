@@ -258,6 +258,29 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
           </select>
         </div>
 
+        {/* Downloadable Setting */}
+        <div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.is_downloadable === 1}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_downloadable: e.target.checked ? 1 : 0,
+                }))
+              }
+              className="w-5 h-5 accent-blue-600"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Izinkan pengguna mendownload file
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1">
+            Jika dimatikan, tombol download tidak muncul di materi.
+          </p>
+        </div>
+
         {/* Tombol Aksi */}
         <div className="flex justify-end gap-3">
           <button

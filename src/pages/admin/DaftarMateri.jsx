@@ -113,6 +113,7 @@ const DaftarMateri = () => {
           {materi.owner ? toTitleCase(materi.owner) : "-"}
         </td>
         <td className="px-4 py-2 text-sm border">{materi.judul_modul}</td>
+
         <td className="px-1 py-2 text-xs sm:text-sm border text-center">
           <div className="flex justify-center">
             <a
@@ -149,8 +150,18 @@ const DaftarMateri = () => {
             </a>
           </div>
         </td>
-
-        <td className="px-4 py-2 text-sm border flex justify-center">
+        <td className="px-4 py-2 text-sm border text-center">
+          {materi.is_downloadable === 1 ? (
+            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-600 border border-green-300">
+              Yes
+            </span>
+          ) : (
+            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600 border border-red-300">
+              No
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-2 text-sm border text-center">
           <select
             value={materi.visibility}
             onChange={(e) =>
@@ -179,6 +190,7 @@ const DaftarMateri = () => {
             </option>
           </select>
         </td>
+
         {/* Kolom Aksi */}
         <td className="px-4 py-2 text-xs sm:text-sm border w-[100px]">
           <div className="flex justify-center gap-2">
@@ -266,6 +278,7 @@ const DaftarMateri = () => {
                   <th className="px-4 py-2 text-sm">Owner</th>
                   <th className="px-4 py-2 text-sm">Modul</th>
                   <th className="px-4 py-2 text-sm">Tipe (Preview)</th>
+                  <th className="px-4 py-2 text-sm">Downloadable</th>
                   <th className="px-4 py-2 text-sm">Status</th>
                   <th className="px-4 py-2 text-sm">Aksi</th>
                 </tr>

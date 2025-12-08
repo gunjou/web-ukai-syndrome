@@ -13,6 +13,7 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
     judul: "",
     url_file: "",
     visibility: "hold",
+    is_downloadable: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,7 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
         judul: materi.judul || "",
         url_file: materi.url_file || "",
         visibility: materi.visibility || "hold",
+        is_downloadable: materi.is_downloadable || 0,
       });
     }
   }, [materi]);
@@ -234,6 +236,38 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
             <option value="open">Open</option>
             <option value="close">Close</option>
           </select>
+        </div>
+        {/* Editable Downloadable Setting */}
+        <div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.is_downloadable === 1}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_downloadable: e.target.checked ? 1 : 0,
+                }))
+              }
+              className="w-5 h-5 accent-blue-600"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Izinkan pengguna mendownload file
+            </span>
+          </label>
+
+          {/* Badge preview */}
+          <div className="mt-2">
+            {formData.is_downloadable === 1 ? (
+              <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-600 border border-green-300">
+                ✔ Download Allowed
+              </span>
+            ) : (
+              <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600 border border-red-300">
+                ✖ Download Disabled
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Tombol Aksi */}
