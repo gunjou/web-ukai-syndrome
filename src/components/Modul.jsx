@@ -41,25 +41,28 @@ const Modul = () => {
   return (
     <section
       id="modul"
-      className="modul py-16 bg-white max-h-screen rounded-b-[30px] text-center px-4 font-poppins"
+      className="py-12 sm:py-16 bg-white rounded-b-[30px] text-center px-3 sm:px-4 font-poppins"
     >
-      {/* //<div className="bg-yellow-400 w-full h-[150px] rounded-b-[30px] z-0"></div> */}
-      <div className="bg-biru-gelap relative rounded-[30px] px-4 py-8 mx-6 shadow-md sticky z-30 h-auto">
+      <div className="bg-biru-gelap relative rounded-[20px] px-3 sm:px-6 py-8 mx-2 sm:mx-6 shadow-md z-30">
         {/* Floating Title */}
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
+        <div
+          className="absolute -top-5 left-1/2 -translate-x-1/2 
+    bg-yellow-500 text-white px-6 sm:px-16 py-2 rounded-full shadow-md 
+    text-base sm:text-lg font-bold z-20"
+        >
           Modul Terupdate
         </div>
 
-        {/* Grid for Desktop */}
-        <div className="max-w-7xl mx-auto px-8 mt-[2rem] hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* DESKTOP GRID */}
+        <div className="max-w-7xl mx-auto px-2 sm:px-8 mt-10 hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
           {modulData.map((modul, index) => (
             <div key={index} className="p-4 text-center">
               <img
                 src={modul.image}
                 alt={modul.title}
-                className="w-auto h-auto object-cover mb-3"
+                className="w-[80%] mx-auto object-contain mb-4"
               />
-              <h4 className="text-lg font-bold text-yellow-500 mb-2">
+              <h4 className="text-xl font-bold text-yellow-500 mb-2">
                 {modul.title}
               </h4>
               <p className="text-sm text-white text-justify">
@@ -69,20 +72,22 @@ const Modul = () => {
           ))}
         </div>
 
-        {/* Slider for Mobile */}
-        <div className="md:hidden mt-6">
+        {/* MOBILE SLIDER */}
+        <div className="md:hidden mt-10">
           <Slider {...sliderSettings}>
             {modulData.map((modul, index) => (
-              <div key={index} className="p-4 text-center">
+              <div key={index} className="p-3 text-center">
                 <img
                   src={modul.image}
                   alt={modul.title}
-                  className="w-full h-full object-cover mb-3"
+                  className="w-[70%] mx-auto object-contain mb-4 rounded-lg"
                 />
-                <h4 className="text-lg font-bold text-yellow-500 mb-2">
+
+                <h4 className="text-lg font-bold text-yellow-500 mb-1">
                   {modul.title}
                 </h4>
-                <p className="text-sm text-white text-justify">
+
+                <p className="text-xs text-white text-justify leading-relaxed px-2">
                   {modul.description}
                 </p>
               </div>
