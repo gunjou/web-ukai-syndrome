@@ -135,10 +135,10 @@ const MateriListContent = () => {
 
                   {/* Tooltip */}
                   <div
-                    className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2
-                  px-2 py-1 rounded text-[10px] bg-gray-800 text-white 
-                  opacity-0 group-hover:opacity-100 transition 
-                  whitespace-nowrap pointer-events-none"
+                    className="absolute left-full ml-2 top-1/2 -translate-y-1/2
+                    px-2 py-1 rounded text-[10px] bg-gray-800 text-white
+                    opacity-0 group-hover:opacity-100 transition
+                    whitespace-nowrap pointer-events-none"
                   >
                     {materi.is_downloadable === 1
                       ? "Bisa di-download"
