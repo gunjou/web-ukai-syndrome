@@ -1,7 +1,8 @@
 // src/pages/users/MateriListContent.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { HiDocumentText } from "react-icons/hi";
+import { HiDocumentText, HiOutlineDownload } from "react-icons/hi";
+import { IoMdDownload } from "react-icons/io";
 import { MdClose } from "react-icons/md";
 import Api from "../../utils/Api";
 
@@ -74,10 +75,16 @@ const MateriListContent = () => {
     setPdfUrl(getEmbedUrl(url));
   };
   const getDirectDownloadUrl = (url) => {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (!url) return null;
+
+    // Extract FILE_ID from: .../d/FILE_ID/...
+    const match = url.match(/\/d\/([^/]+)\//);
     if (match && match[1]) {
-      return `https://drive.google.com/u/0/uc?id=${match[1]}&export=download`;
+      const fileId = match[1];
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
+
+    // Jika bukan URL Google Drive, pakai default
     return url;
   };
 
@@ -103,7 +110,7 @@ const MateriListContent = () => {
                   setSelectedMateri(materi);
                   loadPdf(materi.url_file);
                 }}
-                className="flex items-start gap-4 cursor-pointer flex-1"
+                className="flex items-start gap-3 cursor-pointer flex-1"
               >
                 <HiDocumentText className="text-red-500 text-3xl flex-shrink-0 mt-1" />
                 <div className="flex flex-col">
@@ -114,37 +121,31 @@ const MateriListContent = () => {
                     {materi.judul}
                   </h3>
                 </div>
-              </div>
 
-              {/* TOMBOL DOWNLOAD */}
-              {materi.is_downloadable === 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(
-                      getDirectDownloadUrl(materi.url_file),
-                      "_blank"
-                    );
-                  }}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.97] transition border border-blue-700 text-white px-4 py-2 rounded-full shadow-sm hover:shadow-md"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="white"
-                    className="w-5 h-5"
+                <div className="relative group">
+                  {materi.is_downloadable === 1 ? (
+                    <div className="w-5 h-5 flex items-center justify-center bg-green-100 text-green-700 rounded-full">
+                      <IoMdDownload size={12} />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 flex items-center justify-center bg-gray-200 text-gray-500 rounded-full">
+                      <IoMdDownload size={12} />
+                    </div>
+                  )}
+
+                  {/* Tooltip */}
+                  <div
+                    className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2
+                  px-2 py-1 rounded text-[10px] bg-gray-800 text-white 
+                  opacity-0 group-hover:opacity-100 transition 
+                  whitespace-nowrap pointer-events-none"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 12l4.5 4.5m0 0l4.5-4.5m-4.5 4.5V3"
-                    />
-                  </svg>
-                  <span className="font-medium">Download</span>
-                </button>
-              )}
+                    {materi.is_downloadable === 1
+                      ? "Bisa di-download"
+                      : "Tidak dapat di-download"}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -188,6 +189,33 @@ const MateriListContent = () => {
                 </h3>
               </div>
               <div className="flex items-center gap-2">
+                {/* Tombol Download */}
+                {selectedMateri.is_downloadable === 1 ? (
+                  <button
+                    onClick={() =>
+                      window.open(
+                        getDirectDownloadUrl(selectedMateri.url_file),
+                        "_blank"
+                      )
+                    }
+                    className="text-green-600 hover:text-green-800 p-2 rounded-md"
+                    aria-label="Download"
+                    title="Download file"
+                  >
+                    <IoMdDownload size={24} />
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="text-gray-400 p-2 rounded-md cursor-not-allowed"
+                    aria-label="Download tidak tersedia"
+                    title="Download tidak tersedia"
+                  >
+                    <IoMdDownload size={24} />
+                  </button>
+                )}
+
+                {/* Tombol Close */}
                 <button
                   onClick={() => {
                     setSelectedMateri(null);
@@ -195,7 +223,7 @@ const MateriListContent = () => {
                   className="text-gray-600 hover:text-red-600 p-2 rounded-md"
                   aria-label="Tutup"
                 >
-                  <MdClose size={22} />
+                  <MdClose size={24} />
                 </button>
               </div>
             </div>

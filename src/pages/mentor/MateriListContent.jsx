@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { HiDocumentText } from "react-icons/hi";
 import { MdClose } from "react-icons/md";
@@ -11,6 +12,7 @@ const MateriListContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedMateri, setSelectedMateri] = useState(null);
+  const [loadingChange, setLoadingChange] = useState(null); // id_materi yang sedang diproses
   const [pageNumber, setPageNumber] = useState(1);
   const [pdfUrl, setPdfUrl] = useState("");
   const [userName, setUserName] = useState("User"); // default
@@ -79,20 +81,58 @@ const MateriListContent = () => {
   };
 
   const handleVisibilityChange = async (id_materi, newVisibility) => {
+    const confirm = window.confirm(
+      `Ubah status materi menjadi "${newVisibility}"?`
+    );
+    if (!confirm) return;
+
     try {
+      setLoadingChange(id_materi);
       await Api.put(`/materi/${id_materi}/visibility`, {
         visibility: newVisibility,
       });
+
       setMateriList((prev) =>
-        prev.map((materi) =>
-          materi.id_materi === id_materi
-            ? { ...materi, visibility: newVisibility }
-            : materi
+        prev.map((m) =>
+          m.id_materi === id_materi ? { ...m, visibility: newVisibility } : m
         )
       );
-    } catch (error) {
-      console.error("Gagal mengubah visibility:", error);
-      alert("Gagal mengubah status materi.");
+
+      toast.success("Status materi diperbarui ✓");
+    } catch (err) {
+      toast.error("Gagal memperbarui status");
+      console.error(err);
+    } finally {
+      setLoadingChange(null);
+    }
+  };
+
+  const handleDownloadableChange = async (id_materi, value) => {
+    const teks = value === "1" ? "Bisa di-download" : "Tidak bisa";
+
+    const confirm = window.confirm(`Ubah menjadi: ${teks}?`);
+    if (!confirm) return;
+
+    try {
+      setLoadingChange(id_materi);
+      await Api.put(`/materi/${id_materi}/downloadable`, {
+        is_downloadable: Number(value),
+      });
+
+      setMateriList((prev) =>
+        prev.map((m) =>
+          m.id_materi === id_materi
+            ? { ...m, is_downloadable: Number(value) }
+            : m
+        )
+      );
+
+      toast.success("Downloadable diperbarui ✓");
+    } catch (err) {
+      toast.error("Gagal memperbarui downloadable");
+      console.error(err);
+    } finally {
+      setLoadingChange(null);
     }
   };
 
@@ -128,35 +168,65 @@ const MateriListContent = () => {
                   {materi.judul}
                 </h3>
 
-                {/* Dropdown visibility */}
-                <div className="mt-1">
+                {/* Row Dropdown → dibuat sejajar */}
+                <div className="flex items-center gap-3 mt-2">
+                  {/* Visibility */}
                   <select
                     value={materi.visibility}
+                    disabled={loadingChange === materi.id_materi}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) =>
                       handleVisibilityChange(materi.id_materi, e.target.value)
                     }
-                    className={`text-sm px-2 py-1 rounded-md font-medium border mt-1
-    ${
-      materi.visibility === "open"
-        ? "text-green-600 border-green-400"
-        : materi.visibility === "hold"
-        ? "text-yellow-600 border-yellow-400"
-        : materi.visibility === "close"
-        ? "text-red-600 border-red-400"
-        : "text-gray-400 border-gray-300"
-    }`}
+                    className={`text-sm px-2 py-1 rounded-md font-medium border
+      ${
+        materi.visibility === "open"
+          ? "text-green-600 border-green-400"
+          : materi.visibility === "hold"
+          ? "text-yellow-600 border-yellow-400"
+          : "text-red-600 border-red-400"
+      }
+      ${
+        loadingChange === materi.id_materi
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }
+    `}
                   >
-                    <option value="open" className="text-green-600">
-                      Open
-                    </option>
-                    <option value="hold" className="text-yellow-600">
-                      Hold
-                    </option>
-                    <option value="close" className="text-red-600">
-                      Close
-                    </option>
+                    <option value="open">Open</option>
+                    <option value="hold">Hold</option>
+                    <option value="close">Close</option>
                   </select>
+
+                  {/* Downloadable */}
+                  <select
+                    value={materi.is_downloadable ? 1 : 0}
+                    disabled={loadingChange === materi.id_materi}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) =>
+                      handleDownloadableChange(materi.id_materi, e.target.value)
+                    }
+                    className={`text-sm px-2 py-1 rounded-md font-medium border
+      ${
+        materi.is_downloadable === 1
+          ? "text-green-600 border-green-400"
+          : "text-red-600 border-red-400"
+      }
+      ${
+        loadingChange === materi.id_materi
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }
+    `}
+                  >
+                    <option value={1}>Download</option>
+                    <option value={0}>No Download</option>
+                  </select>
+
+                  {/* Spinner kecil */}
+                  {loadingChange === materi.id_materi && (
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  )}
                 </div>
               </div>
             </div>
