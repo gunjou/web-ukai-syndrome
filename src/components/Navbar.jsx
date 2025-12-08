@@ -17,7 +17,7 @@ const Navbar = () => {
         </Link>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden text-white">
           <button onClick={() => setIsOpen(true)}>
             <FiMenu size={24} />
           </button>

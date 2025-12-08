@@ -101,33 +101,39 @@ const Features = () => {
   return (
     <section
       id="program"
-      className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-center px-4 font-poppins w-full h-auto my-[4rem] "
+      className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-center px-2 sm:px-4 font-poppins w-full h-auto my-10"
     >
-      <div className="bg-white relative rounded-[30px] px-4 py-8 mx-6 shadow-md">
+      <div className="bg-white relative rounded-[20px] px-3 sm:px-6 py-8 mx-2 sm:mx-6 shadow-md">
         {/* Floating Title */}
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-[4rem] py-2 rounded-full shadow-md text-lg font-bold z-20">
+        <div
+          className="absolute -top-5 left-1/2 -translate-x-1/2 
+    bg-yellow-500 text-white px-6 sm:px-16 py-2 rounded-full shadow-md 
+    text-base sm:text-lg font-bold z-20"
+        >
           Pilihan Program
         </div>
 
-        {/* Grid Desktop */}
-        <div className="max-w-7xl mx-auto px-8 mt-[2rem]">
-          <div className="hidden md:block sm:block">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-1 sm:px-8 mt-10">
+          {/* GRID DESKTOP */}
+          <div className="hidden md:block">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
               {programs.map((program, index) => (
                 <div
                   key={index}
                   onClick={() => navigate("/pembayaran", { state: program })}
-                  className={`cursor-pointer block bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
-                    program.title === "Gold"
-                      ? "border border-red-700 relative"
-                      : "border border-gray-300 mt-10"
-                  }`}
+                  className={`cursor-pointer bg-white p-5 shadow-md hover:shadow-lg transition rounded-xl 
+                ${
+                  program.title === "Gold"
+                    ? "border border-red-700 relative"
+                    : "border border-gray-300 mt-10"
+                }`}
                 >
                   {program.tag && (
-                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700 ">
+                    <div className="absolute -top-0 left-0 w-full bg-red-700 text-white py-2 text-sm font-semibold text-center">
                       {program.tag}
                     </div>
                   )}
+
                   <h4
                     className={`text-xl font-bold text-red-800 mb-1 ${
                       program.title === "Gold" ? "mt-10" : ""
@@ -141,9 +147,11 @@ const Features = () => {
                   <div className="text-4xl font-extrabold text-red-800 mb-1">
                     {program.highlight}
                   </div>
+
                   <div className="text-sm text-yellow-600 font-medium mb-4 whitespace-pre-line">
                     {program.description}
                   </div>
+
                   <ul className="text-sm text-gray-700 space-y-2">
                     {program.features.map((feat, i) =>
                       typeof feat === "string" ? (
@@ -166,50 +174,56 @@ const Features = () => {
             </div>
           </div>
 
-          {/* Slider Mobile */}
-          <div className="lg:hidden">
+          {/* SLIDER MOBILE */}
+          <div className="md:hidden">
             <Slider {...sliderSettings}>
               {programs.map((program, index) => (
                 <div
                   key={index}
                   onClick={() => navigate("/pembayaran", { state: program })}
-                  className={`cursor-pointer bg-white p-6 pt-6 shadow-md hover:shadow-lg transition text-left ${
-                    program.title === "Gold"
-                      ? "border-2 border-red-700 relative"
-                      : "border border-gray-300 mt-10"
-                  }`}
+                  className={`cursor-pointer bg-white p-5 shadow-md hover:shadow-lg transition rounded-xl
+              ${
+                program.title === "Gold"
+                  ? "border-2 border-red-700 relative"
+                  : "border border-gray-300 mt-10"
+              }`}
                 >
                   {program.tag && (
-                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white px-0 py-2 text-sm font-semibold text-center border border-red-700">
+                    <div className="absolute -top-[0rem] left-0 w-full bg-red-700 text-white py-2 text-xs font-semibold text-center">
                       {program.tag}
                     </div>
                   )}
+
                   <h4
-                    className={`text-xl font-bold text-red-800 mb-1 ${
+                    className={`text-lg font-bold text-red-800 mb-1 ${
                       program.title === "Gold" ? "mt-10" : ""
                     }`}
                   >
                     {program.title}
                   </h4>
-                  <p className="text-sm text-gray-500 mb-2">
+
+                  <p className="text-xs text-gray-500 mb-2">
                     Rp {program.harga.toLocaleString("id-ID")}
                   </p>
-                  <div className="text-4xl font-extrabold text-red-800 mb-1">
+
+                  <div className="text-3xl font-extrabold text-red-800 mb-1">
                     {program.highlight}
                   </div>
-                  <div className="text-sm text-yellow-600 font-medium mb-4 whitespace-pre-line">
+
+                  <div className="text-xs text-yellow-600 font-medium mb-4 whitespace-pre-line leading-tight">
                     {program.description}
                   </div>
-                  <ul className="text-sm text-gray-700 space-y-2">
+
+                  <ul className="text-xs text-gray-700 space-y-1.5">
                     {program.features.map((feat, i) =>
                       typeof feat === "string" ? (
                         <li key={i} className="flex items-start">
-                          <FaCheck className="text-green-600 mt-1 mr-2" />
+                          <FaCheck className="text-green-600 mt-0.5 mr-2" />
                           <span>{feat}</span>
                         </li>
                       ) : (
                         <li key={i} className="flex items-start">
-                          <FaTimes className="text-red-600 mt-1 mr-2" />
+                          <FaTimes className="text-red-600 mt-0.5 mr-2" />
                           <span className="line-through text-gray-400">
                             {feat.text}
                           </span>
@@ -223,11 +237,12 @@ const Features = () => {
           </div>
         </div>
 
-        <div className="text-left px-8 pt-8">
-          <p className="font-semibold text-sm text-gray-700">
+        {/* SYARAT GARANSI */}
+        <div className="text-left px-4 sm:px-8 pt-6">
+          <p className="font-semibold text-xs sm:text-sm text-gray-700">
             *Syarat klaim garansi:
           </p>
-          <ul className="list-disc list-inside ml-4 text-sm text-gray-400 space-y-0.5">
+          <ul className="list-disc list-inside ml-2 sm:ml-4 text-xs sm:text-sm text-gray-400 space-y-0.5">
             <li>Tidak boleh bolos les selama 3x.</li>
             <li>Hafalan seluruh materi wajib terpenuhi.</li>
             <li>Wajib mengerjakan semua pretest & posttest dan tryout.</li>

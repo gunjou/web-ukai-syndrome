@@ -9,12 +9,13 @@ import icon_video from "../../assets/icon_video.png";
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
 
-  const MenuItems = () => (
+  const MenuItems = ({ isMobile }) => (
     <nav>
       <ul className="space-y-2 px-4">
         <li>
           <NavLink
             to="/dashboard/materi"
+            onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                ${
@@ -31,6 +32,7 @@ const Sidebar = () => {
         <li>
           <NavLink
             to="/dashboard/video"
+            onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
@@ -47,6 +49,7 @@ const Sidebar = () => {
         <li>
           <NavLink
             to="/dashboard/tryout"
+            onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
@@ -63,6 +66,7 @@ const Sidebar = () => {
         <li>
           <NavLink
             to="/dashboard/hasil-to"
+            onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
                 ${
@@ -134,7 +138,6 @@ const Sidebar = () => {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
@@ -147,7 +150,7 @@ const Sidebar = () => {
             </div>
 
             <div className="px-2">
-              <MenuItems />
+              <MenuItems isMobile={true} />
             </div>
           </aside>
         </>
@@ -165,7 +168,7 @@ const Sidebar = () => {
           </a>
         </div>
         <div className="pt-4">
-          <MenuItems />
+          <MenuItems isMobile={false} />
         </div>
       </aside>
     </>

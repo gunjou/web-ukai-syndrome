@@ -23,11 +23,30 @@ const Hero = () => {
       </div>
 
       {/* Gambar dengan posisi floating */}
-      <img
-        src={dokter}
-        alt="Dokter"
-        className="flex justify-center absolute top-0 bottom-0 mt-[90px] left-1/2 transform -translate-x-1/2 w-[80%] sm:w-[400px] md:w-[350px] h-auto z-20"
-      />
+      <div
+        className="
+  absolute 
+  left-1/2 
+  transform -translate-x-1/2
+  top-[90px]
+
+  w-[65vw]          /* HP kecil */
+  max-w-[420px]     /* batas maksimal */
+  sm:w-[50vw]       /* Tablet */
+  md:w-[35vw]       /* Laptop */
+  lg:w-[30vw]       /* Desktop */
+
+  flex justify-center items-center
+  z-20
+"
+      >
+        <img
+          src={dokter}
+          alt="Dokter"
+          className="w-full h-auto object-contain drop-shadow-xl"
+        />
+      </div>
+
       <div className="absolute top-[190px] left-1/2 pl-[60px] sm:pl-[20px] md:pl-[50px] hidden sm:block">
         <div className="bg-gradient-to-b from-red-600 via-red-00 to-transparent text-white mx-auto block mb-20 px-8 py-4 w-[16rem] sm:w-[12rem] md:w-[20rem] rounded-tr-[50px] text-black md:text-sm text-left font-semibold">
           Platform penyedia layanan pendidikan farmasi berbasis teknologi

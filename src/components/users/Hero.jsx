@@ -25,8 +25,19 @@ const Hero = () => {
       <img
         src={dokter}
         alt="Dokter"
-        className="flex justify-center absolute top-0 bottom-0 mt-[90px] left-1/2 transform -translate-x-1/2 w-[80%] sm:w-[400px] md:w-[340px] h-auto z-20"
+        className="
+    flex justify-center absolute top-[120px] left-1/2 transform -translate-x-1/2
+    w-[55%]              /* ukuran kecil di mobile */
+    sm:w-[260px]         /* tablet kecil */
+    md:w-[340px]         /* tablet besar */
+    lg:w-[420px]         /* laptop */
+    xl:w-[480px]         /* desktop */
+    h-auto
+    max-w-[480px]        /* batasi ukuran maksimal */
+    z-20
+  "
       />
+
       <div className="absolute top-[190px] left-1/2 pl-[60px] sm:pl-[20px] md:pl-[50px] hidden sm:block">
         <div className="bg-gradient-to-b from-red-600 via-red-00 to-transparent mx-auto block mb-20 px-8 py-4 w-[16rem] sm:w-[12rem] md:w-[20rem] rounded-tr-[50px] text-white md:text-sm text-left font-semibold">
           Platform penyedia layanan pendidikan farmasi berbasis teknologi

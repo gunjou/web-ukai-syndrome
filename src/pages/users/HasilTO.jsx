@@ -148,8 +148,8 @@ const HasilTO = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-inner">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 w-full">
+            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-inner w-full sm:w-auto">
               <svg
                 className="w-5 h-5 text-gray-400 mr-2"
                 xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +169,7 @@ const HasilTO = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari judul, nilai, atau status..."
-                className="bg-transparent focus:outline-none text-sm text-gray-700 w-40"
+                className="bg-transparent focus:outline-none text-sm text-gray-700 w-full sm:w-40"
               />
             </div>
 
@@ -181,7 +181,7 @@ const HasilTO = () => {
                 id="filterTryout"
                 value={filterTryout}
                 onChange={(e) => setFilterTryout(e.target.value)}
-                className="block w-36 rounded-md border border-gray-200 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="block w-full sm:w-36 rounded-md border border-gray-200 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {uniqueTryouts.map((title) => (
                   <option key={title} value={title}>
@@ -192,7 +192,7 @@ const HasilTO = () => {
             </div>
             <button
               onClick={exportPDF}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow"
+              className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow w-full sm:w-auto"
             >
               <AiOutlineFilePdf size={18} /> PDF
             </button>
