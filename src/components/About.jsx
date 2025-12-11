@@ -107,7 +107,7 @@ const About = () => {
             </div>
             <div className="flex items-center gap-2 mt-2">
               <FaPhoneAlt className="text-white" />
-              <p className="text-sm">+62 8213007505</p>
+              <p className="text-sm">+62 85732012878</p>
             </div>
           </div>
         </div>
