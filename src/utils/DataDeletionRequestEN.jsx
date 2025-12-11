@@ -8,8 +8,8 @@ const DataDeletionRequestEN = () => {
   const adminEmail = "admin@ukaisyndrome.id";
   const appName = "Syndrome UKAI";
   const developerName = "Outlook-Project";
-  // Asumsi link Kebijakan Privasi EN: /privacy-policy-en
-  const privacyPolicyLink = "/privacy-policy-en";
+  // Asumsi link Kebijakan Privasi EN: /privacy-policy
+  const privacyPolicyLink = "/privacy-policy";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

@@ -39,7 +39,7 @@ export default function PrivacyPolicyEN() {
 
       <p className="mb-4">
         Outlook-Project (“we”, “our”, or “us”) built the{" "}
-        <strong>Syndrome Ukai</strong> mobile application (“Application”) as a
+        <strong>Syndrome UKAI</strong> mobile application (“Application”) as a
         free service. This Privacy Policy explains how we collect, use, and
         protect your information when you use our Application. By using the
         Application, you agree to the practices described in this Privacy

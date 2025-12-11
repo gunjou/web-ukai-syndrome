@@ -90,7 +90,7 @@ function App() {
         <Route path="/mentor-home" element={<HomeMentor />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
         {/* Privacy Policy */}
-        <Route path="/privacy-policy-en" element={<PrivacyPolicyEN />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyEN />} />
         <Route path="/privacy-policy-id" element={<PrivacyPolicyID />} />
         {/* Data Deletion */}
         <Route

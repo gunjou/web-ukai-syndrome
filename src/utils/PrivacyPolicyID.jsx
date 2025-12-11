@@ -22,7 +22,7 @@ export default function PrivacyPolicyID() {
         </Link>
         {/* Toggle Bahasa tetap ada di sebelah kanan */}
         <a
-          href="/privacy-policy-en"
+          href="/privacy-policy"
           className="text-custom-merah hover:text-red-600 font-medium border-b border-custom-merah pb-0.5"
         >
           View in English
@@ -38,12 +38,12 @@ export default function PrivacyPolicyID() {
       </p>
 
       <p className="mb-4">
-        Outlook-Project (“kami”) membangun aplikasi seluler (mobile application)
-        <strong>Syndrome Ukai</strong> (“Aplikasi”) sebagai layanan gratis.
-        Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan,
-        menggunakan, dan melindungi informasi Anda saat Anda menggunakan
-        Aplikasi kami. Dengan menggunakan Aplikasi, Anda menyetujui praktik yang
-        dijelaskan dalam Kebijakan Privasi ini.
+        Outlook-Project (“kami”) membangun aplikasi seluler
+        <strong>Syndrome UKAI</strong> sebagai layanan gratis. Kebijakan Privasi
+        ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi
+        informasi Anda saat Anda menggunakan Aplikasi kami. Dengan menggunakan
+        Aplikasi, Anda menyetujui praktik yang dijelaskan dalam Kebijakan
+        Privasi ini.
       </p>
 
       <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">

@@ -15,7 +15,7 @@ const About = () => {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
         {/* Kolom Kiri */}
         <div>
-          <p className="font-bold text-lg">Syndrome Ukai</p>
+          <p className="font-bold text-lg">Syndrome UKAI</p>
           <p className="text-sm mt-4 text-justify text-white">
             Temukan revolusi dalam pendidikan farmasi dengan platform teknologi
             terdepan, kami menawarkan pengalaman belajar yang mudah, didukung
