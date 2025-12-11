@@ -46,7 +46,10 @@ import MentorKelas from "./pages/admin/MentorKelas.jsx";
 // mentor
 
 import MentorJs from "./Mentor.js";
-import PrivacyPolicy from "./utils/PrivacyPolicy.jsx";
+import PrivacyPolicyEN from "./utils/PrivacyPolicyEN.jsx";
+import PrivacyPolicyID from "./utils/PrivacyPolicyID.jsx";
+import DataDeletionRequestEN from "./utils/DataDeletionRequestEN.jsx";
+import DataDeletionRequestID from "./utils/DataDeletionRequestID.jsx";
 import HomeMentor from "./pages/mentor/HomeMentor.jsx";
 
 function App() {
@@ -87,7 +90,17 @@ function App() {
         <Route path="/mentor-home" element={<HomeMentor />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
         {/* Privacy Policy */}
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy-en" element={<PrivacyPolicyEN />} />
+        <Route path="/privacy-policy-id" element={<PrivacyPolicyID />} />
+        {/* Data Deletion */}
+        <Route
+          path="/data-deletion-request-en"
+          element={<DataDeletionRequestEN />}
+        />
+        <Route
+          path="/data-deletion-request-id"
+          element={<DataDeletionRequestID />}
+        />
       </Routes>
       {/* Notifikasi Toast */}
       <ToastContainer position="top-center" autoClose={3000} />

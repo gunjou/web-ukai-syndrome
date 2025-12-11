@@ -6,8 +6,8 @@ import {
   FaEnvelope,
   FaPhoneAlt,
 } from "react-icons/fa";
-import { MdOutlineAttachEmail } from "react-icons/md";
-import logo from "../assets/logo.png";
+// import { MdOutlineAttachEmail } from "react-icons/md";
+// import logo from "../assets/logo.png";
 
 const About = () => {
   return (
@@ -83,6 +83,18 @@ const About = () => {
           >
             Download
           </a>
+          <a
+            href="/privacy-policy-id" // Menggunakan versi EN yang didaftarkan ke Play Store
+            className="text-sm text-white mb-2 block cursor-pointer font-semibold hover:underline" // Diberi margin atas sedikit untuk pemisah
+          >
+            Kebijakan Privasi
+          </a>
+          <a
+            href="/data-deletion-request-id" // Menggunakan versi EN/Default
+            className="text-sm text-white mb-2 block cursor-pointer font-semibold hover:underline"
+          >
+            Hapus Akun
+          </a>
         </div>
 
         {/* Kolom Kanan */}
@@ -95,7 +107,7 @@ const About = () => {
             </div>
             <div className="flex items-center gap-2 mt-2">
               <FaPhoneAlt className="text-white" />
-              <p className="text-sm">+628213007505</p>
+              <p className="text-sm">+62 8213007505</p>
             </div>
           </div>
         </div>

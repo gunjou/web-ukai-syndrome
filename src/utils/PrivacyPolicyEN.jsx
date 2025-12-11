@@ -1,8 +1,38 @@
-// src/pages/PrivacyPolicy.jsx
-export default function PrivacyPolicy() {
+// src/pages/PrivacyPolicyEN.jsx
+import React from "react";
+import { MdOutlineKeyboardBackspace } from "react-icons/md";
+import { Link } from "react-router-dom";
+export default function PrivacyPolicyEN() {
+  const adminEmail = "admin@ukaisyndrome.id";
+  const websiteURL = "https://ukaisyndrome.id";
+
   return (
     <div className="max-w-4xl mx-auto my-10 p-6 bg-white rounded-xl shadow-md text-gray-800">
-      <h1 className="text-3xl font-bold mb-4 text-gray-900">Privacy Policy</h1>
+      {/* 🚀 START: Icon Back ke Halaman Utama (/) */}
+      <div className="mb-6 flex items-center justify-between">
+        <Link
+          to="/" // Mengarah ke rute halaman utama
+          className="text-custom-merah hover:text-red-700 gap-1 transition duration-150 flex items-center"
+          aria-label="Kembali ke Halaman Utama"
+        >
+          <span className="text-2xl">
+            <MdOutlineKeyboardBackspace />
+          </span>
+          <span className="text-sm font-medium hidden sm:inline">Back</span>
+        </Link>
+        {/* Toggle Bahasa tetap ada di sebelah kanan */}
+        <a
+          href="/privacy-policy-id"
+          className="text-custom-merah hover:text-red-600 font-medium border-b border-custom-merah pb-0.5"
+        >
+          Lihat dalam Bahasa Indonesia
+        </a>
+      </div>
+      {/* 🚀 END: Icon Back */}
+
+      <h1 className="text-3xl font-bold mb-4 text-custom-merah">
+        Privacy Policy
+      </h1>
       <p className="mb-6">
         <strong>Effective date:</strong> September 13, 2025
       </p>
@@ -16,7 +46,7 @@ export default function PrivacyPolicy() {
         Policy.
       </p>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Information We Collect
       </h2>
       <p>
@@ -38,7 +68,7 @@ export default function PrivacyPolicy() {
         </li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         How We Use Information
       </h2>
       <ul className="list-disc list-inside space-y-2">
@@ -52,7 +82,7 @@ export default function PrivacyPolicy() {
         <li>Ensuring safety, compliance, and fraud prevention.</li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Third-Party Services
       </h2>
       <p>
@@ -66,14 +96,14 @@ export default function PrivacyPolicy() {
             href="https://policies.google.com/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-custom-merah hover:underline"
           >
             Google Play Services
           </a>
         </li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Data Sharing & Disclosure
       </h2>
       <p>We may share information only in the following cases:</p>
@@ -92,7 +122,7 @@ export default function PrivacyPolicy() {
         third parties.
       </p>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Data Retention & Control
       </h2>
       <ul className="list-disc list-inside space-y-2">
@@ -103,10 +133,10 @@ export default function PrivacyPolicy() {
         <li>
           You may request deletion of your data at any time by contacting us at{" "}
           <a
-            href="mailto:outlookest2019@gmail.com"
-            className="text-blue-600 hover:underline"
+            href={`mailto:${adminEmail}`}
+            className="text-custom-merah hover:underline"
           >
-            outlookest2019@gmail.com
+            {adminEmail}
           </a>
           .
         </li>
@@ -116,7 +146,7 @@ export default function PrivacyPolicy() {
         </li>
       </ul>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Children’s Privacy
       </h2>
       <p>
@@ -127,7 +157,7 @@ export default function PrivacyPolicy() {
         promptly delete it.
       </p>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Security
       </h2>
       <p>
@@ -137,7 +167,7 @@ export default function PrivacyPolicy() {
         guarantee absolute security.
       </p>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Changes to This Policy
       </h2>
       <p>
@@ -146,7 +176,7 @@ export default function PrivacyPolicy() {
         review this Privacy Policy periodically.
       </p>
 
-      <h2 className="text-xl font-semibold mt-8 mb-2 text-gray-900">
+      <h2 className="text-xl font-semibold mt-8 mb-2 text-custom-merah">
         Contact Us
       </h2>
       <p>If you have questions or concerns, please contact us at:</p>
@@ -154,27 +184,27 @@ export default function PrivacyPolicy() {
         <li>
           <strong>Email:</strong>{" "}
           <a
-            href="mailto:outlookest2019@gmail.com"
-            className="text-blue-600 hover:underline"
+            href={`mailto:${adminEmail}`}
+            className="text-custom-merah hover:underline"
           >
-            outlookest2019@gmail.com
+            {adminEmail}
           </a>
         </li>
         <li>
           <strong>Website:</strong>{" "}
           <a
-            href="https://ukaisyndrome.id"
+            href={websiteURL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-custom-merah hover:underline"
           >
-            https://ukaisyndrome.id
+            {websiteURL}
           </a>
         </li>
       </ul>
 
       <footer className="mt-10 text-center text-sm text-gray-500">
-        &copy; 2025 Outlook-Project. All rights reserved.
+        &copy; {new Date().getFullYear()} Outlook-Project. All rights reserved.
       </footer>
     </div>
   );
