@@ -13,7 +13,7 @@ const EditMateriForm = ({ materi, onClose, onRefresh }) => {
     judul: "",
     url_file: "",
     visibility: "hold",
-    is_downloadable: 0,
+    is_downloadable: null,
   });
 
   const [loading, setLoading] = useState(false);

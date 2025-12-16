@@ -11,6 +11,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
     id_owner: null,
     judul: "", // ✅ judul materi tetap ada
     url_file: "",
+    is_downloadable: null,
     visibility: "hold", // default visibility materi
   });
 
@@ -55,7 +56,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+    console.log("Submitting form data:", formData);
     try {
       await Api.post("/materi/autogenerate-title", formData);
       toast.success(`Materi "${formData.judul}" berhasil ditambahkan!`);
