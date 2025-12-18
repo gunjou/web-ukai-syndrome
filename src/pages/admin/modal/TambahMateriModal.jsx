@@ -11,7 +11,7 @@ const TambahMateriForm = ({ onClose, onRefresh }) => {
     id_owner: null,
     judul: "", // ✅ judul materi tetap ada
     url_file: "",
-    is_downloadable: null,
+    is_downloadable: 0,
     visibility: "hold", // default visibility materi
   });
 
