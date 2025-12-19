@@ -39,7 +39,7 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
   const isCorrect = userAnswer === correctAnswer;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] p-4 md:p-6 flex flex-col">
+    <div className="min-h-screen bg-[#F7F8FA] rounded-[20px] p-4 md:p-6 flex flex-col">
       {/* HEADER */}
       <div className="bg-white rounded-xl shadow p-3 mb-3 flex justify-between items-center">
         <div>
@@ -121,17 +121,19 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
 
           {/* STATUS */}
           <div className="mt-3">
-            <span
-              className={`inline-block px-3 py-0.5 rounded-full text-xs font-semibold
-                ${
-                  isCorrect
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                }
-              `}
-            >
-              {isCorrect ? "Jawaban Benar" : "Jawaban Salah"}
-            </span>
+            {userAnswer ? (
+              <span
+                className={`inline-block px-3 py-0.5 rounded-full text-xs font-semibold
+        ${isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}
+      `}
+              >
+                {isCorrect ? "Jawaban Benar" : "Jawaban Salah"}
+              </span>
+            ) : (
+              <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-red-200 text-red-700">
+                Jawaban Salah (Tidak Dijawab)
+              </span>
+            )}
           </div>
 
           {/* PEMBAHASAN */}
@@ -153,13 +155,21 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
               Sebelumnya
             </button>
 
-            <button
-              disabled={currentIndex === data.detail_soal.length - 1}
-              onClick={() => setCurrentIndex((p) => p + 1)}
-              className="px-3 py-1.5 bg-red-500 text-white rounded-lg disabled:opacity-50 text-sm"
-            >
-              Selanjutnya
-            </button>
+            {currentIndex === data.detail_soal.length - 1 ? (
+              <button
+                onClick={onBack}
+                className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm"
+              >
+                Selesai
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentIndex((p) => p + 1)}
+                className="px-3 py-1.5 bg-red-500 text-white rounded-lg disabled:opacity-50 text-sm"
+              >
+                Selanjutnya
+              </button>
+            )}
           </div>
         </div>
       </div>

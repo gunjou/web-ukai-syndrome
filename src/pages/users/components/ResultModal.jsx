@@ -1,7 +1,10 @@
 import React from "react";
 import { FiCheckCircle } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
-const ResultModal = ({ open, nilai, onClose }) => {
+const ResultModal = ({ open, nilai, idHasilTryout, onClose }) => {
+  const navigate = useNavigate();
+
   if (!open) return null;
 
   return (
@@ -18,17 +21,30 @@ const ResultModal = ({ open, nilai, onClose }) => {
             Terima kasih sudah menyelesaikan tryout ini.
           </p>
 
-          <div className="bg-gray-100 rounded-lg p-4 w-full text-center border">
+          <div className="bg-gray-100 rounded-lg p-4 w-full text-center border mb-6">
             <p className="text-gray-700">Nilai kamu:</p>
             <p className="text-4xl font-bold text-red-500">{nilai}</p>
           </div>
 
-          <button
-            className="mt-6 w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
-            onClick={onClose}
-          >
-            Kembali
-          </button>
+          {/* Container tombol dengan flex */}
+          <div className="flex gap-4 w-full">
+            <button
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition font-semibold"
+              onClick={onClose}
+            >
+              Kembali
+            </button>
+
+            <button
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition font-semibold"
+              onClick={() => {
+                onClose();
+                navigate(`/dashboard/hasil-to?id=${idHasilTryout}`);
+              }}
+            >
+              Lihat Detail
+            </button>
+          </div>
         </div>
       </div>
     </div>

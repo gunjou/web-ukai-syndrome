@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { AiOutlineFilePdf, AiOutlineSearch } from "react-icons/ai";
 import TryoutResultDetail from "./TryoutResultDetail.jsx";
+import { useLocation } from "react-router-dom";
 
 const Spinner = () => (
   <div className="flex justify-center items-center py-20">

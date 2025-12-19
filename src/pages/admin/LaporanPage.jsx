@@ -105,9 +105,16 @@ export default function LaporanPage() {
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    debouncedSearch(e.target.value);
   };
 
+  // filteredData = data yang sudah difilter berdasarkan search nama_user dan judul_tryout
+  const filteredData = data.filter((item) => {
+    const searchLower = search.toLowerCase();
+    return (
+      item.nama_user.toLowerCase().includes(searchLower) ||
+      item.judul_tryout.toLowerCase().includes(searchLower)
+    );
+  });
   // APPLY FILTERS (from modal)
   const applyFilters = async (newFilters) => {
     const params = {
@@ -378,7 +385,7 @@ export default function LaporanPage() {
               </thead>
 
               <tbody>
-                {data.map((d, i) => (
+                {filteredData.map((d, i) => (
                   <tr key={i} className="bg-gray-100 hover:bg-gray-200">
                     <td className="px-2 py-2 text-xs text-center border">
                       {i + 1}
@@ -443,7 +450,7 @@ export default function LaporanPage() {
                   </tr>
                 ))}
 
-                {data.length === 0 && (
+                {filteredData.length === 0 && (
                   <tr>
                     <td colSpan={13} className="text-center py-6 text-gray-500">
                       Tidak ada data
