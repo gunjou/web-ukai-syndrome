@@ -1,17 +1,10 @@
-// src/pages/users/HasilTO.js
 import React, { useEffect, useState, useMemo } from "react";
 import Api from "../../utils/Api.jsx";
 import dayjs from "dayjs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import {
-  AiOutlineBarChart,
-  AiOutlineFilePdf,
-  AiOutlineFileExcel,
-  AiOutlineSearch,
-  AiOutlineFilter,
-  AiOutlineReload,
-} from "react-icons/ai";
+import { AiOutlineFilePdf, AiOutlineSearch } from "react-icons/ai";
+import TryoutResultDetail from "./TryoutResultDetail.jsx";
 
 const Spinner = () => (
   <div className="flex justify-center items-center py-20">
@@ -44,6 +37,8 @@ const HasilTO = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterTryout, setFilterTryout] = useState("all");
+  const [selectedHasil, setSelectedHasil] = useState(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const fetchHasil = async () => {
@@ -71,15 +66,11 @@ const HasilTO = () => {
       ? hasil
       : hasil.filter((item) => item.judul_tryout === filterTryout);
 
-  // UI: search & helpers
-  const [query, setQuery] = useState("");
-
   const getStatusBadge = (status) => {
     const s = (status || "").toLowerCase();
     if (s === "submitted") return "bg-green-100 text-green-800";
     if (s === "ongoing") return "bg-yellow-100 text-yellow-800";
     if (s === "time_up") return "bg-red-100 text-red-800";
-    // fallback untuk status lain
     return "bg-gray-100 text-gray-800";
   };
 
@@ -97,7 +88,6 @@ const HasilTO = () => {
 
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
-
     doc.setFontSize(14);
     doc.text("Laporan Hasil Tryout", 14, 15);
 
@@ -128,73 +118,65 @@ const HasilTO = () => {
       body: tableRows,
       startY: 25,
       styles: { fontSize: 9 },
-      headStyles: { fillColor: [79, 70, 229] }, // warna ungu indigo
+      headStyles: { fillColor: [220, 38, 38] },
     });
 
     doc.save(`hasil-tryout-${dayjs().format("DDMMYYYY")}.pdf`);
   };
 
+  if (selectedHasil) {
+    return (
+      <TryoutResultDetail
+        idHasilTryout={selectedHasil.id_hasiltryout}
+        onBack={() => setSelectedHasil(null)}
+      />
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-white flex justify-center">
-      <div className="bg-gray-100 w-full max-w-6xl h-auto p-4 rounded-[20px] shadow-md relative">
-        {/* Header: Judul + Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+    <main className="min-h-screen flex justify-center bg-gray-50">
+      <div className="bg-gray-100 w-full max-w-7xl rounded-2xl shadow-md p-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-6">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Hasil Try Out
+              Hasil Tryout
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               Ringkasan hasil tryout peserta
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 w-full">
-            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-inner w-full sm:w-auto">
-              <svg
-                className="w-5 h-5 text-gray-400 mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
-                />
-              </svg>
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-inner w-full sm:w-64">
+              <AiOutlineSearch className="w-5 h-5 text-gray-400 mr-2" />
               <input
                 aria-label="Search results"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari judul, nilai, atau status..."
-                className="bg-transparent focus:outline-none text-sm text-gray-700 w-full sm:w-40"
+                className="bg-transparent focus:outline-none text-sm text-gray-700 w-full"
               />
             </div>
 
-            <div>
-              <label htmlFor="filterTryout" className="sr-only">
-                Filter Tryout
-              </label>
-              <select
-                id="filterTryout"
-                value={filterTryout}
-                onChange={(e) => setFilterTryout(e.target.value)}
-                className="block w-full sm:w-36 rounded-md border border-gray-200 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                {uniqueTryouts.map((title) => (
-                  <option key={title} value={title}>
-                    {title === "all" ? "Semua Tryout" : title}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              id="filterTryout"
+              value={filterTryout}
+              onChange={(e) => setFilterTryout(e.target.value)}
+              className="block w-full sm:w-44 rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              {uniqueTryouts.map((title) => (
+                <option key={title} value={title}>
+                  {title === "all" ? "Semua Tryout" : title}
+                </option>
+              ))}
+            </select>
+
             <button
               onClick={exportPDF}
-              className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-shadow shadow-sm"
             >
-              <AiOutlineFilePdf size={18} /> PDF
+              <AiOutlineFilePdf size={20} /> Export PDF
             </button>
           </div>
         </div>
@@ -203,69 +185,74 @@ const HasilTO = () => {
         {loading ? (
           <Spinner />
         ) : error ? (
-          <div className="py-16 text-center text-red-600 font-semibold text-lg">
+          <div className="py-20 text-center text-red-600 font-semibold text-lg">
             {error}
           </div>
         ) : displayedHasil.length === 0 ? (
-          <div className="py-16 text-center text-gray-500 italic text-lg">
+          <div className="py-20 text-center text-gray-500 italic text-lg">
             Tidak ada hasil try out untuk filter ini.
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-              {/* Make the table body vertically scrollable, prevent horizontal scroll, use table-fixed so columns respect widths */}
-              <div className="max-h-[450px] overflow-y-auto overflow-x-hidden">
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <div className="max-h-[480px] overflow-y-auto overflow-x-hidden">
                 <table className="w-full table-fixed divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
                     <tr>
                       <th
                         style={{ width: "15%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 break-words"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide break-words"
                       >
                         Tryout
                       </th>
                       <th
-                        style={{ width: "8%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        style={{ width: "7%" }}
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
                       >
                         Attempt
                       </th>
                       <th
                         style={{ width: "18%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
                       >
                         Tanggal
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        className="px-6 py-3 text-center text-xs font-semibold text-green-600 uppercase tracking-wide"
                       >
                         Benar
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        className="px-6 py-3 text-center text-xs font-semibold text-red-600 uppercase tracking-wide"
                       >
                         Salah
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide"
                       >
                         Kosong
                       </th>
                       <th
-                        style={{ width: "8%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        style={{ width: "7%" }}
+                        className="px-6 py-3 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wide"
                       >
                         Nilai
                       </th>
                       <th
                         style={{ width: "12%" }}
-                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
                       >
                         Status
+                      </th>
+                      <th
+                        style={{ width: "10%" }}
+                        className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                      >
+                        Aksi
                       </th>
                     </tr>
                   </thead>
@@ -275,30 +262,30 @@ const HasilTO = () => {
                         key={item.id_hasiltryout}
                         className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                       >
-                        <td className="px-6 py-4 align-top text-sm font-medium text-gray-900 break-words whitespace-normal max-w-[28rem]">
+                        <td className="px-6 py-4 align-top text-sm font-medium text-gray-900 break-words max-w-[28rem] whitespace-normal">
                           {item.judul_tryout}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center whitespace-nowrap">
                           {item.attempt_ke}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 truncate">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 whitespace-nowrap">
                           {dayjs(item.tanggal_pengerjaan).format(
                             "DD MMM YYYY HH:mm"
                           )}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-green-600 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-green-600 text-center whitespace-nowrap font-semibold">
                           {item.benar}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-red-500 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-red-600 text-center whitespace-nowrap font-semibold">
                           {item.salah}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center whitespace-nowrap">
                           {item.kosong}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 text-center truncate">
+                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 text-center whitespace-nowrap">
                           {item.nilai}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm truncate">
+                        <td className="px-6 py-4 align-top text-sm whitespace-normal">
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
                               item.status_pengerjaan
@@ -307,6 +294,14 @@ const HasilTO = () => {
                             {item.status_pengerjaan}
                           </span>
                         </td>
+                        <td className="px-6 py-4 align-top text-sm text-center whitespace-nowrap">
+                          <button
+                            onClick={() => setSelectedHasil(item)}
+                            className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+                          >
+                            Detail
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -314,16 +309,16 @@ const HasilTO = () => {
               </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-3">
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-4">
               {displayedHasil.map((item) => (
                 <div
                   key={item.id_hasiltryout}
-                  className="bg-white rounded-lg p-4 shadow-sm border border-gray-100"
+                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900">
+                      <h3 className="text-base font-semibold text-gray-900">
                         {item.judul_tryout}
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
@@ -333,7 +328,7 @@ const HasilTO = () => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-indigo-600">
+                      <div className="text-xl font-bold text-indigo-600">
                         {item.nilai}
                       </div>
                       <div className="text-xs text-gray-500">
@@ -342,41 +337,47 @@ const HasilTO = () => {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-5">
+                      <div>
                         B:{" "}
-                        <span className="font-medium text-gray-800">
+                        <span className="font-semibold text-gray-800">
                           {item.benar}
                         </span>
                       </div>
-                      <div className="text-sm">
+                      <div>
                         S:{" "}
-                        <span className="font-medium text-gray-800">
+                        <span className="font-semibold text-gray-800">
                           {item.salah}
                         </span>
                       </div>
-                      <div className="text-sm">
+                      <div>
                         K:{" "}
-                        <span className="font-medium text-gray-800">
+                        <span className="font-semibold text-gray-800">
                           {item.kosong}
                         </span>
                       </div>
                     </div>
                     <div>
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(
                           item.status_pengerjaan
                         )}`}
                       >
                         {item.status_pengerjaan}
                       </span>
                     </div>
+                    <button
+                      onClick={() => setSelectedHasil(item)}
+                      className="w-full sm:w-auto mt-3 sm:mt-0 text-center text-sm font-semibold text-indigo-600 border border-indigo-300 rounded-md py-2 hover:bg-indigo-50 transition"
+                    >
+                      Lihat Pembahasan
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
       </div>
     </main>
