@@ -4,7 +4,7 @@ import { FiX, FiHelpCircle, FiClock } from "react-icons/fi";
 import { BsCalculator } from "react-icons/bs";
 import CalculatorModal from "./components/CalculatorModal.jsx";
 import QuestionNavigator from "./components/QuestionNavigator.jsx";
-import ExitFullscreenModal from "./components/ExitFullscreenModal.jsx";
+// import ExitFullscreenModal from "./components/ExitFullscreenModal.jsx";
 import ConfirmEndModal from "./components/ConfirmEndModal.jsx";
 import TimeUpModal from "./components/TimeUpModal.jsx";
 import ResultModal from "./components/ResultModal.jsx";
@@ -21,8 +21,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [attempt, setAttempt] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [showCalculator, setShowCalculator] = useState(false);
-  const containerRef = useRef(null);
-  const [showExitFullscreenModal, setShowExitFullscreenModal] = useState(false);
+  // const [showExitFullscreenModal, setShowExitFullscreenModal] = useState(false);
   const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [attemptToken, setAttemptToken] = useState(null);
@@ -233,22 +232,22 @@ const TryoutListContent = ({ tryout, onBack }) => {
     }
   };
 
-  // Fullscreen guard
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setShowExitFullscreenModal(true);
-      }
-    };
+  // // Fullscreen guard
+  // useEffect(() => {
+  //   const handleFullscreenChange = () => {
+  //     if (!document.fullscreenElement) {
+  //       setShowExitFullscreenModal(true);
+  //     }
+  //   };
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
+  //   document.addEventListener("fullscreenchange", handleFullscreenChange);
 
-    containerRef.current?.requestFullscreen().catch(() => {});
+  //   containerRef.current?.requestFullscreen().catch(() => {});
 
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  //   };
+  // }, []);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
@@ -259,10 +258,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const currentQuestion = questions[currentIndex];
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 select-none overflow-hidden"
-    >
+    <div className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 select-none overflow-hidden">
       {/* WATERMARK */}
       <div className="pointer-events-none fixed inset-0 flex flex-wrap justify-center items-center opacity-[0.06] text-gray-500 text-4xl font-bold tracking-widest">
         {Array.from({ length: 25 }).map((_, i) => (
@@ -496,7 +492,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
       {showCalculator && (
         <CalculatorModal onClose={() => setShowCalculator(false)} />
       )}
-      {showExitFullscreenModal && (
+      {/* {showExitFullscreenModal && (
         <ExitFullscreenModal
           onContinue={() => {
             containerRef.current?.requestFullscreen().catch(() => {});
@@ -504,7 +500,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
           }}
           onEnd={handleSubmit}
         />
-      )}
+      )} */}
       {showConfirmEndModal && (
         <ConfirmEndModal
           onCancel={() => setShowConfirmEndModal(false)}
@@ -520,9 +516,9 @@ const TryoutListContent = ({ tryout, onBack }) => {
           open={showResultModal}
           nilai={finalScore}
           onClose={() => {
-            if (document.fullscreenElement) {
-              document.exitFullscreen().catch(() => {});
-            }
+            // if (document.fullscreenElement) {
+            //   document.exitFullscreen().catch(() => {});
+            // }
 
             setTimeout(() => {
               setShowResultModal(false);

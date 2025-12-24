@@ -142,9 +142,9 @@ const Tryout = () => {
     setLoadingStart(true);
 
     try {
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      }
+      // if (document.documentElement.requestFullscreen) {
+      //   await document.documentElement.requestFullscreen();
+      // }
 
       const startRes = await Api.post(
         `/tryout/${tryoutToStart.id_tryout}/attempts/start`
