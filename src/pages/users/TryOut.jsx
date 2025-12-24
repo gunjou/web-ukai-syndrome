@@ -1,16 +1,56 @@
 import React, { useState, useEffect } from "react";
 import {
-  IoBook,
   IoBookOutline,
   IoChevronForwardOutline,
-  IoCheckmarkCircleOutline,
   IoCloseCircleOutline,
   IoTimeOutline,
   IoFilterCircleOutline,
+  IoPlayCircleOutline,
 } from "react-icons/io5";
+
 import TryoutListContent from "./TryOutListContent";
 import Api from "../../utils/Api.jsx";
 import { toast } from "react-toastify";
+
+const formatTanggalIndo = (dateString) => {
+  if (!dateString) return "-";
+
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+// const getTryoutStatus = (to) => {
+//   if (!to.access_start_at || !to.access_end_at) return "unknown";
+
+//   const now = new Date();
+//   const start = new Date(to.access_start_at);
+//   const end = new Date(to.access_end_at);
+
+//   if (now >= start && now <= end) return "ongoing";
+//   return "not_started";
+// };
+
+const getTryoutStatus = (to) => {
+  // sementara: null = boleh diakses
+  if (!to.access_start_at || !to.access_end_at) return "ongoing";
+
+  const now = new Date();
+
+  const start = new Date(to.access_start_at);
+  start.setHours(0, 0, 0, 0); // awal hari
+
+  const end = new Date(to.access_end_at);
+  end.setHours(23, 59, 59, 999); // akhir hari
+
+  if (now >= start && now <= end) return "ongoing";
+  if (now < start) return "not_started";
+  return "ended";
+};
 
 const Tryout = () => {
   const [tryouts, setTryouts] = useState([]);
@@ -28,10 +68,9 @@ const Tryout = () => {
       try {
         const response = await Api.get("/tryout/list");
         const list = response.data.data || [];
-        const openTryouts = list.filter((to) => to.visibility === "open");
 
         const updatedList = await Promise.all(
-          openTryouts.map(async (to) => {
+          list.map(async (to) => {
             try {
               const res = await Api.get(
                 `/tryout/${to.id_tryout}/remaining-attempts`
@@ -57,13 +96,39 @@ const Tryout = () => {
   }, []);
 
   const handleSelectTryout = async (to) => {
+    const status = getTryoutStatus(to);
+
+    // if (status !== "ongoing") {
+    //   toast.warning(
+    //     `Tryout ini belum berlangsung.\n\n` +
+    //       `Mulai: ${formatTanggalIndo(to.access_start_at)}\n` +
+    //       `Selesai: ${formatTanggalIndo(to.access_end_at)}`,
+    //     { autoClose: 5000 }
+    //   );
+    //   return;
+    // }
+
+    if (status === "not_started") {
+      toast.warning(
+        `Tryout belum berlangsung.\n\nMulai: ${formatTanggalIndo(
+          to.access_start_at
+        )}`
+      );
+      return;
+    }
+
+    if (status === "ended") {
+      toast.error("Tryout ini sudah berakhir.");
+      return;
+    }
+
     try {
       const res = await Api.get(`/tryout/${to.id_tryout}/remaining-attempts`);
       setAttemptInfo(res.data.data);
       setTryoutToStart(to);
       setShowModal(true);
     } catch {
-      alert("Gagal memuat data attempt.");
+      toast.error("Gagal memuat data attempt.");
     }
   };
 
@@ -197,10 +262,20 @@ const Tryout = () => {
           </div>
 
           <p className="text-gray-600">
-            Setelah kamu menekan{" "}
-            <span className="text-red-600 font-bold">Mulai</span>, timer
-            berjalan.
+            Menekan <span className="text-red-600 font-semibold">Mulai</span>{" "}
+            berarti Anda menyetujui untuk memulai tryout, dan waktu pengerjaan
+            akan berjalan secara otomatis.
           </p>
+
+          <div className="mt-3 flex items-start gap-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
+            <span className="text-lg">ℹ️</span>
+            <p>
+              Jika kamu masih memiliki{" "}
+              <strong>attempt yang sedang berlangsung</strong>, maka sistem akan{" "}
+              <strong>melanjutkan attempt tersebut</strong> dan
+              <strong> tidak membuat attempt baru</strong>.
+            </p>
+          </div>
 
           {attemptInfo && (
             <div className="mt-4 bg-gray-50 border p-4 rounded-xl text-sm space-y-2">
@@ -305,17 +380,61 @@ const Tryout = () => {
               <div
                 key={to.id_tryout}
                 onClick={() => handleSelectTryout(to)}
-                className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer"
+                className={`bg-white p-5 rounded-xl shadow-sm transition ${
+                  getTryoutStatus(to) === "ongoing"
+                    ? "hover:shadow-md hover:-translate-y-1 cursor-pointer"
+                    : "opacity-60 cursor-not-allowed"
+                }`}
               >
                 <h2 className="font-semibold text-lg mb-2">{to.judul}</h2>
+                {(() => {
+                  const status = getTryoutStatus(to);
+                  return (
+                    <span
+                      className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-2 ${
+                        status === "ongoing"
+                          ? "bg-green-100 text-green-700"
+                          : status === "not_started"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {/* {status === "ongoing"
+                        ? "Berlangsung"
+                        : "Belum Berlangsung"} */}
+                      {status === "ongoing"
+                        ? "Berlangsung"
+                        : status === "not_started"
+                        ? "Belum Berlangsung"
+                        : "Tidak Berlangsung"}
+                    </span>
+                  );
+                })()}
 
-                <div className="text-sm text-gray-600 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <IoBookOutline /> {to.jumlah_soal} Soal
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <IoTimeOutline /> {to.durasi} menit
-                  </div>
+                <div className="flex items-center gap-2">
+                  <IoBookOutline className="text-gray-500" />
+                  <span>{to.jumlah_soal} Soal</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IoTimeOutline className="text-gray-500" />
+                  <span>Durasi: {to.durasi} menit</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IoPlayCircleOutline className="text-gray-400" />
+                  <span>
+                    Mulai:{" "}
+                    <strong>{formatTanggalIndo(to.access_start_at)}</strong>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IoPlayCircleOutline className="text-gray-400" />
+                  <span>
+                    Selesai:{" "}
+                    <strong>{formatTanggalIndo(to.access_end_at)}</strong>
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
