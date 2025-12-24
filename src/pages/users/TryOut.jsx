@@ -110,9 +110,14 @@ const Tryout = () => {
 
     if (status === "not_started") {
       toast.warning(
-        `Tryout belum berlangsung.\n\nMulai: ${formatTanggalIndo(
+        `Tryout belum berlangsung.\nMulai: ${formatTanggalIndo(
           to.access_start_at
-        )}`
+        )}`,
+        {
+          style: {
+            whiteSpace: "pre-line",
+          },
+        }
       );
       return;
     }
@@ -403,10 +408,10 @@ const Tryout = () => {
                         ? "Berlangsung"
                         : "Belum Berlangsung"} */}
                       {status === "ongoing"
-                        ? "Berlangsung"
+                        ? "Sedang Berlangsung"
                         : status === "not_started"
-                        ? "Belum Berlangsung"
-                        : "Tidak Berlangsung"}
+                        ? "Belum Dimulai"
+                        : "Sudah Berakhir"}
                     </span>
                   );
                 })()}
