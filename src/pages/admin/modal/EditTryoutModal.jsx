@@ -3,6 +3,17 @@ import { AiOutlineCheck, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import Api from "../../../utils/Api";
 
+const getAutoVisibility = (startDate, endDate) => {
+  if (!startDate || !endDate) return "hold";
+
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (now >= start && now <= end) return "open";
+  return "hold";
+};
+
 const EditTryoutModal = ({ data, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState("edit");
   const [form, setForm] = useState({
@@ -10,7 +21,8 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
     jumlah_soal: data.jumlah_soal || "",
     durasi: data.durasi || "",
     max_attempt: data.max_attempt || "",
-    visibility: data.visibility || "hold",
+    access_start_date: data.access_start_date || "",
+    access_end_date: data.access_end_date || "",
   });
 
   const [paketKelas, setPaketKelas] = useState([]);
@@ -78,8 +90,14 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
         jumlah_soal: Number(form.jumlah_soal),
         durasi: Number(form.durasi),
         max_attempt: Number(form.max_attempt),
-        visibility: form.visibility,
+        access_start_date: form.access_start_date || null,
+        access_end_date: form.access_end_date || null,
+        visibility: getAutoVisibility(
+          form.access_start_date,
+          form.access_end_date
+        ),
       };
+
       await Api.put(`/tryout/${data.id_tryout}/edit`, payload);
       toast.success("Tryout berhasil diperbarui!");
       onRefresh?.();
@@ -212,31 +230,35 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Max Attempt
+                    Access Start Date
                   </label>
                   <input
-                    type="number"
-                    value={form.max_attempt}
+                    type="date"
+                    value={form.access_start_date}
                     onChange={(e) =>
-                      setForm({ ...form, max_attempt: e.target.value })
+                      setForm({
+                        ...form,
+                        access_start_date: e.target.value,
+                      })
                     }
                     className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Visibility
+                    Access End Date
                   </label>
-                  <select
-                    value={form.visibility}
+                  <input
+                    type="date"
+                    value={form.access_end_date}
                     onChange={(e) =>
-                      setForm({ ...form, visibility: e.target.value })
+                      setForm({
+                        ...form,
+                        access_end_date: e.target.value,
+                      })
                     }
                     className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                  >
-                    <option value="open">Open</option>
-                    <option value="hold">Hold</option>
-                  </select>
+                  />
                 </div>
               </div>
 

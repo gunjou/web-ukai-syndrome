@@ -11,6 +11,29 @@ import Api from "../../utils/Api.jsx";
 import LihatSoalModal from "./modal/LihatSoalModal.jsx";
 import EditTryoutModal from "./modal/EditTryoutModal.jsx";
 
+// === AMBIL WAKTU INTERNET (SERVER TIME) ===
+const getInternetTime = async () => {
+  try {
+    const res = await fetch("https://google.com", { method: "HEAD" });
+    const dateHeader = res.headers.get("Date");
+    return dateHeader ? new Date(dateHeader) : new Date();
+  } catch (e) {
+    console.warn("Gagal ambil waktu internet, fallback ke local time");
+    return new Date();
+  }
+};
+const formatTanggalIndo = (dateString) => {
+  if (!dateString) return "-";
+
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 const TryoutPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tryoutData, setTryoutData] = useState([]);
@@ -128,6 +151,64 @@ const TryoutPage = () => {
     }
   };
 
+  // === AUTO VISIBILITY BERDASARKAN WAKTU ===
+  const autoUpdateVisibility = async () => {
+    if (!tryoutData.length) return;
+
+    const now = await getInternetTime();
+
+    for (const t of tryoutData) {
+      if (!t.access_start_at || !t.access_end_at) continue;
+
+      const start = new Date(t.access_start_at);
+      start.setHours(0, 0, 0, 0); // awal hari
+
+      const end = new Date(t.access_end_at);
+      end.setHours(23, 59, 59, 999); // akhir hari
+
+      let expectedStatus = "hold";
+
+      if (now >= start && now <= end) {
+        expectedStatus = "open";
+      }
+
+      if (t.visibility !== expectedStatus) {
+        try {
+          await Api.put(`/tryout/${t.id_tryout}/visibility`, {
+            visibility: expectedStatus,
+          });
+
+          // update state lokal
+          setTryoutData((prev) =>
+            prev.map((x) =>
+              x.id_tryout === t.id_tryout
+                ? { ...x, visibility: expectedStatus }
+                : x
+            )
+          );
+
+          console.log(
+            `Auto update: ${t.judul} → ${expectedStatus.toUpperCase()}`
+          );
+        } catch (err) {
+          console.error("Auto visibility gagal:", err);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoading && tryoutData.length) {
+      autoUpdateVisibility();
+
+      const interval = setInterval(() => {
+        autoUpdateVisibility();
+      }, 60000); // cek tiap 1 menit
+
+      return () => clearInterval(interval);
+    }
+  }, [isLoading, tryoutData]);
+
   // === RENDER TABEL ===
   const renderTableRows = () =>
     filteredData.map((t, index) => (
@@ -154,6 +235,13 @@ const TryoutPage = () => {
           >
             {t.nama_kelas?.filter(Boolean).length || 0} Kelas
           </button>
+        </td>
+
+        <td className="px-4 py-2 text-sm border text-center">
+          {formatTanggalIndo(t.access_start_at)}
+        </td>
+        <td className="px-4 py-2 text-sm border text-center">
+          {formatTanggalIndo(t.access_end_at)}
         </td>
 
         <td className="px-4 py-2 text-sm border text-center">
@@ -304,6 +392,8 @@ const TryoutPage = () => {
                   <th className="px-4 py-2 text-sm">Max Attempt</th>
                   <th className="px-4 py-2 text-sm">Batch</th>
                   <th className="px-4 py-2 text-sm">Kelas</th>
+                  <th className="px-4 py-2 text-sm">Mulai</th>
+                  <th className="px-4 py-2 text-sm">Selesai</th>
                   <th className="px-4 py-2 text-sm">Status</th>
                   <th className="px-4 py-2 text-sm">Aksi</th>
                 </tr>
