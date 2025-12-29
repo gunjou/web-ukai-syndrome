@@ -135,28 +135,28 @@ const HasilTO = () => {
   }
 
   return (
-    <main className="min-h-screen flex justify-center bg-gray-50">
-      <div className="bg-gray-100 w-full max-w-7xl rounded-2xl shadow-md p-4">
+    <main className="min-h-screen flex justify-center bg-gray-100 dark:bg-gray-900">
+      <div className="bg-white dark:bg-gray-800 w-full max-w-7xl rounded-2xl shadow-md p-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-6">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               Hasil Tryout
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Ringkasan hasil tryout peserta
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 shadow-inner w-full sm:w-64">
-              <AiOutlineSearch className="w-5 h-5 text-gray-400 mr-2" />
+            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 shadow-inner w-full sm:w-64">
+              <AiOutlineSearch className="w-5 h-5 text-gray-400 dark:text-gray-300 mr-2" />
               <input
                 aria-label="Search results"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Cari judul, nilai, atau status..."
-                className="bg-transparent focus:outline-none text-sm text-gray-700 w-full"
+                className="bg-transparent focus:outline-none text-sm text-gray-700 dark:text-gray-300 w-full"
               />
             </div>
 
@@ -164,7 +164,7 @@ const HasilTO = () => {
               id="filterTryout"
               value={filterTryout}
               onChange={(e) => setFilterTryout(e.target.value)}
-              className="block w-full sm:w-44 rounded-md border border-gray-300 bg-white py-2 px-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="block w-full sm:w-44 rounded-md border border-gray-300 bg-white dark:bg-gray-800 py-2 px-3 text-gray-700 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               {uniqueTryouts.map((title) => (
                 <option key={title} value={title}>
@@ -190,100 +190,104 @@ const HasilTO = () => {
             {error}
           </div>
         ) : displayedHasil.length === 0 ? (
-          <div className="py-20 text-center text-gray-500 italic text-lg">
+          <div className="py-20 text-center text-gray-500 dark:text-gray-400 italic text-lg">
             Tidak ada hasil try out untuk filter ini.
           </div>
         ) : (
           <>
             {/* Desktop Table */}
-            <div className="hidden md:block rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="hidden md:block rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
               <div className="max-h-[480px] overflow-y-auto overflow-x-hidden">
-                <table className="w-full table-fixed divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+                <table className="w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-20 shadow-sm">
                     <tr>
                       <th
                         style={{ width: "15%" }}
-                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide break-words"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide break-words"
                       >
                         Tryout
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide"
                       >
                         Attempt
                       </th>
                       <th
                         style={{ width: "18%" }}
-                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide"
                       >
                         Tanggal
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="px-6 py-3 text-center text-xs font-semibold text-green-600 uppercase tracking-wide"
+                        className="px-6 py-3 text-center text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide"
                       >
                         Benar
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="px-6 py-3 text-center text-xs font-semibold text-red-600 uppercase tracking-wide"
+                        className="px-6 py-3 text-center text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide"
                       >
                         Salah
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wide"
+                        className="px-6 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide"
                       >
                         Kosong
                       </th>
                       <th
                         style={{ width: "7%" }}
-                        className="px-6 py-3 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wide"
+                        className="px-6 py-3 text-center text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide"
                       >
                         Nilai
                       </th>
                       <th
                         style={{ width: "12%" }}
-                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                        className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide"
                       >
                         Status
                       </th>
                       <th
                         style={{ width: "10%" }}
-                        className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                        className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide"
                       >
                         Aksi
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100">
                     {displayedHasil.map((item, idx) => (
                       <tr
                         key={item.id_hasiltryout}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                        className={
+                          idx % 2 === 0
+                            ? "bg-white dark:bg-gray-800"
+                            : "bg-gray-50 dark:bg-gray-700"
+                        }
                       >
-                        <td className="px-6 py-4 align-top text-sm font-medium text-gray-900 break-words max-w-[28rem] whitespace-normal">
+                        <td className="px-6 py-4 align-top text-sm font-medium text-gray-900 dark:text-gray-100 break-words max-w-[28rem] whitespace-normal">
                           {item.judul_tryout}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center whitespace-nowrap">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 dark:text-gray-300 text-center whitespace-nowrap">
                           {item.attempt_ke}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 whitespace-nowrap">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {dayjs(item.tanggal_pengerjaan).format(
                             "DD MMM YYYY HH:mm"
                           )}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-green-600 text-center whitespace-nowrap font-semibold">
+                        <td className="px-6 py-4 align-top text-sm text-green-600 dark:text-green-400 text-center whitespace-nowrap font-semibold">
                           {item.benar}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-red-600 text-center whitespace-nowrap font-semibold">
+                        <td className="px-6 py-4 align-top text-sm text-red-600 dark:text-red-400 text-center whitespace-nowrap font-semibold">
                           {item.salah}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm text-gray-700 text-center whitespace-nowrap">
+                        <td className="px-6 py-4 align-top text-sm text-gray-700 dark:text-gray-300 text-center whitespace-nowrap">
                           {item.kosong}
                         </td>
-                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 text-center whitespace-nowrap">
+                        <td className="px-6 py-4 align-top text-sm font-semibold text-indigo-600 dark:text-indigo-400 text-center whitespace-nowrap">
                           {item.nilai}
                         </td>
                         <td className="px-6 py-4 align-top text-sm whitespace-normal">
@@ -298,7 +302,7 @@ const HasilTO = () => {
                         <td className="px-6 py-4 align-top text-sm text-center whitespace-nowrap">
                           <button
                             onClick={() => setSelectedHasil(item)}
-                            className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+                            className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors dark:text-indigo-400 dark:hover:text-indigo-200"
                           >
                             Detail
                           </button>
@@ -315,46 +319,46 @@ const HasilTO = () => {
               {displayedHasil.map((item) => (
                 <div
                   key={item.id_hasiltryout}
-                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-base font-semibold text-gray-900">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                         {item.judul_tryout}
                       </h3>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {dayjs(item.tanggal_pengerjaan).format(
                           "DD MMM YYYY HH:mm"
                         )}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-indigo-600">
+                      <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
                         {item.nilai}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         Attempt {item.attempt_ke}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex items-center gap-5">
                       <div>
                         B:{" "}
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                           {item.benar}
                         </span>
                       </div>
                       <div>
                         S:{" "}
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                           {item.salah}
                         </span>
                       </div>
                       <div>
                         K:{" "}
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                           {item.kosong}
                         </span>
                       </div>
@@ -370,7 +374,7 @@ const HasilTO = () => {
                     </div>
                     <button
                       onClick={() => setSelectedHasil(item)}
-                      className="w-full sm:w-auto mt-3 sm:mt-0 text-center text-sm font-semibold text-indigo-600 border border-indigo-300 rounded-md py-2 hover:bg-indigo-50 transition"
+                      className="w-full sm:w-auto mt-3 sm:mt-0 text-center text-sm font-semibold text-indigo-600 border border-indigo-300 rounded-md py-2 hover:bg-indigo-50 transition dark:text-indigo-400 dark:border-indigo-700 dark:hover:bg-gray-700"
                     >
                       Lihat Pembahasan
                     </button>

@@ -39,19 +39,21 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
   const isCorrect = userAnswer === correctAnswer;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] rounded-[20px] p-4 md:p-6 flex flex-col">
+    <div className="min-h-screen bg-[#F7F8FA] dark:bg-gray-800 rounded-[20px] p-4 md:p-6 flex flex-col">
       {/* HEADER */}
-      <div className="bg-white rounded-xl shadow p-3 mb-3 flex justify-between items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-3 mb-3 flex justify-between items-center">
         <div>
-          <h1 className="text-lg font-semibold">{data.judul_tryout}</h1>
-          <p className="text-xs text-gray-500">
+          <h1 className="text-lg font-semibold dark:text-gray-100">
+            {data.judul_tryout}
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Nilai: <b>{data.nilai}</b> • Attempt ke-{data.attempt_ke}
           </p>
         </div>
 
         <button
           onClick={onBack}
-          className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm"
+          className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm dark:text-gray-200"
         >
           Kembali
         </button>
@@ -59,7 +61,7 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
 
       <div className="flex gap-4 max-md:flex-col-reverse flex-1 overflow-hidden">
         {/* NAVIGATOR */}
-        <div className="w-64 bg-white rounded-xl shadow p-3 border max-md:w-full h-full overflow-y-auto">
+        <div className="w-64 bg-white dark:bg-gray-800 rounded-xl shadow p-3 border dark:border-gray-700 max-md:w-full h-full overflow-y-auto">
           <QuestionNavigator
             questions={data.detail_soal.map((s) => ({
               jawaban_user: s.jawaban_user,
@@ -71,9 +73,9 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
         </div>
 
         {/* SOAL */}
-        <div className="flex-1 bg-white rounded-xl shadow p-3 border overflow-y-auto h-full">
+        <div className="flex-1 bg-white rounded-xl shadow p-3 border dark:bg-gray-800 dark:border-gray-700 overflow-y-auto h-full">
           {/* PERTANYAAN */}
-          <div className="text-base font-medium mb-3 flex gap-2">
+          <div className="text-base font-medium dark:text-gray-100 mb-3 flex gap-2">
             <span>{soal.nomor}.</span>
             <div
               dangerouslySetInnerHTML={{ __html: soal.pertanyaan }}
@@ -82,12 +84,14 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
                 [&_img]:h-auto
                 [&_img]:rounded-lg
                 [&_img]:my-2
+                dark:[&_p]:text-gray-200
+                dark:[&_img]:brightness-90
               "
             />
           </div>
 
           {/* PILIHAN */}
-          <div className="space-y-1.5 text-sm">
+          <div className="space-y-1.5 text-sm dark:text-gray-200 dark:[&_div]:bg-gray-700">
             {Object.entries(soal.pilihan).map(([key, val]) => {
               const isUser = userAnswer === key;
               const isCorrectOption = correctAnswer === key;
@@ -98,10 +102,10 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
                   className={`p-2 rounded-lg border flex items-center gap-2
                     ${
                       isCorrectOption
-                        ? "bg-green-50 border-green-400"
+                        ? "bg-green-50 border-green-400 dark:bg-green-900 dark:border-green-800"
                         : isUser
-                        ? "bg-red-50 border-red-400"
-                        : "bg-gray-50 border-gray-200"
+                        ? "bg-red-50 border-red-400 dark:bg-red-900 dark:border-red-800"
+                        : "bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600"
                     }
                   `}
                 >
@@ -150,7 +154,7 @@ const TryoutResultDetail = ({ idHasilTryout, onBack }) => {
             <button
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex((p) => p - 1)}
-              className="px-3 py-1.5 bg-gray-200 rounded-lg disabled:opacity-50 text-sm"
+              className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 dark:text-gray-100 rounded-lg disabled:opacity-50 text-sm"
             >
               Sebelumnya
             </button>

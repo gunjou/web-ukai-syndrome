@@ -32,15 +32,16 @@ const VideoList = ({ onFolderClick }) => {
     fetchModul();
   }, []);
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  <div className="p-4 text-gray-700 dark:text-gray-300">Loading...</div>;
+  if (error)
+    return <div className="p-4 text-red-500 dark:text-red-400">{error}</div>;
 
   return (
     <div className="flex flex-wrap gap-6 p-4">
       {modulItems.map((modul, idx) => (
         <div
           key={idx}
-          className="relative bg-white w-[160px] h-[120px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
+          className="relative bg-white dark:bg-gray-700 w-[160px] h-[120px] shadow border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
           onClick={() => onFolderClick(modul.judul)}
         >
           <img
@@ -50,7 +51,7 @@ const VideoList = ({ onFolderClick }) => {
           />
           <div className="mt-4 text-center px-2 flex-1 flex items-center justify-center">
             <span
-              className="text-gray-700 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
+              className="text-gray-700 dark:text-gray-300 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
               title={modul.judul}
             >
               {modul.judul}
@@ -98,11 +99,11 @@ const Video = () => {
   };
 
   return (
-    <div className="bg-white w-full h-auto h-p-6">
-      <div className="w-full bg-gray-100 p-4 rounded-[20px]">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-auto h-p-6">
+      <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-[20px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
             Video Explorer
           </h1>
 
@@ -121,7 +122,7 @@ const Video = () => {
               className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
                 backStack.length === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
               }`}
             >
               <HiArrowLeft className="text-lg" />
@@ -141,7 +142,7 @@ const Video = () => {
               className={`flex items-center gap-2 text-sm px-3 py-2 rounded-[20px] transition ${
                 forwardStack.length === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-red-500 text-white hover:bg-red-600"
               }`}
             >
               Forward
@@ -152,7 +153,7 @@ const Video = () => {
 
         {/* Breadcrumb Path */}
         <div className="text-sm text-gray-700 mb-6 flex items-center flex-wrap">
-          <span className="font-semibold mr-2">Path:</span>
+          <span className="font-semibold dark:text-gray-300 mr-2">Path:</span>
           <button
             onClick={() => handleBreadcrumbClick(-1)}
             className="text-blue-600 hover:underline mr-1"
@@ -161,7 +162,7 @@ const Video = () => {
           </button>
           {pathSegments.map((seg, index) => (
             <span key={index} className="flex items-center">
-              <span className="mx-1">/</span>
+              <span className="mx-1 dark:text-gray-400">/</span>
               <button
                 onClick={() => handleBreadcrumbClick(index)}
                 className="text-blue-600 hover:underline"

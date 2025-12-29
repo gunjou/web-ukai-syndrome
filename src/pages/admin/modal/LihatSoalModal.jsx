@@ -154,10 +154,16 @@ const LihatSoalModal = ({ tryout, onClose }) => {
 
                   {/* PEMBAHASAN */}
                   {s.pembahasan && (
-                    <div className="mt-4 text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <div className="mt-4 text-sm bg-blue-50 border border-blue-100 rounded-lg p-3">
                       <strong className="text-blue-700">Pembahasan:</strong>
+
                       <div
-                        className="mt-1"
+                        className="mt-1 text-gray-600
+        [&_img]:block
+        [&_img]:max-w-full
+        [&_img]:h-auto
+        [&_img]:rounded-lg
+        [&_img]:mt-3"
                         dangerouslySetInnerHTML={{ __html: s.pembahasan }}
                       />
                     </div>

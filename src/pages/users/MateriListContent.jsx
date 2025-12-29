@@ -89,13 +89,13 @@ const MateriListContent = () => {
   };
 
   return (
-    <div className="p-2 relative">
-      <h2 className="text-2xl font-semibold mb-4 capitalize">
+    <div className="p-2 relative text-gray-900 dark:text-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 capitalize text-gray-800 dark:text-white">
         {folder?.replace(/-/g, " ")}
       </h2>
 
       {loading ? (
-        <p className="text-gray-500">Memuat...</p>
+        <p className="text-gray-500 dark:text-gray-400">Memuat...</p>
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : materiList.length > 0 ? (
@@ -103,7 +103,12 @@ const MateriListContent = () => {
           {materiList.map((materi) => (
             <div
               key={materi.id_materi}
-              className="flex items-start justify-between gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+              className="flex items-start justify-between gap-4
+  bg-white dark:bg-gray-800
+  p-4 shadow rounded-lg
+  border border-gray-200 dark:border-gray-700
+  hover:bg-gray-50 dark:hover:bg-gray-700
+  transition"
             >
               <div
                 onClick={() => {
@@ -114,10 +119,7 @@ const MateriListContent = () => {
               >
                 <HiDocumentText className="text-red-500 text-3xl flex-shrink-0 mt-1" />
                 <div className="flex flex-col">
-                  <h3
-                    className="text-lg font-semibold text-gray-800 mb-1 capitalize"
-                    title={materi.judul}
-                  >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1 capitalize">
                     {materi.judul}
                   </h3>
                 </div>
@@ -150,7 +152,9 @@ const MateriListContent = () => {
           ))}
         </div>
       ) : (
-        <p className="text-gray-500">Belum ada materi untuk folder ini.</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Belum ada materi untuk folder ini.
+        </p>
       )}
 
       {/* Modal PDF */}
@@ -179,12 +183,12 @@ const MateriListContent = () => {
           tabIndex={0} // supaya modal bisa menangkap keyboard
         >
           {/* Fullscreen content */}
-          <div className="relative w-full h-full bg-white overflow-hidden select-none">
+          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden select-none">
             {/* Top bar */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-white z-20">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-white dark:bg-gray-900 z-20">
               <div className="flex items-center gap-3">
                 <HiDocumentText className="text-red-500 text-xl" />
-                <h3 className="text-lg font-semibold text-gray-800 capitalize truncate max-w-[70vw]">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate max-w-[70vw]">
                   {selectedMateri.judul}
                 </h3>
               </div>
@@ -220,7 +224,7 @@ const MateriListContent = () => {
                   onClick={() => {
                     setSelectedMateri(null);
                   }}
-                  className="text-gray-600 hover:text-red-600 p-2 rounded-md"
+                  className="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-500 p-2 rounded-md"
                   aria-label="Tutup"
                 >
                   <MdClose size={24} />

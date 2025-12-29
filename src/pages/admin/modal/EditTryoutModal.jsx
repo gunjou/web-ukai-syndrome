@@ -21,8 +21,10 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
     jumlah_soal: data.jumlah_soal || "",
     durasi: data.durasi || "",
     max_attempt: data.max_attempt || "",
-    access_start_date: data.access_start_date || "",
-    access_end_date: data.access_end_date || "",
+    access_start_date: data.access_start_at_date || "",
+    access_end_date: data.access_end_at_date || "",
+    access_end_time: data.access_end_at_time || "",
+    access_start_time: data.access_start_at_time || "", // Add start time here
   });
 
   const [paketKelas, setPaketKelas] = useState([]);
@@ -92,6 +94,8 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
         max_attempt: Number(form.max_attempt),
         access_start_date: form.access_start_date || null,
         access_end_date: form.access_end_date || null,
+        access_start_time: form.access_start_time || null, // Add start time to payload
+        access_end_time: form.access_end_time || null, // Add end time to payload
         visibility: getAutoVisibility(
           form.access_start_date,
           form.access_end_date
@@ -256,6 +260,36 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
                         ...form,
                         access_end_date: e.target.value,
                       })
+                    }
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* New Fields for Start and End Time (HH:MM) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Waktu Mulai
+                  </label>
+                  <input
+                    type="time"
+                    value={form.access_start_time}
+                    onChange={(e) =>
+                      setForm({ ...form, access_start_time: e.target.value })
+                    }
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Waktu Selesai
+                  </label>
+                  <input
+                    type="time"
+                    value={form.access_end_time}
+                    onChange={(e) =>
+                      setForm({ ...form, access_end_time: e.target.value })
                     }
                     className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   />

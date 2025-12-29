@@ -37,7 +37,7 @@ const User = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
       {/* Navbar / MenuBar */}
       <MenuBar onToggleSidebar={setSidebarOpen} />
 

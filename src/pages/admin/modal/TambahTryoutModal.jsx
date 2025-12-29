@@ -9,6 +9,8 @@ const TambahTryoutModal = ({ onClose, onRefresh }) => {
   const [maxAttempt, setMaxAttempt] = useState("");
   const [accessStartAt, setAccessStartAt] = useState("");
   const [accessEndAt, setAccessEndAt] = useState("");
+  const [accessStartTime, setAccessStartTime] = useState(""); // Waktu mulai
+  const [accessEndTime, setAccessEndTime] = useState(""); // Waktu selesai
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -20,7 +22,9 @@ const TambahTryoutModal = ({ onClose, onRefresh }) => {
       !durasi ||
       !maxAttempt ||
       !accessStartAt ||
-      !accessEndAt
+      !accessEndAt ||
+      !accessStartTime ||
+      !accessEndTime
     ) {
       toast.warn("Semua field wajib diisi!");
       return;
@@ -40,7 +44,9 @@ const TambahTryoutModal = ({ onClose, onRefresh }) => {
         max_attempt: Number(maxAttempt),
         access_start_date: accessStartAt, // YYYY-MM-DD
         access_end_date: accessEndAt, // YYYY-MM-DD
-        visibility: "hold",
+        access_start_time: accessStartTime, // HH:MM
+        access_end_time: accessEndTime, // HH:MM
+        visibility: "hold", // Atur visibility sesuai kebutuhan
       });
 
       toast.success("Tryout berhasil ditambahkan!");
@@ -142,6 +148,19 @@ const TambahTryoutModal = ({ onClose, onRefresh }) => {
           />
         </div>
 
+        {/* Waktu Mulai */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Waktu Mulai
+          </label>
+          <input
+            type="time"
+            value={accessStartTime}
+            onChange={(e) => setAccessStartTime(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+          />
+        </div>
+
         {/* Tanggal Selesai */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -151,6 +170,19 @@ const TambahTryoutModal = ({ onClose, onRefresh }) => {
             type="date"
             value={accessEndAt}
             onChange={(e) => setAccessEndAt(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+          />
+        </div>
+
+        {/* Waktu Selesai */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Waktu Selesai
+          </label>
+          <input
+            type="time"
+            value={accessEndTime}
+            onChange={(e) => setAccessEndTime(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-yellow-500 focus:outline-none"
           />
         </div>

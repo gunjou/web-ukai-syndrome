@@ -17,11 +17,11 @@ const Sidebar = () => {
             to="/dashboard/materi"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
-              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
                ${
                  isActive
                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                   : "hover:bg-gray-200 text-gray-700"
+                   : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
                }`
             }
           >
@@ -34,11 +34,11 @@ const Sidebar = () => {
             to="/dashboard/video"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
-              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
                 ${
                   isActive
                     ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700"
+                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
                 }`
             }
           >
@@ -51,16 +51,16 @@ const Sidebar = () => {
             to="/dashboard/tryout"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
-              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
                 ${
                   isActive
                     ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700"
+                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
                 }`
             }
           >
             <img src={icon_file} alt="Soal TO" className="h-auto w-7" />
-            <span>TryOut</span>
+            <span>Tryout</span>
           </NavLink>
         </li>
         <li>
@@ -68,16 +68,16 @@ const Sidebar = () => {
             to="/dashboard/hasil-to"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
-              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer
+              `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
                 ${
                   isActive
                     ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700"
+                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
                 }`
             }
           >
             <img src={icon_pesan} alt="Hasil TO" className="h-auto w-7" />
-            <span>Hasil TO</span>
+            <span>Hasil Tryout</span>
           </NavLink>
         </li>
       </ul>
@@ -91,10 +91,10 @@ const Sidebar = () => {
         <button
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="p-2 rounded-md bg-white shadow-md focus:outline-none focus:ring"
+          className="p-2 rounded-md bg-white shadow-md focus:outline-none focus:ring dark:bg-gray-800"
         >
           <svg
-            className="w-6 h-6 text-gray-800"
+            className="w-6 h-6 text-gray-800 dark:text-gray-100"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -114,13 +114,13 @@ const Sidebar = () => {
       {open && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-40 z-30"
+            className="fixed inset-0 bg-black bg-opacity-40 dark:bg-opacity-60 z-30"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
 
-          <aside className="fixed left-0 top-0 w-64 bg-white h-full shadow-md z-40 md:hidden transform transition-transform">
-            <div className="p-6 pl-4 text-2xl font-bold text-blue-600 flex items-center justify-between">
+          <aside className="fixed left-0 top-0 w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-700 h-full shadow-md z-40 md:hidden transform transition-transform">
+            <div className="p-6 pl-4 text-2xl font-bold text-yellow-600 flex items-center justify-between">
               <a className="flex justify-left" href="/home">
                 <img
                   src={homepage_img}
@@ -131,10 +131,10 @@ const Sidebar = () => {
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="p-1 rounded-md hover:bg-gray-200"
+                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 focus:outline-none focus:ring"
               >
                 <svg
-                  className="w-6 h-6 text-gray-800"
+                  className="w-6 h-6 text-gray-800 dark:text-gray-100"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -157,8 +157,8 @@ const Sidebar = () => {
       )}
 
       {/* Desktop sidebar (unchanged) */}
-      <aside className="w-64 bg-white min-h-screen shadow-md hidden md:block fixed top-0 z-20">
-        <div className="p-6 pl-4 text-2xl font-bold text-blue-600">
+      <aside className="w-64 bg-white dark:bg-gray-900 min-h-screen border-r dark:border-gray-700 shadow-md hidden md:block fixed top-0 z-20">
+        <div className="pt-4 px-4">
           <a className="flex justify-left" href="/home">
             <img
               src={homepage_img}

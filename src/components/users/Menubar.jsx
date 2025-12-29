@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Api from "../../utils/Api";
 import ModalProfile from "./modal/ModalProfile";
-import { FiBell, FiSearch, FiMenu } from "react-icons/fi";
+import { FiBell, FiMenu, FiSun, FiMoon } from "react-icons/fi";
 
 const MenuBar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [kelasUser, setKelasUser] = useState(false);
+  const [theme, setTheme] = useState("light");
   const menuRef = useRef(null);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -20,28 +21,40 @@ const MenuBar = ({ onToggleSidebar }) => {
     .join("")
     .toUpperCase();
 
+  /* =======================
+     THEME (DARK / LIGHT)
+  ======================= */
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+  };
+
+  /* =======================
+     AVATAR COLOR
+  ======================= */
   const stringToColor = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue = hash % 360;
-    const saturation = 40 + (hash % 30);
-    const lightness = 45 + (hash % 20);
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    return `hsl(${hash % 360}, 55%, 50%)`;
   };
 
   const avatarColor = stringToColor(userName);
 
+  /* =======================
+     FETCH KELAS
+  ======================= */
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await handleKelasSaya();
-      } catch (err) {
-        console.error("Gagal fetch data:", err);
-      }
-    };
-    fetchData();
+    handleKelasSaya();
   }, []);
 
   const handleKelasSaya = async () => {
@@ -56,76 +69,71 @@ const MenuBar = ({ onToggleSidebar }) => {
   const handleLogout = async () => {
     try {
       await Api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-
+    } catch {}
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
 
+  /* =======================
+     CLOSE MENU OUTSIDE
+  ======================= */
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setShowMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <>
-      <div className="bg-white flex items-center justify-between px-3 sm:px-6 py-3 fixed top-0 w-full z-10 h-[65px] ">
-        {/* LEFT: Hamburger menu for mobile */}
+      <div className="bg-white dark:bg-gray-900 flex items-center justify-between px-3 sm:px-6 py-3 fixed top-0 w-full z-10 h-[65px] border-b dark:border-gray-700">
+        {/* LEFT */}
         <div className="flex items-center space-x-2">
           <button
             onClick={() => onToggleSidebar(true)}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100"
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <FiMenu size={22} className="text-gray-700" />
+            <FiMenu size={22} className="text-gray-700 dark:text-gray-200" />
           </button>
-          <span className="text-lg font-semibold text-gray-800 hidden sm:block">
+          <span className="text-lg font-semibold text-gray-800 dark:text-white hidden sm:block">
             Dashboard
           </span>
         </div>
 
-        {/* CENTER: Search bar */}
-        <div className="hidden sm:flex flex-1 justify-center">
-          <div className="relative w-full max-w-md">
-            <input
-              type="search"
-              className="w-full px-4 py-1.5 rounded-[20px] border border-gray-300 bg-transparent text-sm text-neutral-700 outline-none transition duration-200 ease-in-out focus:ring-2 focus:ring-gray-300 focus:border-gray-300"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button
-              className="absolute right-0 top-0 bottom-0 px-3 py-1.5 bg-gray-300 text-white rounded-r-[20px] hover:bg-gray-400 focus:outline-none"
-              type="button"
-            >
-              <FiSearch size={16} />
-            </button>
-          </div>
-        </div>
+        {/* CENTER – SEARCH DIHAPUS */}
 
-        {/* RIGHT: kelas + bell + avatar */}
+        {/* RIGHT */}
         <div className="flex items-center space-x-3 sm:space-x-5">
           {/* Kelas */}
           <div className="hidden sm:block relative">
-            <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] text-gray-500">
+            <span className="absolute -top-2 left-3 bg-white dark:bg-gray-900 px-1 text-[10px] text-gray-500 rounded-lg">
               Kelas
             </span>
-            <div className="px-3 py-1 border rounded-[15px] bg-white text-black text-sm shadow-sm min-w-[100px] text-center">
+            <div className="px-3 py-1 border dark:border-gray-700 rounded-[15px] bg-white dark:bg-gray-800 text-black dark:text-white text-sm shadow-sm min-w-[100px] text-center">
               {kelasUser?.nama_kelas || "-"}
             </div>
           </div>
 
+          {/* Toggle Theme */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            title="Toggle Theme"
+          >
+            {theme === "light" ? (
+              <FiMoon className="text-gray-700" />
+            ) : (
+              <FiSun className="text-yellow-400" />
+            )}
+          </button>
+
           {/* Notifikasi */}
           <div className="relative">
-            <FiBell className="w-6 h-6 text-gray-700 cursor-pointer" />
+            <FiBell className="w-6 h-6 text-gray-700 dark:text-gray-200 cursor-pointer" />
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
               3
             </span>
@@ -142,19 +150,19 @@ const MenuBar = ({ onToggleSidebar }) => {
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50 text-black">
+              <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg z-50">
                 <button
                   onClick={() => {
                     setShowProfile(true);
                     setShowMenu(false);
                   }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
                 >
                   Profile
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
                 >
                   Logout
                 </button>

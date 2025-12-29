@@ -11,6 +11,26 @@ import Api from "../../utils/Api.jsx";
 import LihatSoalModal from "./modal/LihatSoalModal.jsx";
 import EditTryoutModal from "./modal/EditTryoutModal.jsx";
 
+const formatTanggalJamWIB = (date, time) => {
+  if (!date) return "-";
+
+  const d = new Date(`${date}T${time || "00:00"}`);
+
+  const tanggal = d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  const jam = d.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${tanggal} ${jam} WIB`;
+};
+
 // === AMBIL WAKTU INTERNET (SERVER TIME) ===
 const getInternetTime = async () => {
   try {
@@ -155,16 +175,18 @@ const TryoutPage = () => {
   const autoUpdateVisibility = async () => {
     if (!tryoutData.length) return;
 
-    const now = await getInternetTime();
+    const now = new Date(); // ⬅️ PAKAI LOCAL TIME
 
     for (const t of tryoutData) {
-      if (!t.access_start_at || !t.access_end_at) continue;
+      if (!t.access_start_at_date || !t.access_end_at_date) continue;
 
-      const start = new Date(t.access_start_at);
-      start.setHours(0, 0, 0, 0); // awal hari
+      const start = new Date(
+        `${t.access_start_at_date}T${t.access_start_at_time || "00:00"}`
+      );
 
-      const end = new Date(t.access_end_at);
-      end.setHours(23, 59, 59, 999); // akhir hari
+      const end = new Date(
+        `${t.access_end_at_date}T${t.access_end_at_time || "23:59"}`
+      );
 
       let expectedStatus = "hold";
 
@@ -178,7 +200,6 @@ const TryoutPage = () => {
             visibility: expectedStatus,
           });
 
-          // update state lokal
           setTryoutData((prev) =>
             prev.map((x) =>
               x.id_tryout === t.id_tryout
@@ -238,10 +259,11 @@ const TryoutPage = () => {
         </td>
 
         <td className="px-4 py-2 text-sm border text-center">
-          {formatTanggalIndo(t.access_start_at)}
+          {formatTanggalJamWIB(t.access_start_at_date, t.access_start_at_time)}
         </td>
+
         <td className="px-4 py-2 text-sm border text-center">
-          {formatTanggalIndo(t.access_end_at)}
+          {formatTanggalJamWIB(t.access_end_at_date, t.access_end_at_time)}
         </td>
 
         <td className="px-4 py-2 text-sm border text-center">

@@ -16,7 +16,6 @@ const formatTanggalIndo = (dateString) => {
   if (!dateString) return "-";
 
   const date = new Date(dateString);
-
   return date.toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "long",
@@ -24,28 +23,22 @@ const formatTanggalIndo = (dateString) => {
   });
 };
 
-// const getTryoutStatus = (to) => {
-//   if (!to.access_start_at || !to.access_end_at) return "unknown";
+const formatWaktuIndo = (dateString) => {
+  if (!dateString) return "-";
 
-//   const now = new Date();
-//   const start = new Date(to.access_start_at);
-//   const end = new Date(to.access_end_at);
-
-//   if (now >= start && now <= end) return "ongoing";
-//   return "not_started";
-// };
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 const getTryoutStatus = (to) => {
-  // sementara: null = boleh diakses
   if (!to.access_start_at || !to.access_end_at) return "ongoing";
 
   const now = new Date();
-
   const start = new Date(to.access_start_at);
-  start.setHours(0, 0, 0, 0); // awal hari
-
   const end = new Date(to.access_end_at);
-  end.setHours(23, 59, 59, 999); // akhir hari
 
   if (now >= start && now <= end) return "ongoing";
   if (now < start) return "not_started";
@@ -98,21 +91,11 @@ const Tryout = () => {
   const handleSelectTryout = async (to) => {
     const status = getTryoutStatus(to);
 
-    // if (status !== "ongoing") {
-    //   toast.warning(
-    //     `Tryout ini belum berlangsung.\n\n` +
-    //       `Mulai: ${formatTanggalIndo(to.access_start_at)}\n` +
-    //       `Selesai: ${formatTanggalIndo(to.access_end_at)}`,
-    //     { autoClose: 5000 }
-    //   );
-    //   return;
-    // }
-
     if (status === "not_started") {
       toast.warning(
         `Tryout belum berlangsung.\nMulai: ${formatTanggalIndo(
           to.access_start_at
-        )}`,
+        )} ${formatWaktuIndo(to.access_start_at)}`,
         {
           style: {
             whiteSpace: "pre-line",
@@ -142,10 +125,6 @@ const Tryout = () => {
     setLoadingStart(true);
 
     try {
-      // if (document.documentElement.requestFullscreen) {
-      //   await document.documentElement.requestFullscreen();
-      // }
-
       const startRes = await Api.post(
         `/tryout/${tryoutToStart.id_tryout}/attempts/start`
       );
@@ -197,15 +176,15 @@ const Tryout = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
-        <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200">
               Filter Tryout
             </h2>
             <button onClick={() => setShowFilterModal(false)}>
               <IoCloseCircleOutline
                 size={26}
-                className="text-gray-500 hover:text-black"
+                className="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
               />
             </button>
           </div>
@@ -218,10 +197,10 @@ const Tryout = () => {
                   setFilter(to.judul);
                   setShowFilterModal(false);
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm mb-1 transition ${
+                className={`w-full text-left dark:text-gray-400 px-4 py-3 rounded-lg text-sm mb-1 transition ${
                   filter === to.judul
-                    ? "bg-black text-white"
-                    : "hover:bg-gray-200"
+                    ? "bg-black text-white dark:bg-gray-800 dark:text-gray-200"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
                 {to.judul}
@@ -256,17 +235,17 @@ const Tryout = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-7">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-md p-7">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-red-100 text-red-600 p-3 rounded-full text-xl">
               ⚠️
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
               Konfirmasi Mulai Tryout
             </h2>
           </div>
 
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Menekan <span className="text-red-600 font-semibold">Mulai</span>{" "}
             berarti Anda menyetujui untuk memulai tryout, dan waktu pengerjaan
             akan berjalan secara otomatis.
@@ -283,9 +262,9 @@ const Tryout = () => {
           </div>
 
           {attemptInfo && (
-            <div className="mt-4 bg-gray-50 border p-4 rounded-xl text-sm space-y-2">
+            <div className="mt-4 bg-gray-50 dark:bg-gray-800 border p-4 rounded-xl text-sm space-y-2">
               <p className="flex justify-between">
-                <span>Sisa Attempt:</span>
+                <span className="dark:text-gray-400">Sisa Attempt:</span>
                 <span
                   className={`px-3 py-1 rounded-lg ${
                     attemptInfo.remaining_attempts === 0
@@ -343,21 +322,21 @@ const Tryout = () => {
   }
 
   return (
-    <div className="bg-white w-full h-auto h-p-6">
-      <div className="w-full bg-gray-100 p-4 rounded-[20px]">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-auto h-p-6">
+      <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-[20px]">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
               Tryout
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Daftar Tryout yang tersedia untuk anda.
             </p>
           </div>
 
           <button
             onClick={() => setShowFilterModal(true)}
-            className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-white hover:bg-gray-200"
+            className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-white hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition dark:text-white"
           >
             <IoFilterCircleOutline /> Filter
           </button>
@@ -385,13 +364,15 @@ const Tryout = () => {
               <div
                 key={to.id_tryout}
                 onClick={() => handleSelectTryout(to)}
-                className={`bg-white p-5 rounded-xl shadow-sm transition ${
+                className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow-sm transition ${
                   getTryoutStatus(to) === "ongoing"
                     ? "hover:shadow-md hover:-translate-y-1 cursor-pointer"
                     : "opacity-60 cursor-not-allowed"
                 }`}
               >
-                <h2 className="font-semibold text-lg mb-2">{to.judul}</h2>
+                <h2 className="font-semibold dark:text-white text-lg mb-2">
+                  {to.judul}
+                </h2>
                 {(() => {
                   const status = getTryoutStatus(to);
                   return (
@@ -404,9 +385,6 @@ const Tryout = () => {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {/* {status === "ongoing"
-                        ? "Berlangsung"
-                        : "Belum Berlangsung"} */}
                       {status === "ongoing"
                         ? "Sedang Berlangsung"
                         : status === "not_started"
@@ -417,33 +395,39 @@ const Tryout = () => {
                 })()}
 
                 <div className="flex items-center gap-2">
-                  <IoBookOutline className="text-gray-500" />
-                  <span>{to.jumlah_soal} Soal</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <IoTimeOutline className="text-gray-500" />
-                  <span>Durasi: {to.durasi} menit</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <IoPlayCircleOutline className="text-gray-400" />
-                  <span>
-                    Mulai:{" "}
-                    <strong>{formatTanggalIndo(to.access_start_at)}</strong>
+                  <IoBookOutline className="text-gray-500 dark:text-gray-400" />
+                  <span className="dark:text-gray-400">
+                    {to.jumlah_soal} Soal
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <IoPlayCircleOutline className="text-gray-400" />
-                  <span>
+                  <IoTimeOutline className="text-gray-500 dark:text-gray-400" />
+                  <span className="dark:text-gray-400">
+                    Durasi: {to.durasi} menit
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IoPlayCircleOutline className="text-gray-500 dark:text-gray-400" />
+                  <span className="dark:text-gray-400">
+                    Mulai:{" "}
+                    <strong>{formatTanggalIndo(to.access_start_at)}</strong>{" "}
+                    {formatWaktuIndo(to.access_start_at)}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IoPlayCircleOutline className="text-gray-500 dark:text-gray-400" />
+                  <span className="dark:text-gray-400">
                     Selesai:{" "}
-                    <strong>{formatTanggalIndo(to.access_end_at)}</strong>
+                    <strong>{formatTanggalIndo(to.access_end_at)}</strong>{" "}
+                    {formatWaktuIndo(to.access_end_at)}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-gray-500 text-sm">
+                  <span className="text-gray-500 text-sm dark:text-gray-400">
                     Attempt: {to.max_attempt}
                   </span>
                   <span
@@ -458,7 +442,7 @@ const Tryout = () => {
                 </div>
 
                 <div className="mt-4 flex justify-end">
-                  <IoChevronForwardOutline className="text-gray-400 text-xl" />
+                  <IoChevronForwardOutline className="text-gray-400 dark:text-gray-500 text-xl" />
                 </div>
               </div>
             ))}
