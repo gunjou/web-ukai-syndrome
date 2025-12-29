@@ -11,47 +11,27 @@ import Api from "../../utils/Api.jsx";
 import LihatSoalModal from "./modal/LihatSoalModal.jsx";
 import EditTryoutModal from "./modal/EditTryoutModal.jsx";
 
+const makeUTCFromWIB = (date, time = "00:00") => {
+  // WIB = UTC+7 → convert ke UTC
+  return new Date(`${date}T${time}:00+07:00`);
+};
+
 const formatTanggalJamWIB = (date, time) => {
   if (!date) return "-";
 
-  const d = new Date(`${date}T${time || "00:00"}`);
+  const d = new Date(`${date}T${time || "00:00"}:00+07:00`);
 
-  const tanggal = d.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
-  const jam = d.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  return `${tanggal} ${jam} WIB`;
-};
-
-// === AMBIL WAKTU INTERNET (SERVER TIME) ===
-const getInternetTime = async () => {
-  try {
-    const res = await fetch("https://google.com", { method: "HEAD" });
-    const dateHeader = res.headers.get("Date");
-    return dateHeader ? new Date(dateHeader) : new Date();
-  } catch (e) {
-    console.warn("Gagal ambil waktu internet, fallback ke local time");
-    return new Date();
-  }
-};
-const formatTanggalIndo = (dateString) => {
-  if (!dateString) return "-";
-
-  const date = new Date(dateString);
-
-  return date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  return (
+    d.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }) + " WIB"
+  );
 };
 
 const TryoutPage = () => {
@@ -175,24 +155,23 @@ const TryoutPage = () => {
   const autoUpdateVisibility = async () => {
     if (!tryoutData.length) return;
 
-    const now = new Date(); // ⬅️ PAKAI LOCAL TIME
+    const nowUTC = new Date(); // ⬅️ UTC REAL TIME
 
     for (const t of tryoutData) {
       if (!t.access_start_at_date || !t.access_end_at_date) continue;
 
-      const start = new Date(
-        `${t.access_start_at_date}T${t.access_start_at_time || "00:00"}`
+      const startUTC = makeUTCFromWIB(
+        t.access_start_at_date,
+        t.access_start_at_time
       );
 
-      const end = new Date(
-        `${t.access_end_at_date}T${t.access_end_at_time || "23:59"}`
+      const endUTC = makeUTCFromWIB(
+        t.access_end_at_date,
+        t.access_end_at_time || "23:59"
       );
 
-      let expectedStatus = "hold";
-
-      if (now >= start && now <= end) {
-        expectedStatus = "open";
-      }
+      const expectedStatus =
+        nowUTC >= startUTC && nowUTC <= endUTC ? "open" : "hold";
 
       if (t.visibility !== expectedStatus) {
         try {
@@ -209,7 +188,15 @@ const TryoutPage = () => {
           );
 
           console.log(
-            `Auto update: ${t.judul} → ${expectedStatus.toUpperCase()}`
+            `[AUTO] ${t.judul}`,
+            "\nnowUTC :",
+            nowUTC.toISOString(),
+            "\nstart :",
+            startUTC.toISOString(),
+            "\nend   :",
+            endUTC.toISOString(),
+            "\n→",
+            expectedStatus
           );
         } catch (err) {
           console.error("Auto visibility gagal:", err);

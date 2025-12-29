@@ -12,33 +12,62 @@ import TryoutListContent from "./TryOutListContent";
 import Api from "../../utils/Api.jsx";
 import { toast } from "react-toastify";
 
-const formatTanggalIndo = (dateString) => {
-  if (!dateString) return "-";
+const buildDateTime = (date, time) => {
+  if (!date) return null;
 
-  const date = new Date(dateString);
-  return date.toLocaleDateString("id-ID", {
+  const t = time ?? "00:00";
+
+  // Paksa dianggap WIB
+  return new Date(`${date}T${t}:00+07:00`);
+};
+
+const formatTanggalIndo = (date, time) => {
+  if (!date) return "-";
+
+  const dt = buildDateTime(date, time);
+
+  return dt.toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "long",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   });
 };
 
-const formatWaktuIndo = (dateString) => {
-  if (!dateString) return "-";
+const formatWaktuIndo = (date, time) => {
+  if (!date) return "-";
 
-  const date = new Date(dateString);
-  return date.toLocaleTimeString("id-ID", {
+  const dt = buildDateTime(date, time);
+
+  return dt.toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Jakarta",
   });
 };
 
-const getTryoutStatus = (to) => {
-  if (!to.access_start_at || !to.access_end_at) return "ongoing";
+// const getTryoutStatus = (to) => {
+//   if (!to.access_start_at || !to.access_end_at) return "unknown";
 
-  const now = new Date();
-  const start = new Date(to.access_start_at);
-  const end = new Date(to.access_end_at);
+//   const now = new Date();
+//   const start = new Date(to.access_start_at);
+//   const end = new Date(to.access_end_at);
+
+//   if (now >= start && now <= end) return "ongoing";
+//   return "not_started";
+// };
+
+const getTryoutStatus = (to) => {
+  if (!to.access_start_at_date || !to.access_end_at_date) {
+    return "ongoing";
+  }
+
+  const now = new Date(); // sekarang local, OK
+
+  const start = buildDateTime(to.access_start_at_date, to.access_start_at_time);
+
+  const end = buildDateTime(to.access_end_at_date, to.access_end_at_time);
 
   if (now >= start && now <= end) return "ongoing";
   if (now < start) return "not_started";
@@ -91,11 +120,21 @@ const Tryout = () => {
   const handleSelectTryout = async (to) => {
     const status = getTryoutStatus(to);
 
+    // if (status !== "ongoing") {
+    //   toast.warning(
+    //     `Tryout ini belum berlangsung.\n\n` +
+    //       `Mulai: ${formatTanggalIndo(to.access_start_at)}\n` +
+    //       `Selesai: ${formatTanggalIndo(to.access_end_at)}`,
+    //     { autoClose: 5000 }
+    //   );
+    //   return;
+    // }
+
     if (status === "not_started") {
       toast.warning(
         `Tryout belum berlangsung.\nMulai: ${formatTanggalIndo(
           to.access_start_at
-        )} ${formatWaktuIndo(to.access_start_at)}`,
+        )}`,
         {
           style: {
             whiteSpace: "pre-line",
@@ -125,6 +164,10 @@ const Tryout = () => {
     setLoadingStart(true);
 
     try {
+      // if (document.documentElement.requestFullscreen) {
+      //   await document.documentElement.requestFullscreen();
+      // }
+
       const startRes = await Api.post(
         `/tryout/${tryoutToStart.id_tryout}/attempts/start`
       );
@@ -385,6 +428,9 @@ const Tryout = () => {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
+                      {/* {status === "ongoing"
+                        ? "Berlangsung"
+                        : "Belum Berlangsung"} */}
                       {status === "ongoing"
                         ? "Sedang Berlangsung"
                         : status === "not_started"
@@ -408,22 +454,58 @@ const Tryout = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <IoPlayCircleOutline className="text-gray-500 dark:text-gray-400" />
-                  <span className="dark:text-gray-400">
-                    Mulai:{" "}
-                    <strong>{formatTanggalIndo(to.access_start_at)}</strong>{" "}
-                    {formatWaktuIndo(to.access_start_at)}
-                  </span>
-                </div>
+                <div className="mt-3 space-y-2 text-sm">
+                  {/* Mulai */}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30">
+                      <IoPlayCircleOutline className="text-green-600 dark:text-green-400 text-lg" />
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <IoPlayCircleOutline className="text-gray-500 dark:text-gray-400" />
-                  <span className="dark:text-gray-400">
-                    Selesai:{" "}
-                    <strong>{formatTanggalIndo(to.access_end_at)}</strong>{" "}
-                    {formatWaktuIndo(to.access_end_at)}
-                  </span>
+                    <div className="leading-tight">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Mulai
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200">
+                        {formatTanggalIndo(
+                          to.access_start_at_date,
+                          to.access_start_at_time
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatWaktuIndo(
+                          to.access_start_at_date,
+                          to.access_start_at_time
+                        )}{" "}
+                        WIB
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Selesai */}
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30">
+                      <IoPlayCircleOutline className="text-red-600 dark:text-red-400 text-lg" />
+                    </div>
+
+                    <div className="leading-tight">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Selesai
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-gray-200">
+                        {formatTanggalIndo(
+                          to.access_end_at_date,
+                          to.access_end_at_time
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatWaktuIndo(
+                          to.access_end_at_date,
+                          to.access_end_at_time
+                        )}{" "}
+                        WIB
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
