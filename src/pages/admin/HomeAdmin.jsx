@@ -12,27 +12,87 @@ import {
 } from "react-icons/fa";
 import { IoCreateSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import Api from "../../utils/Api";
 import logo from "../../assets/logo_syndrome_kuning.png";
 import homepage_img from "../../assets/dokter_admin.png";
 import garisKanan from "../../assets/garis-kanan.png";
 import bgmaps from "../../assets/maps.png";
+import ProfileDropdown from "./components/ProfileDropdown";
 
 const HomeAdmin = () => {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+  const user = React.useMemo(() => {
     try {
-      await Api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
     }
+  }, []);
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+  const nickname = user?.nickname;
+
+  const confirmLogout = () => {
+    const toastId = toast(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-gray-800">
+            Yakin ingin logout?
+          </p>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                closeToast();
+
+                // 1️⃣ FRONTEND LOGOUT (langsung)
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                navigate("/");
+
+                // 2️⃣ BACKEND LOGOUT (tidak blocking)
+                // Api.post("/auth/logout").catch((err) =>
+                //   console.warn("Logout API gagal:", err)
+                // );
+              }}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Logout
+            </button>
+
+            <button
+              onClick={closeToast}
+              className="px-3 py-1 text-sm bg-gray-200 rounded-md"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        toastId: "confirm-logout",
+        autoClose: false,
+        closeButton: false,
+        draggable: false,
+        pauseOnHover: false,
+      }
+    );
+
+    // OUTSIDE CLICK CLOSE
+    const handleOutsideClick = (e) => {
+      const toastEl = document.querySelector(".Toastify__toast");
+      if (toastEl && !toastEl.contains(e.target)) {
+        toast.dismiss(toastId);
+        document.removeEventListener("mousedown", handleOutsideClick);
+      }
+    };
+
+    setTimeout(() => {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }, 0);
   };
 
   const menus = [
@@ -98,6 +158,33 @@ const HomeAdmin = () => {
     },
   ];
 
+  const menuByNickname = {
+    superadmin: ["*"], // akses semua menu
+
+    tryout: ["/tryout", "/laporan"],
+
+    // contoh jika nanti ada role lain
+    // mentor: [
+    //   "/materi",
+    //   "/modul",
+    // ],
+  };
+
+  const filteredMenus = React.useMemo(() => {
+    if (!nickname) return [];
+
+    const allowedLinks = menuByNickname[nickname];
+
+    if (!allowedLinks) return [];
+
+    // wildcard → semua menu
+    if (allowedLinks.includes("*")) return menus;
+
+    // filter berdasarkan link
+    return menus.filter((menu) => allowedLinks.includes(menu.link));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nickname, menus]);
+
   const toggleSubmenu = (index) => {
     setOpenMenuIndex(openMenuIndex === index ? null : index);
   };
@@ -118,18 +205,27 @@ const HomeAdmin = () => {
 
       {/* Header */}
       <div className="w-full flex items-center px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
+        {/* Logo kiri */}
         <div className="flex items-center space-x-2">
           <img src={logo} alt="logo" className="h-8" />
         </div>
+
+        {/* Judul tengah */}
         <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-semibold text-biru-gelap m-0">
           Selamat Datang
         </h1>
-        <button
-          onClick={handleLogout}
-          className="ml-auto bg-red-600 text-white px-4 py-1 rounded-full text-sm hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
+
+        {/* KANAN: Profile + Logout */}
+        <div className="ml-auto flex items-center gap-3">
+          <ProfileDropdown />
+
+          <button
+            onClick={confirmLogout}
+            className="bg-red-600 text-white px-4 py-1 rounded-full text-sm hover:bg-red-700 transition"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -145,7 +241,7 @@ const HomeAdmin = () => {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-10 py-4 sticky z-10">
-            {menus.map((item, idx) => (
+            {filteredMenus.map((item, idx) => (
               <div key={idx} className="relative">
                 <Link to={item.link || "#"}>
                   <div

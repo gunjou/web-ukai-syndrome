@@ -1,13 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import homepage_img from "../../assets/logo_syndrome_kuning.png";
 import { FiMenu, FiX } from "react-icons/fi";
+import { toast } from "react-toastify";
 import Api from "../../utils/Api.jsx";
+import ProfileDropdown from "../../pages/admin/components/ProfileDropdown.jsx";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const nickname = user?.nickname;
 
   const navItems = [
     { name: "Akun Publik", href: "/akun-publik" },
@@ -24,17 +36,81 @@ const Header = () => {
     // { name: "Mentor Kelas", href: "/mentor/mentor-kelas" },
   ];
 
+  const menuByNickname = {
+    superadmin: ["*"],
+
+    tryout: ["/tryout", "/laporan"],
+  };
+
+  const filteredNavItems = useMemo(() => {
+    if (!nickname) return [];
+    const allowed = menuByNickname[nickname];
+    if (!allowed) return [];
+    if (allowed.includes("*")) return navItems;
+    return navItems.filter((item) => allowed.includes(item.href));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nickname, navItems]);
+
   const isMenuActive = (item) => location.pathname === item.href;
 
-  const handleLogout = async () => {
-    try {
-      await Api.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+  const confirmLogout = () => {
+    const toastId = toast(
+      ({ closeToast }) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-gray-800">
+            Yakin ingin logout?
+          </p>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                closeToast();
+
+                // 1️⃣ FRONTEND LOGOUT (langsung)
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                navigate("/");
+
+                // 2️⃣ BACKEND LOGOUT (tidak blocking)
+                // Api.post("/auth/logout").catch((err) =>
+                //   console.warn("Logout API gagal:", err)
+                // );
+              }}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Logout
+            </button>
+
+            <button
+              onClick={closeToast}
+              className="px-3 py-1 text-sm bg-gray-200 rounded-md"
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        toastId: "confirm-logout",
+        autoClose: false,
+        closeButton: false,
+        draggable: false,
+        pauseOnHover: false,
+      }
+    );
+
+    // OUTSIDE CLICK CLOSE
+    const handleOutsideClick = (e) => {
+      const toastEl = document.querySelector(".Toastify__toast");
+      if (toastEl && !toastEl.contains(e.target)) {
+        toast.dismiss(toastId);
+        document.removeEventListener("mousedown", handleOutsideClick);
+      }
+    };
+
+    setTimeout(() => {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }, 0);
   };
 
   return (
@@ -51,8 +127,8 @@ const Header = () => {
       </div>
 
       {/* Menu Desktop */}
-      <nav className="flex-grow flex justify-center font-semibold space-x-2 hidden md:flex">
-        {navItems.map((item) => (
+      <nav className="absolute left-1/2 -translate-x-1/2 font-semibold space-x-2 hidden md:flex">
+        {filteredNavItems.map((item) => (
           <Link
             key={item.name}
             to={item.href}
@@ -67,10 +143,11 @@ const Header = () => {
         ))}
       </nav>
 
-      {/* Tombol Logout Desktop */}
+      {/* Tombol Profile dan Logout Desktop */}
       <div className="flex items-center gap-2 ml-auto hidden md:flex">
+        <ProfileDropdown />
         <button
-          onClick={handleLogout}
+          onClick={confirmLogout}
           className="py-1 px-4 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center rounded-full"
         >
           Logout
@@ -89,7 +166,10 @@ const Header = () => {
           </button>
         </div>
         <ul className="flex flex-col space-y-4 px-6 text-gray-700">
-          {navItems.map((item) => (
+          <li>
+            <ProfileDropdown />
+          </li>
+          {filteredNavItems.map((item) => (
             <li key={item.name}>
               <Link
                 to={item.href}
@@ -106,7 +186,7 @@ const Header = () => {
           ))}
           <li>
             <button
-              onClick={handleLogout}
+              onClick={confirmLogout}
               className="py-2 px-4 bg-blue-500 text-white w-full text-center rounded-md"
             >
               Logout

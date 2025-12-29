@@ -51,6 +51,7 @@ import PrivacyPolicyID from "./utils/PrivacyPolicyID.jsx";
 import DataDeletionRequestEN from "./utils/DataDeletionRequestEN.jsx";
 import DataDeletionRequestID from "./utils/DataDeletionRequestID.jsx";
 import HomeMentor from "./pages/mentor/HomeMentor.jsx";
+import ProtectedRoute from "./utils/ProtectedRoute.jsx";
 
 function App() {
   // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
@@ -59,29 +60,101 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Routes for ADMIN */}
+        <Route
+          path="/admin-home"
+          element={
+            <ProtectedRoute allow={["superadmin", "tryout"]}>
+              <HomeAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/akun-publik"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarAkunPublik />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/peserta"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <PesertaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mentor"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarMentor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/batch"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarBatch />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kelas"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarKelas />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
+        <Route
+          path="/modul"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarModul />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/materi"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarMateri />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tryout"
+          element={
+            <ProtectedRoute allow={["superadmin", "tryout"]}>
+              <TryoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/laporan"
+          element={
+            <ProtectedRoute allow={["superadmin", "tryout"]}>
+              <LaporanPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route path="/batch/peserta-batch" element={<UserBatch />} /> */}
+        {/* <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} /> */}
+
         {/* Routes for landing, login, and register pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         {/* <Route path="/register" element={<RegisterPage />} />  */}
         {/* Routes for admin dashboard */}
-        <Route path="/admin-home" element={<HomeAdmin />} />
-        <Route path="/peserta" element={<PesertaPage />} />
-        {/* <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} /> */}
-        <Route path="/akun-publik" element={<DaftarAkunPublik />} />
-        <Route path="/mentor" element={<DaftarMentor />} />
-        <Route path="/kelas" element={<DaftarKelas />} />
-        <Route path="/batch" element={<DaftarBatch />} />
-        {/* <Route path="/batch/peserta-batch" element={<UserBatch />} /> */}
-        <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
-        <Route path="/modul" element={<DaftarModul />} />
-        <Route path="/materi" element={<DaftarMateri />} />
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
-        <Route path="/laporan" element={<LaporanPage />} />
-        <Route path="/tryout" element={<TryoutPage />} />
         {/* Routes for user */}
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
