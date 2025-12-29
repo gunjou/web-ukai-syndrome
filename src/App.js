@@ -61,14 +61,7 @@ function App() {
     <Router>
       <Routes>
         {/* Routes for ADMIN */}
-        <Route
-          path="/admin-home"
-          element={
-            <ProtectedRoute allow={["superadmin", "tryout"]}>
-              <HomeAdmin />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/admin-home" element={<HomeAdmin />} />
         <Route
           path="/akun-publik"
           element={
