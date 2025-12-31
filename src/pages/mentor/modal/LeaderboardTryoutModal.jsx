@@ -76,7 +76,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
       head: [["Rank", "Nama", "Benar", "Salah", "Kosong", "Nilai"]],
       body: tableData,
       styles: { fontSize: 10 },
-      headStyles: { fillColor: [33, 150, 243] },
+      headStyles: { fillColor: [99, 102, 241] },
     });
 
     doc.save(`Leaderboard-${selectedTryout}.pdf`);
@@ -86,7 +86,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999]"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[999]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -95,14 +95,16 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
             initial={{ y: 60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 60, opacity: 0 }}
-            className="bg-white rounded-3xl shadow-2xl w-[92%] max-w-6xl max-h-[92vh] p-7 relative overflow-hidden flex flex-col border border-gray-200"
+            className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-[92%] max-w-6xl max-h-[92vh] p-7 relative overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700"
           >
             {/* HEADER */}
-            <div className="flex justify-between items-center border-b pb-3">
-              <h2 className="text-xl font-bold">Leaderboard Tryout</h2>
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-3">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Leaderboard Tryout
+              </h2>
               <button
                 onClick={() => setOpen(false)}
-                className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+                className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
               >
                 ✕
               </button>
@@ -110,13 +112,13 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
 
             {/* SELECT TRYOUT */}
             <div className="mt-4">
-              <label className="text-sm font-semibold text-gray-700">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Pilih Tryout
               </label>
 
               <select
-                className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 
-                           focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-3 mt-2 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white
+                           focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
                 value={selected}
                 onChange={(e) => setSelected(e.target.value)}
               >
@@ -133,16 +135,18 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
             {/* CONTENT */}
             <div className="mt-5 overflow-y-auto max-h-[60vh] pr-1">
               {!selected ? (
-                <p className="text-gray-500 text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-10">
                   Silakan pilih tryout terlebih dahulu.
                 </p>
               ) : loading ? (
                 <div className="flex flex-col items-center py-10">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-                  <p className="text-gray-600 mt-2">Memuat leaderboard...</p>
+                  <div className="w-8 h-8 border-4 border-indigo-500 border-dashed rounded-full animate-spin"></div>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">
+                    Memuat leaderboard...
+                  </p>
                 </div>
               ) : leaderboard.length === 0 ? (
-                <p className="text-gray-500 text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-10">
                   Leaderboard masih kosong.
                 </p>
               ) : (
@@ -151,41 +155,58 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                   <div className="flex justify-end mb-3">
                     <button
                       onClick={exportPDF}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow text-sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl shadow text-sm transition"
                     >
                       📄 Download PDF
                     </button>
                   </div>
 
-                  <table className="min-w-full mt-2 border">
-                    <thead className="bg-gray-100 sticky top-0 z-10">
+                  <table className="min-w-full mt-2 border border-gray-200 dark:border-gray-700">
+                    <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10">
                       <tr>
-                        <th className="p-2 border text-sm">Rank</th>
-                        <th className="p-2 border text-sm">Nama</th>
-                        <th className="p-2 border text-sm">Benar</th>
-                        <th className="p-2 border text-sm">Salah</th>
-                        <th className="p-2 border text-sm">Kosong</th>
-                        <th className="p-2 border text-sm">Nilai</th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Rank
+                        </th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Nama
+                        </th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Benar
+                        </th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Salah
+                        </th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Kosong
+                        </th>
+                        <th className="p-2 border text-sm text-gray-700 dark:text-gray-300">
+                          Nilai
+                        </th>
                       </tr>
                     </thead>
 
                     <tbody>
                       {leaderboard.map((d, i) => (
-                        <tr key={i} className="odd:bg-white even:bg-gray-50">
-                          <td className="border p-2 text-center font-bold text-blue-700">
+                        <tr
+                          key={i}
+                          className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800"
+                        >
+                          <td className="border p-2 text-center font-bold text-indigo-600 dark:text-indigo-400">
                             #{d.rn}
                           </td>
-                          <td className="border p-2 capitalize">
+                          <td className="border p-2 capitalize text-gray-800 dark:text-gray-200">
                             {d.nama_user}
                           </td>
-                          <td className="border p-2 text-center text-green-700 font-semibold">
+                          <td className="border p-2 text-center text-green-600 dark:text-green-400 font-semibold">
                             {d.benar}
                           </td>
-                          <td className="border p-2 text-center text-red-600 font-semibold">
+                          <td className="border p-2 text-center text-red-600 dark:text-red-400 font-semibold">
                             {d.salah}
                           </td>
-                          <td className="border p-2 text-center">{d.kosong}</td>
-                          <td className="border p-2 text-center text-blue-700 font-bold">
+                          <td className="border p-2 text-center text-gray-700 dark:text-gray-300">
+                            {d.kosong}
+                          </td>
+                          <td className="border p-2 text-center text-indigo-600 dark:text-indigo-400 font-bold">
                             {d.nilai}
                           </td>
                         </tr>

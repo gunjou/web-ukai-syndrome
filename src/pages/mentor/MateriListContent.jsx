@@ -1,3 +1,4 @@
+// src/pages/mentor/MateriListContent.jsx
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useParams } from "react-router-dom";
@@ -137,8 +138,8 @@ const MateriListContent = () => {
   };
 
   return (
-    <div className="p-2 relative">
-      <h2 className="text-2xl font-semibold mb-4 capitalize">
+    <div className="p-2 relative text-gray-900 dark:text-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 capitalize text-gray-800 dark:text-gray-200">
         {folder?.replace(/-/g, " ")}
       </h2>
 
@@ -157,12 +158,17 @@ const MateriListContent = () => {
                 setSelectedMateri(materi);
                 loadPdf(materi.url_file);
               }}
-              className="flex items-start gap-4 bg-white p-4 shadow rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
+              className="flex items-start justify-between gap-4
+  bg-white dark:bg-gray-800
+  p-4 shadow rounded-lg
+  border border-gray-200 dark:border-gray-700
+  hover:bg-gray-50 dark:hover:bg-gray-700
+  transition"
             >
               <HiDocumentText className="text-red-500 text-3xl flex-shrink-0 mt-1" />
               <div className="flex flex-col flex-1">
                 <h3
-                  className="text-lg font-semibold text-gray-800 mb-1 capitalize"
+                  className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1 capitalize"
                   title={materi.judul}
                 >
                   {materi.judul}
@@ -239,22 +245,24 @@ const MateriListContent = () => {
       {/* Modal */}
       {selectedMateri && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50 flex justify-center items-center"
+          className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex flex-col"
           onContextMenu={(e) => e.preventDefault()} // Blok klik kanan di seluruh layar
         >
-          <div className="bg-white rounded-xl p-4 w-[90%] max-w-3xl shadow-lg relative select-none">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xl font-semibold text-gray-800 capitalize">
-                {selectedMateri.judul}
-              </h3>
+          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden select-none">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-white dark:bg-gray-900 z-20">
+              <div className="flex items-center gap-3">
+                <HiDocumentText className="text-red-500 text-xl" />
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 capitalize truncate max-w-[70vw]">
+                  {selectedMateri.judul}
+                </h3>
+              </div>
               <button
                 onClick={() => setSelectedMateri(null)}
-                className="text-gray-600 hover:text-red-600"
+                className="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-500 p-2 rounded-md"
               >
                 <MdClose size={24} />
               </button>
             </div>
-
             {/* PDF.js Document Viewer */}
             <div
               className="relative border rounded-lg overflow-hidden select-none"

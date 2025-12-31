@@ -223,12 +223,14 @@ const VideoListContent = () => {
       ref={(el) => (commentRefs.current[comment.id_komentarmateri] = el)}
       className={`${isReply ? "" : ""} px-2 py-1 rounded`}
     >
-      <p className="font-semibold text-sm capitalize">
+      <p className="font-semibold text-sm capitalize text-gray-900 dark:text-white">
         {comment.nama || "Pengguna"}
       </p>
       <p
         className={`text-sm ${
-          comment.is_deleted ? "italic text-gray-400" : "text-gray-800"
+          comment.is_deleted
+            ? "italic text-gray-400"
+            : "text-gray-800 dark:text-gray-200"
         }`}
       >
         {comment.isi_komentar}
@@ -291,7 +293,7 @@ const VideoListContent = () => {
                 setEditingComment(null);
                 setReplyingTo(null);
               }}
-              className="text-gray-600 hover:underline text-sm"
+              className="text-gray-600 dark:text-gray-400 hover:underline text-sm"
             >
               Batal
             </button>
@@ -321,7 +323,7 @@ const VideoListContent = () => {
 
   if (selectedVideo) {
     return (
-      <div className="p-4 min-h-screen bg-gray-100">
+      <div className="p-4 min-h-screen bg-gray-100 dark:bg-gray-900 rounded-lg">
         <button
           onClick={() => setSelectedVideo(null)}
           className="flex items-center gap-2 mb-4 text-gray-600 hover:text-black"
@@ -332,7 +334,7 @@ const VideoListContent = () => {
 
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Video Player & Komentar */}
-          <div className="flex-1 bg-white shadow rounded-lg p-4">
+          <div className="flex-1 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
             {/* Video Player & Watermark */}
             <div className="aspect-video w-full mb-4 rounded overflow-hidden bg-black relative">
               {selectedVideo.url_file.includes("drive.google.com") ? (
@@ -380,21 +382,28 @@ const VideoListContent = () => {
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold mb-2 capitalize">
+            <h2 className="text-xl font-semibold mb-2 capitalize text-gray-900 dark:text-white">
               {selectedVideo.judul}
             </h2>
-            <p>{selectedVideo.des}</p>
+            <p className="text-gray-700 dark:text-gray-300">
+              {selectedVideo.des}
+            </p>
 
             {/* Komentar */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-1">Komentar</h3>
-              <p className="text-sm text-gray-500 mb-3">
+              <h3 className="text-lg font-semibold dark:text-white mb-1">
+                Komentar
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                 💬 {getTotalKomentar()} Komentar
               </p>
 
               <form onSubmit={handleAddComment} className="mb-4">
                 <textarea
-                  className="w-full border rounded p-2 focus:outline-none focus:ring"
+                  className="w-full border rounded p-2 focus:outline-none focus:ring
+bg-white dark:bg-gray-700
+text-gray-900 dark:text-gray-100
+border-gray-300 dark:border-gray-600"
                   rows={2}
                   placeholder="Tulis komentar..."
                   value={replyingTo || editingComment ? "" : newComment}
@@ -423,8 +432,10 @@ const VideoListContent = () => {
           </div>
 
           {/* Sidebar Video */}
-          <div className="w-full lg:w-1/3 bg-white shadow rounded-lg p-4 overflow-y-auto h-full">
-            <h3 className="text-lg font-semibold mb-3">Daftar Video</h3>
+          <div className="w-full lg:w-1/3 bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-y-auto h-full">
+            <h3 className="text-lg font-semibold dark:text-white mb-3">
+              Daftar Video
+            </h3>
             {videoList.length > 0 ? (
               videoList.map((video) => (
                 <div
@@ -433,11 +444,13 @@ const VideoListContent = () => {
                     setSelectedVideo(video);
                     fetchKomentar(video.id_materi, video.id_paketkelas);
                   }}
-                  className={`flex gap-3 mb-3 p-2 rounded cursor-pointer hover:bg-gray-100 ${
-                    selectedVideo?.id_materi === video.id_materi
-                      ? "bg-gray-200"
-                      : ""
-                  }`}
+                  className={`flex gap-3 mb-3 p-2 rounded border dark:border-gray-700 cursor-pointer
+hover:bg-gray-100 dark:hover:bg-gray-700
+${
+  selectedVideo?.id_materi === video.id_materi
+    ? "bg-gray-200 dark:bg-gray-700"
+    : ""
+}`}
                 >
                   <div className="flex gap-3">
                     <img
@@ -448,7 +461,7 @@ const VideoListContent = () => {
 
                     <div className="flex-1 flex flex-col justify-center">
                       <p
-                        className="font-medium text-gray-800 capitalize overflow-hidden text-ellipsis"
+                        className="font-medium text-gray-800 dark:text-gray-200 capitalize overflow-hidden text-ellipsis"
                         style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 2, // maksimal 2 baris
@@ -458,7 +471,9 @@ const VideoListContent = () => {
                       >
                         {video.judul}
                       </p>
-                      <p className="text-xs text-gray-500">Klik untuk putar</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Klik untuk putar
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -491,7 +506,14 @@ const VideoListContent = () => {
                 setSelectedVideo(video);
                 fetchKomentar(video.id_materi, video.id_paketkelas);
               }}
-              className="flex flex-col sm:flex-row gap-3 p-2 bg-white shadow rounded-lg overflow-hidden max-h-[180px] cursor-pointer hover:bg-gray-50 transition"
+              className="
+flex flex-col sm:flex-row gap-3 p-2
+bg-white dark:bg-gray-800
+shadow rounded-lg
+border border-gray-200 dark:border-gray-700
+hover:bg-gray-50 dark:hover:bg-gray-700
+transition
+"
             >
               <img
                 src={thumbnailDefault}
@@ -500,10 +522,10 @@ const VideoListContent = () => {
               />
 
               <div className="flex flex-col p-4 overflow-hidden">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1 truncate capitalize">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1 truncate capitalize">
                   {video.judul}
                 </h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   Klik untuk menonton video
                 </p>
               </div>

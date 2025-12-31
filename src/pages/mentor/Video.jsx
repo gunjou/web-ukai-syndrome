@@ -28,7 +28,7 @@ const VideoList = ({
       {modulItems.map((modul, idx) => (
         <div
           key={idx}
-          className="relative bg-white w-[165px] h-[135px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
+          className="relative bg-white dark:bg-gray-800 w-[165px] h-[135px] shadow border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
           onClick={() => onFolderClick(modul)}
         >
           <img
@@ -38,7 +38,7 @@ const VideoList = ({
           />
           <div className="mt-4 text-center px-2 flex-1 flex items-center justify-center">
             <span
-              className="text-gray-700 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
+              className="text-gray-700 dark:text-gray-100 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
               title={modul.judul}
             >
               {modul.judul}
@@ -50,7 +50,7 @@ const VideoList = ({
               e.stopPropagation();
               onEditClick(modul);
             }}
-            className="absolute top-2 right-2 text-xs text-blue-500"
+            className="absolute top-2 right-2 text-xs text-blue-500 dark:text-blue-400 hover:underline"
           >
             Edit
           </button>
@@ -419,10 +419,12 @@ const Video = () => {
   };
 
   return (
-    <div className="bg-white w-full h-auto h-p-6">
-      <div className="w-full bg-gray-100 p-4 rounded-[20px]">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-auto h-p-6">
+      <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-[20px]">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Video Explorer</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
+            Video Explorer
+          </h1>
           <div className="flex items-center gap-3">
             {location.pathname === basePath ? (
               <button
@@ -482,7 +484,7 @@ const Video = () => {
           </div>
         </div>
 
-        <div className="text-sm text-gray-700 mb-6 flex items-center flex-wrap">
+        <div className="text-sm text-gray-700 dark:text-gray-100 mb-6 flex items-center flex-wrap">
           <span className="font-semibold mr-2">Path:</span>
           <button
             onClick={() => handleBreadcrumbClick(-1)}
@@ -492,7 +494,7 @@ const Video = () => {
           </button>
           {pathSegments.map((seg, index) => (
             <span key={index} className="flex items-center">
-              <span className="mx-1">/</span>
+              <span className="mx-1 text-gray-700 dark:text-gray-400">/</span>
               <button
                 onClick={() => handleBreadcrumbClick(index)}
                 className="text-blue-600 hover:underline"

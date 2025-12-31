@@ -1,3 +1,4 @@
+// materi menu untuk user
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import icon_folder from "../../assets/icon_folder.png";
@@ -32,7 +33,12 @@ const MateriList = ({ onFolderClick }) => {
     fetchModul();
   }, []);
 
-  if (loading) return <div className="p-4 dark:text-gray-300">Loading...</div>;
+  if (loading)
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="w-16 h-16 border-4 border-red-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   if (error)
     return <div className="p-4 text-red-500 dark:text-red-400">{error}</div>;
 
@@ -96,7 +102,7 @@ const Materi = () => {
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-auto h-p-6">
       <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-[20px]">
         {" "}
         {/* Header */}

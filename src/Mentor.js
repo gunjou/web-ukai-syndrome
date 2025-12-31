@@ -14,7 +14,7 @@ const Mentor = () => {
 
   return (
     <KelasProvider>
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
         {/* Top Navbar */}
         <MenuBar onToggleSidebar={setSidebarOpen} />
 

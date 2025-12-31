@@ -1,3 +1,4 @@
+// materi menu untuk mentor
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -27,7 +28,7 @@ const MateriList = ({
       {modulItems.map((modul) => (
         <div
           key={modul.id_modul}
-          className="relative bg-white w-[165px] h-[135px] shadow border border-gray-200 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
+          className="relative bg-white dark:bg-gray-700 w-[160px] h-[120px] shadow border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer flex flex-col items-center pt-10 capitalize"
           onClick={() => onFolderClick(modul)}
         >
           <img
@@ -37,7 +38,7 @@ const MateriList = ({
           />
           <div className="mt-4 text-center px-2 flex-1 flex items-center justify-center">
             <span
-              className="text-gray-700 font-bold text-sm capitalize line-clamp-2 overflow-hidden text-ellipsis"
+              className="text-gray-700 dark:text-gray-200 font-bold text-sm capitalize line-clamp-2"
               title={modul.judul}
             >
               {modul.judul}
@@ -50,7 +51,7 @@ const MateriList = ({
               e.stopPropagation();
               onEditClick(modul);
             }}
-            className="absolute top-2 right-2 text-xs text-blue-500"
+            className="absolute top-2 right-2 text-xs text-blue-500 dark:text-blue-400 hover:underline"
           >
             Edit
           </button>
@@ -394,11 +395,13 @@ const Materi = () => {
   };
 
   return (
-    <div className="bg-white w-full h-auto h-p-6">
-      <div className="w-full bg-gray-100 p-4 rounded-[20px]">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-auto h-p-6">
+      <div className="w-full bg-white dark:bg-gray-800 p-4 rounded-[20px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">Materi Explorer</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
+            Materi Explorer
+          </h1>
           <div className="flex items-center gap-3">
             {location.pathname === basePath ? (
               <button
@@ -457,9 +460,8 @@ const Materi = () => {
             </button>
           </div>
         </div>
-
         {/* Breadcrumb Path */}
-        <div className="text-sm text-gray-700 mb-6 flex items-center flex-wrap">
+        <div className="text-sm text-gray-700 dark:text-gray-300 mb-6 flex items-center flex-wrap">
           <span className="font-semibold mr-2">Path:</span>
           <button
             onClick={() => handleBreadcrumbClick(-1)}
@@ -481,7 +483,6 @@ const Materi = () => {
             </span>
           ))}
         </div>
-
         {loading ? (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
@@ -599,7 +600,7 @@ const Materi = () => {
           onClick={() => setShowAddModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -608,7 +609,9 @@ const Materi = () => {
             >
               <AiOutlineClose size={24} />
             </button>
-            <h3 className="text-lg font-semibold mb-4">Tambah Modul</h3>
+            <h3 className="text-lg text-gray-900 dark:text-gray-100 font-semibold mb-4">
+              Tambah Modul
+            </h3>
             <form onSubmit={handleAddSubmit}>
               <input
                 type="text"
@@ -656,7 +659,7 @@ const Materi = () => {
           onClick={() => setShowAddMateriModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-[90%] max-w-md p-6 relative animate-fade-in-down"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -665,7 +668,9 @@ const Materi = () => {
             >
               <AiOutlineClose size={24} />
             </button>
-            <h3 className="text-lg font-semibold mb-4">Tambah Materi</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Tambah Materi
+            </h3>
 
             <form onSubmit={handleAddMateriSubmit} className="space-y-4">
               {/* 📅 Tanggal */}
@@ -675,27 +680,22 @@ const Materi = () => {
                 value={tanggalMateri}
                 onChange={(e) => setTanggalMateri(e.target.value)}
                 required
-                className="mt-1 block w-full border px-3 py-2 rounded-md shadow-sm"
+                className="mt-1 block w-full border px-3 py-2 rounded-md bg-white dark:bg-gray-800 shadow-sm text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-              {/* <input
-                type="text"
-                value={judul}
-                onChange={(e) => setJudul(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Judul Materi"
-                required
-              /> */}
+
               <input
                 type="text"
                 value={urlFile}
                 onChange={(e) => setUrlFile(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
                 placeholder="URL atau Path File"
                 required
               />
               {/* Toggle "Dapat di-download" */}
-              <div className="flex items-center justify-between border p-3 rounded-md">
-                <span className="text-gray-700">Dapat di-download?</span>
+              <div className="flex items-center justify-between border p-3 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-md">
+                <span className="text-gray-700 dark:text-gray-300">
+                  Dapat di-download?
+                </span>
                 <button
                   type="button"
                   onClick={() => setIsDownloadable(!isDownloadable)}
