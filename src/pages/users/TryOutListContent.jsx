@@ -104,60 +104,79 @@ const TryoutListContent = ({ tryout, onBack }) => {
     fetchQuestions();
   }, [attempt]);
 
-  // 🕒 Formatter server time ke WIB
-  const parseServerTimeWIB = (timeString) => {
-    if (!timeString) return null;
-    return new Date(`${timeString.replace(" WIB", "")}+07:00`);
+  // // 🕒 Formatter server time ke WIB
+  // const parseServerTimeWIB = (timeString) => {
+  //   if (!timeString) return null;
+  //   return new Date(`${timeString.replace(" WIB", "")}+07:00`);
+  // };
+
+  const wibToUtcTimestamp = (wibString) => {
+    if (!wibString) return null;
+
+    // "2026-01-02T19:23:00.733698"
+    const [datePart, timePart] = wibString.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+
+    const [hour, minute, secondPart] = timePart.split(":");
+    const sec = parseFloat(secondPart);
+
+    // WIB = UTC+7
+    return Date.UTC(
+      year,
+      month - 1,
+      day,
+      Number(hour) - 7,
+      Number(minute),
+      Math.floor(sec),
+      Math.round((sec % 1) * 1000)
+    );
   };
 
+  // ⏳ Fix: Timer tetap walau refresh + WIB
   // ⏳ Fix: Timer tetap walau refresh + WIB
   useEffect(() => {
     if (!attempt) return;
 
-    const saved = localStorage.getItem(`timer_${attempt?.id_hasiltryout}`);
+    const key = `timer_end_${attempt.id_hasiltryout}`;
+    const savedEnd = localStorage.getItem(key);
 
-    // Jika user refresh → gunakan waktu tersimpan
-    if (saved && Number(saved) > 0) {
-      console.log("⏳ Restore timer from localStorage:", saved);
-      setTimeLeft(Number(saved));
-      return;
+    let endTime;
+
+    if (savedEnd) {
+      endTime = Number(savedEnd);
+    } else if (attempt?.end_time) {
+      endTime = wibToUtcTimestamp(attempt.end_time);
+      localStorage.setItem(key, endTime);
+    } else if (tryout?.durasi) {
+      endTime = Date.now() + tryout.durasi * 60 * 1000;
+      localStorage.setItem(key, endTime);
     }
 
-    // Jika server memberikan end_time → hitung sisa waktu
-    if (attempt?.end_time) {
-      const expiry = parseServerTimeWIB(attempt.end_time).getTime();
-      const now = Date.now();
-      const diff = Math.max(1, Math.floor((expiry - now) / 1000));
-      console.log("⏰ Calculated synced time (WIB):", diff);
-      setTimeLeft(diff);
-    }
-    // Jika belum ada end_time → pakai durasi tryout
-    else if (tryout?.durasi) {
-      setTimeLeft(tryout.durasi * 60);
-    }
+    const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+    setTimeLeft(diff);
   }, [attempt, tryout]);
 
   // ⏱ Timer berjalan + otomatis tersimpan
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    if (!attempt) return;
+
+    const key = `timer_end_${attempt.id_hasiltryout}`;
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setIsTimeUp(true);
-          localStorage.removeItem(`timer_${attempt?.id_hasiltryout}`);
-          return 0;
-        }
+      const endTime = Number(localStorage.getItem(key));
+      const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
 
-        const newTime = prev - 1;
-        localStorage.setItem(`timer_${attempt?.id_hasiltryout}`, newTime);
-        return newTime;
-      });
+      setTimeLeft(diff);
+
+      if (diff <= 0) {
+        clearInterval(interval);
+        setIsTimeUp(true);
+        localStorage.removeItem(key);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timeLeft]);
+  }, [attempt]);
 
   // Simpan jawaban ke server
   const saveAnswerToServer = async (nomor, jawaban, ragu = 0) => {
@@ -225,7 +244,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
       setShowResultModal(true);
 
       // Hapus timer dari LocalStorage
-      localStorage.removeItem(`timer_${attempt?.id_hasiltryout}`);
+      localStorage.removeItem(`timer_end_${attempt?.id_hasiltryout}`);
     } catch (err) {
       console.error("Gagal submit attempt:", err);
       alert("Terjadi kesalahan saat submit.");

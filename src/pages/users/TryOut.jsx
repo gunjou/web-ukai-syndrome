@@ -321,6 +321,17 @@ const Tryout = () => {
             </div>
           )}
 
+          <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm text-blue-800">
+            <span className="text-lg">⏰</span>
+            <p>
+              Pastikan <strong>tanggal & waktu perangkat</strong> kamu sudah
+              <strong> sesuai (otomatis)</strong>. Kesalahan pengaturan waktu
+              dapat menyebabkan
+              <strong> timer tidak akurat</strong> atau
+              <strong> tryout ter-submit otomatis</strong>.
+            </p>
+          </div>
+
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={() => setShowModal(false)}
