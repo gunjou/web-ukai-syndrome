@@ -31,6 +31,8 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "Peserta";
   const [showOngoingAttemptModal, setShowOngoingAttemptModal] = useState(false);
+  const [answerStatus, setAnswerStatus] = useState({});
+  // saved | pending | failed
 
   // Start attempt with toast message
   useEffect(() => {
@@ -133,7 +135,6 @@ const TryoutListContent = ({ tryout, onBack }) => {
   };
 
   // ⏳ Fix: Timer tetap walau refresh + WIB
-  // ⏳ Fix: Timer tetap walau refresh + WIB
   useEffect(() => {
     if (!attempt) return;
 
@@ -187,16 +188,31 @@ const TryoutListContent = ({ tryout, onBack }) => {
       ragu,
     };
 
-    console.log("📌 Payload yang dikirim ke server:", payload);
+    // tandai pending
+    setAnswerStatus((prev) => ({
+      ...prev,
+      [nomor]: "pending",
+    }));
 
     try {
-      const response = await Api.put("/tryout/attempts/answer", payload);
-      console.log("✅ Jawaban berhasil disimpan:", response.data);
+      await Api.put("/tryout/attempts/answer", payload);
+
+      setAnswerStatus((prev) => ({
+        ...prev,
+        [nomor]: "saved",
+      }));
     } catch (error) {
       console.error("❌ Gagal menyimpan jawaban:", error);
-      if (error.response) {
-        console.error("🔍 Response Error:", error.response.data);
-      }
+
+      setAnswerStatus((prev) => ({
+        ...prev,
+        [nomor]: "failed",
+      }));
+
+      toast.error("Jawaban belum tersimpan. Periksa koneksi internet Anda.", {
+        toastId: `save-error-${nomor}`, // ❗ biar tidak spam
+        autoClose: 4000,
+      });
     }
   };
 
@@ -233,6 +249,23 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
   // Submit final
   const handleSubmit = async () => {
+    const hasFailedAnswer = Object.values(answerStatus).includes("failed");
+
+    if (hasFailedAnswer) {
+      const failedNumbers = Object.entries(answerStatus)
+        .filter(([, status]) => status === "failed")
+        .map(([nomor]) => nomor);
+
+      toast.warning(
+        `⚠️ ${failedNumbers.length} jawaban belum tersimpan.\n` +
+          `Silakan buka soal terkait dan klik ulang opsi jawabannya untuk mengirim ulang.`,
+        {
+          autoClose: 6000,
+        }
+      );
+      return;
+    }
+
     try {
       const res = await Api.post("/tryout/attempts/submit", {
         attempt_token: attempt?.attempt_token,
@@ -243,11 +276,10 @@ const TryoutListContent = ({ tryout, onBack }) => {
       setFinalScore(nilai);
       setShowResultModal(true);
 
-      // Hapus timer dari LocalStorage
       localStorage.removeItem(`timer_end_${attempt?.id_hasiltryout}`);
     } catch (err) {
       console.error("Gagal submit attempt:", err);
-      alert("Terjadi kesalahan saat submit.");
+      toast.error("Gagal mengirim hasil tryout.");
     }
   };
 
@@ -275,6 +307,9 @@ const TryoutListContent = ({ tryout, onBack }) => {
   };
 
   const currentQuestion = questions[currentIndex];
+  const failedCount = Object.values(answerStatus).filter(
+    (s) => s === "failed"
+  ).length;
 
   return (
     <div className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 select-none overflow-hidden">
@@ -382,6 +417,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
                 currentIndex={currentIndex}
                 answers={answers}
                 raguRagu={raguRagu}
+                answerStatus={answerStatus}
                 setCurrentIndex={setCurrentIndex}
               />
             </div>
@@ -413,6 +449,21 @@ const TryoutListContent = ({ tryout, onBack }) => {
                       }}
                     />
                   </div>
+                  {Object.values(answerStatus).includes("failed") && (
+                    <div className="mb-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg flex items-start gap-2">
+                      <span className="mt-0.5">⚠️</span>
+                      <div>
+                        <p className="font-semibold">
+                          Terdapat jawaban yang belum tersimpan
+                        </p>
+                        <p className="text-red-600">
+                          Beberapa jawaban gagal dikirim ke server. Buka soal
+                          terkait dan klik ulang opsi jawabannya untuk mengirim
+                          ulang.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* OPTIONS */}
                   <div className="space-y-2">
@@ -440,10 +491,32 @@ const TryoutListContent = ({ tryout, onBack }) => {
                                 key
                               )
                             }
+                            onClick={() => {
+                              const nomor = currentQuestion?.nomor_urut;
+
+                              // ⬅️ FORCE RESEND jika sebelumnya gagal
+                              if (answerStatus[nomor] === "failed") {
+                                saveAnswerToServer(nomor, key);
+                              }
+                            }}
                             className="accent-red-500 scale-110"
                           />
+
                           <span className="font-semibold">{key}.</span>
                           <span>{value}</span>
+                          {answerStatus[currentQuestion?.nomor_urut] ===
+                            "pending" && (
+                            <span className="text-xs text-gray-400 ml-auto">
+                              Menyimpan…
+                            </span>
+                          )}
+
+                          {answerStatus[currentQuestion?.nomor_urut] ===
+                            "failed" && (
+                            <span className="text-xs text-red-500 ml-auto flex items-center gap-1">
+                              ⚠️ Gagal tersimpan
+                            </span>
+                          )}
                         </label>
                       )
                     )}
@@ -526,6 +599,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
           onConfirm={handleSubmit}
           raguCount={raguRagu.length}
           unanswered={questions.length - Object.keys(answers).length}
+          failedCount={failedCount}
         />
       )}
 
