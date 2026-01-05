@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Api from "../../utils/Api.jsx";
-import { FiX, FiHelpCircle, FiClock } from "react-icons/fi";
+import { FiX, FiHelpCircle, FiClock, FiRefreshCw } from "react-icons/fi";
 import { BsCalculator } from "react-icons/bs";
 import CalculatorModal from "./components/CalculatorModal.jsx";
 import QuestionNavigator from "./components/QuestionNavigator.jsx";
@@ -21,6 +21,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
   const [attempt, setAttempt] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [showCalculator, setShowCalculator] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   // const [showExitFullscreenModal, setShowExitFullscreenModal] = useState(false);
   const [showConfirmEndModal, setShowConfirmEndModal] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
@@ -139,10 +140,9 @@ const TryoutListContent = ({ tryout, onBack }) => {
     if (!attempt) return;
 
     const key = `timer_end_${attempt.id_hasiltryout}`;
-    const savedEnd = localStorage.getItem(key);
-
     let endTime;
 
+    const savedEnd = localStorage.getItem(key);
     if (savedEnd) {
       endTime = Number(savedEnd);
     } else if (attempt?.end_time) {
@@ -155,6 +155,23 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
     const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
     setTimeLeft(diff);
+
+    const interval = setInterval(() => {
+      const updatedEndTime = Number(localStorage.getItem(key));
+      const diff = Math.max(
+        0,
+        Math.floor((updatedEndTime - Date.now()) / 1000)
+      );
+      setTimeLeft(diff);
+
+      if (diff <= 0) {
+        clearInterval(interval);
+        setIsTimeUp(true);
+        localStorage.removeItem(key);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval); // Pastikan interval dibersihkan dengan benar
   }, [attempt, tryout]);
 
   // ⏱ Timer berjalan + otomatis tersimpan
@@ -213,6 +230,23 @@ const TryoutListContent = ({ tryout, onBack }) => {
         toastId: `save-error-${nomor}`, // ❗ biar tidak spam
         autoClose: 4000,
       });
+    }
+  };
+
+  // Refresh soal dari server
+  const handleRefresh = async () => {
+    if (!tryout?.id_tryout) return;
+
+    setRefreshing(true);
+    try {
+      const res = await Api.get(`/tryout/${tryout.id_tryout}/questions`);
+      setQuestions(res.data.data || []);
+      toast.success("Soal berhasil dimuat ulang", { autoClose: 1500 });
+    } catch (err) {
+      console.error("Gagal memuat ulang soal:", err);
+      toast.error("Gagal memuat ulang soal. Periksa koneksi Anda.");
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -367,6 +401,19 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
             {/* Actions */}
             <div className="flex items-center gap-4">
+              {/* Refresh button */}
+              <button
+                onClick={handleRefresh}
+                title="Muat ulang soal"
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition"
+              >
+                {refreshing ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FiRefreshCw size={18} />
+                )}
+              </button>
+
               <span
                 className={`flex items-center gap-2 px-4 py-1.5 text-lg font-semibold rounded-full shadow 
                 ${
