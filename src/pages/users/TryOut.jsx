@@ -294,14 +294,26 @@ const Tryout = () => {
             akan berjalan secara otomatis.
           </p>
 
-          <div className="mt-3 flex items-start gap-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm text-yellow-800">
-            <span className="text-lg">ℹ️</span>
-            <p>
-              Jika kamu masih memiliki{" "}
-              <strong>attempt yang sedang berlangsung</strong>, maka sistem akan{" "}
-              <strong>melanjutkan attempt tersebut</strong> dan
-              <strong> tidak membuat attempt baru</strong>.
-            </p>
+          <div className="mt-3 flex items-start gap-3 bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-sm text-yellow-800">
+            <span className="text-xl">ℹ️</span>
+            <div className="space-y-1">
+              <p className="font-semibold">Attempt akan dilanjutkan otomatis</p>
+              <p>Jika sebelumnya anda sudah memulai tryout lalu:</p>
+              <ul className="list-disc pl-5">
+                <li>Browser atau tab tertutup</li>
+                <li>Halaman browser atau tab di-refresh</li>
+                <li>Device mati atau restart</li>
+              </ul>
+              <p>
+                Ketika menekan tombol mulai maka sistem akan{" "}
+                <strong>melanjutkan attempt yang sama</strong>,
+                <strong> bukan membuat attempt baru</strong>.
+              </p>
+              <p className="font-semibold">
+                ⚠️ Jumlah attempt <u>tidak berkurang</u> selama attempt masih
+                berstatus ongoing.
+              </p>
+            </div>
           </div>
 
           {attemptInfo && (
@@ -324,7 +336,7 @@ const Tryout = () => {
           <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm text-blue-800">
             <span className="text-lg">⏰</span>
             <p>
-              Pastikan <strong>tanggal & waktu perangkat</strong> kamu sudah
+              Pastikan <strong>tanggal & waktu perangkat</strong> anda sudah
               <strong> sesuai (otomatis)</strong>. Kesalahan pengaturan waktu
               dapat menyebabkan
               <strong> timer tidak akurat</strong> atau
