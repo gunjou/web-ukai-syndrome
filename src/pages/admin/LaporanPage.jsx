@@ -29,6 +29,20 @@ const debounce = (func, delay) => {
   };
 };
 
+const getTodayDate = () => {
+  const today = new Date();
+
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+
+  const formatted = `${yyyy}-${mm}-${dd}`;
+
+  return {
+    tanggal_mulai: formatted,
+  };
+};
+
 export default function LaporanPage() {
   const [data, setData] = useState([]);
   const [listTryout, setListTryout] = useState([]);
@@ -87,7 +101,17 @@ export default function LaporanPage() {
 
   useEffect(() => {
     fetchTryoutList();
-    fetchData({});
+
+    const today = getTodayDate();
+
+    setFilters((prev) => ({
+      ...prev,
+      tanggalMulai: today.tanggal_mulai,
+      tanggalAkhir: today.tanggal_akhir,
+    }));
+
+    setLastAppliedParams(today);
+    fetchData(today);
   }, []);
 
   // AUTO SEARCH (debounced)
@@ -139,18 +163,20 @@ export default function LaporanPage() {
 
   // RESET FILTER
   const resetFilter = async () => {
+    const today = getTodayDate();
+
     setFilters({
       statusPengerjaan: "",
       nilaiMin: "",
       nilaiMax: "",
       attemptKe: "",
-      tanggalMulai: "",
-      tanggalAkhir: "",
+      tanggalMulai: today.tanggal_mulai,
       selectedTryouts: [],
     });
+
     setSearch("");
-    setLastAppliedParams({});
-    await fetchData({});
+    setLastAppliedParams(today);
+    await fetchData(today);
   };
 
   // FORMATTING HELPERS
@@ -337,6 +363,11 @@ export default function LaporanPage() {
               />
             </div>
           </div>
+
+          <p className="text-xs text-gray-500 mt-1">
+            Data ditampilkan default untuk <b>hari ini</b>. Gunakan filter untuk
+            melihat tanggal lain.
+          </p>
 
           {/* Buttons */}
           <div className="flex gap-2">
