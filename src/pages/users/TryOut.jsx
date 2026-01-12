@@ -281,73 +281,79 @@ const Tryout = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-md p-7">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-red-100 text-red-600 p-3 rounded-full text-xl">
-              ⚠️
-            </div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              Konfirmasi Mulai Tryout
-            </h2>
-          </div>
-
-          <p className="text-gray-600 dark:text-gray-400">
-            Menekan <span className="text-red-600 font-semibold">Mulai</span>{" "}
-            berarti Anda menyetujui untuk memulai tryout, dan waktu pengerjaan
-            akan berjalan secara otomatis.
-          </p>
-
-          <div className="mt-3 flex items-start gap-3 bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-sm text-yellow-800">
-            <span className="text-xl">ℹ️</span>
-            <div className="space-y-1">
-              <p className="font-semibold">Attempt akan dilanjutkan otomatis</p>
-              <p>Jika sebelumnya anda sudah memulai tryout lalu:</p>
-              <ul className="list-disc pl-5">
-                <li>Browser atau tab tertutup</li>
-                <li>Halaman browser atau tab di-refresh</li>
-                <li>Device mati atau restart</li>
-              </ul>
-              <p>
-                Ketika menekan tombol mulai maka sistem akan{" "}
-                <strong>melanjutkan attempt yang sama</strong>,
-                <strong> bukan membuat attempt baru</strong>.
-              </p>
-              <p className="font-semibold">
-                ⚠️ Jumlah attempt <u>tidak berkurang</u> selama attempt masih
-                berstatus ongoing.
-              </p>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-[90%] max-w-md max-h-[85vh] flex flex-col">
+          {/* HEADER tetap */}
+          <div className="p-4 border-b dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="bg-red-100 text-red-600 p-2 rounded-full text-xl">
+                ⚠️
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                Konfirmasi Mulai Tryout
+              </h2>
             </div>
           </div>
-
-          {attemptInfo && (
-            <div className="mt-4 bg-gray-50 dark:bg-gray-800 border p-4 rounded-xl text-sm space-y-2">
-              <p className="flex justify-between">
-                <span className="dark:text-gray-400">Sisa Attempt:</span>
-                <span
-                  className={`px-3 py-1 rounded-lg ${
-                    attemptInfo.remaining_attempts === 0
-                      ? "bg-red-100 text-red-600"
-                      : "bg-green-100 text-green-700"
-                  }`}
-                >
-                  {attemptInfo.remaining_attempts}
-                </span>
-              </p>
-            </div>
-          )}
-
-          <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm text-blue-800">
-            <span className="text-lg">⏰</span>
-            <p>
-              Pastikan <strong>tanggal & waktu perangkat</strong> anda sudah
-              <strong> sesuai (otomatis)</strong>. Kesalahan pengaturan waktu
-              dapat menyebabkan
-              <strong> timer tidak akurat</strong> atau
-              <strong> tryout ter-submit otomatis</strong>.
+          <div className="px-7 py-5 overflow-y-auto flex-1 space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Menekan <span className="text-red-600 font-semibold">Mulai</span>{" "}
+              berarti Anda menyetujui untuk memulai tryout, dan waktu pengerjaan
+              akan berjalan secara otomatis.
             </p>
+
+            <div className="mt-3 flex items-start gap-3 bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-sm text-yellow-800">
+              <span className="text-xl">ℹ️</span>
+              <div className="space-y-1">
+                <p className="font-semibold">
+                  Attempt akan dilanjutkan otomatis
+                </p>
+                <p>Jika sebelumnya anda sudah memulai tryout lalu:</p>
+                <ul className="list-disc pl-5">
+                  <li>Browser atau tab tertutup</li>
+                  <li>Halaman browser atau tab di-refresh</li>
+                  <li>Device mati atau restart</li>
+                </ul>
+                <p>
+                  Ketika menekan tombol mulai maka sistem akan{" "}
+                  <strong>melanjutkan attempt yang sama</strong>,
+                  <strong> bukan membuat attempt baru</strong>.
+                </p>
+                <p className="font-semibold">
+                  ⚠️ Jumlah attempt <u>tidak berkurang</u> selama attempt masih
+                  berstatus ongoing.
+                </p>
+              </div>
+            </div>
+
+            {attemptInfo && (
+              <div className="mt-4 bg-gray-50 dark:bg-gray-800 border p-4 rounded-xl text-sm space-y-2">
+                <p className="flex justify-between">
+                  <span className="dark:text-gray-400">Sisa Attempt:</span>
+                  <span
+                    className={`px-3 py-1 rounded-lg ${
+                      attemptInfo.remaining_attempts === 0
+                        ? "bg-red-100 text-red-600"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {attemptInfo.remaining_attempts}
+                  </span>
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4 flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm text-blue-800">
+              <span className="text-lg">⏰</span>
+              <p>
+                Pastikan <strong>tanggal & waktu perangkat</strong> anda sudah
+                <strong> sesuai (otomatis)</strong>. Kesalahan pengaturan waktu
+                dapat menyebabkan
+                <strong> timer tidak akurat</strong> atau
+                <strong> tryout ter-submit otomatis</strong>.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="p-7 border-t dark:border-gray-700 flex justify-end gap-3">
             <button
               onClick={() => setShowModal(false)}
               className="px-5 py-2 border bg-gray-100 rounded-lg"
