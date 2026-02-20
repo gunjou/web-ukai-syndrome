@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Api from "../../../utils/Api";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
@@ -16,14 +16,17 @@ const AssignKelasModal = ({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Ambil target ID sesuai mode
+  const selectAllRef = useRef(null);
+
   const idTarget = mode === "mentor" ? idMentor : idModul;
 
   useEffect(() => {
     if (show) {
       fetchKelas();
+    } else {
+      setSelectedIds([]); // reset saat modal ditutup
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [show]);
 
   const fetchKelas = async () => {
@@ -34,17 +37,36 @@ const AssignKelasModal = ({
       let url = "";
       if (mode === "modul") {
         url = `/modul/kelas-tersedia/${idTarget}`;
-      } else if (mode === "mentor") {
+      } else {
         url = `/mentor-kelas/kelas-tersedia/${idTarget}`;
       }
 
       const res = await Api.get(url);
       setKelasList(res.data.data || []);
     } catch (err) {
-      console.error("Gagal fetch list kelas:", err);
       toast.error("Gagal memuat data kelas.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const isAllSelected =
+    kelasList.length > 0 && selectedIds.length === kelasList.length;
+
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < kelasList.length;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(kelasList.map((k) => k.id_paketkelas));
     }
   };
 
@@ -62,10 +84,9 @@ const AssignKelasModal = ({
 
     setSaving(true);
     try {
-      await onSave(selectedIds, mode); // ⬅️ kasih tau mode juga kalau parent butuh
+      await onSave(selectedIds, mode);
       onClose();
     } catch (err) {
-      console.error("Gagal assign:", err);
       toast.error("Gagal assign kelas.");
     } finally {
       setSaving(false);
@@ -75,142 +96,133 @@ const AssignKelasModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-3xl p-6 relative pointer-events-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-xl w-[90%] max-w-5xl p-6 relative animate-fadeIn">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+          className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
         >
           <AiOutlineClose size={24} />
         </button>
 
-        <h2 className="text-lg font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4">
           {mode === "modul"
             ? "Assign Kelas ke Modul"
             : "Assign Kelas ke Mentor"}
         </h2>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
+          <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data kelas...</p>
+            <p className="text-gray-600"> Memuat data kelas...</p>
           </div>
         ) : kelasList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <p className="text-center text-gray-500">Tidak ada kelas.</p>
+          <div className="text-center py-10 text-gray-500">
+            Tidak ada kelas tersedia / sudah semua kelas terassign.
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-            <table className="w-full border bg-white">
-              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 border text-left">Pilih</th>
-                  <th className="px-4 py-2 border text-left">Nama Kelas</th>
-                  <th className="px-4 py-2 border text-left">Paket</th>
-                  <th className="px-4 py-2 border text-left">Batch</th>
-                  <th className="px-4 py-2 border text-center">Modul</th>
-                  <th className="px-4 py-2 border text-center">Peserta</th>
-                  <th className="px-4 py-2 border text-center">Mentor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {kelasList.map((kelas) => {
-                  const isChecked = selectedIds.includes(kelas.id_paketkelas);
-                  return (
-                    <tr
-                      key={kelas.id_paketkelas}
-                      className={`cursor-pointer ${
-                        isChecked
-                          ? "bg-blue-100"
-                          : "bg-gray-100 hover:bg-gray-300"
-                      }`}
-                      onClick={(e) => {
-                        if (e.target.type !== "checkbox") {
-                          handleCheckboxChange(kelas.id_paketkelas);
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-2 border text-center">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() =>
-                            handleCheckboxChange(kelas.id_paketkelas)
+          <>
+            {/* Bulk Action */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSelectAll}
+                  className={`px-3 py-1 text-xs font-medium rounded-full transition ${
+                    isAllSelected
+                      ? "bg-red-100 text-red-600 hover:bg-red-200"
+                      : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                  }`}
+                >
+                  {isAllSelected ? "Batalkan Semua" : "Pilih Semua"}
+                </button>
+
+                {selectedIds.length > 0 && (
+                  <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
+                    {selectedIds.length} terpilih
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-auto max-h-[400px] border rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        ref={selectAllRef}
+                        checked={isAllSelected}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
+                    <th className="px-3 py-2 text-left">Nama Kelas</th>
+                    <th className="px-3 py-2 text-left">Paket</th>
+                    <th className="px-3 py-2 text-left">Batch</th>
+                    <th className="px-3 py-2 text-center">Modul</th>
+                    <th className="px-3 py-2 text-center">Peserta</th>
+                    <th className="px-3 py-2 text-center">Mentor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {kelasList.map((kelas) => {
+                    const isChecked = selectedIds.includes(kelas.id_paketkelas);
+
+                    return (
+                      <tr
+                        key={kelas.id_paketkelas}
+                        className={`cursor-pointer transition ${
+                          isChecked ? "bg-blue-50" : "hover:bg-gray-50"
+                        }`}
+                        onClick={(e) => {
+                          if (e.target.type !== "checkbox") {
+                            handleCheckboxChange(kelas.id_paketkelas);
                           }
-                        />
-                      </td>
-                      <td className="px-4 py-2 border">{kelas.nama_kelas}</td>
-                      <td className="px-4 py-2 border">{kelas.nama_paket}</td>
-                      <td className="px-4 py-2 border">{kelas.nama_batch}</td>
-                      <td className="px-4 py-2 border text-center">
-                        {kelas.total_modul}
-                      </td>
-                      <td className="px-4 py-2 border text-center">
-                        {kelas.total_peserta}
-                      </td>
-                      <td className="px-4 py-2 border text-center">
-                        {kelas.total_mentor}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        }}
+                      >
+                        <td className="text-center py-2">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() =>
+                              handleCheckboxChange(kelas.id_paketkelas)
+                            }
+                          />
+                        </td>
+                        <td className="py-2">{kelas.nama_kelas}</td>
+                        <td>{kelas.nama_paket}</td>
+                        <td>{kelas.nama_batch}</td>
+                        <td className="text-center">{kelas.total_modul}</td>
+                        <td className="text-center">{kelas.total_peserta}</td>
+                        <td className="text-center">{kelas.total_mentor}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
-        <div className="grid grid-cols-2 items-center mt-4">
-          {/* Kolom kiri */}
-          <div className="flex justify-start">
-            {selectedIds.length > 0 && (
-              <span className="text-sm text-gray-700">
-                {selectedIds.length} Kelas terpilih
-              </span>
-            )}
-          </div>
-
-          {/* Kolom kanan */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-1 bg-gray-400 hover:bg-gray-500 text-white rounded-xl"
-            >
-              Batal
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className={`px-4 py-1 rounded-xl flex items-center justify-center gap-2 ${
-                saving
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-            >
-              {saving && (
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  ></path>
-                </svg>
-              )}
-              {saving ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
+        {/* Footer */}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-xl"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-5 py-2 rounded-xl flex items-center gap-2 ${
+              saving
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {saving ? "Menyimpan..." : "Simpan"}
+          </button>
         </div>
       </div>
     </div>

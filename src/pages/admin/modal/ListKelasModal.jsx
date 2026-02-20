@@ -1,5 +1,5 @@
 // ListKelasModal.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BsTrash3 } from "react-icons/bs";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import Api from "../../../utils/Api";
@@ -12,7 +12,9 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
   const [loading, setLoading] = useState(true);
   const [showAssignModal, setShowAssignModal] = useState(false);
 
-  // tentukan prefix API berdasarkan mode
+  const [selectedIds, setSelectedIds] = useState([]);
+  const selectAllRef = useRef(null);
+
   const prefix = mode === "mentor" ? "mentor-kelas" : "modul";
 
   const fetchKelas = async () => {
@@ -26,6 +28,7 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
         ? res.data.data
         : [];
       setKelasData(list);
+      setSelectedIds([]); // reset selection setiap fetch
     } catch (err) {
       console.error("Gagal fetch list kelas:", err);
     } finally {
@@ -35,36 +38,76 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
 
   useEffect(() => {
     fetchKelas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [idTarget]);
 
-  const handleSaveAssign = async (ids) => {
-    if (!idTarget) return;
+  // SELECT LOGIC
 
-    try {
-      await Api.post(`/${prefix}/assign-kelas/${idTarget}`, {
-        id_paketkelas: ids,
-      });
-      toast.success(`Kelas berhasil di-assign ke ${mode}.`);
-      setShowAssignModal(false);
-      fetchKelas();
-      onRefresh?.();
-    } catch (err) {
-      console.error("Gagal assign kelas:", err);
-      toast.error(`Gagal assign kelas ke ${mode}.`);
+  const isAllSelected =
+    kelasData.length > 0 && selectedIds.length === kelasData.length;
+
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < kelasData.length;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
+  const getId = (kelas) =>
+    mode === "mentor" ? kelas.id_mentorkelas : kelas.id_modulkelas;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(kelasData.map((kelas) => getId(kelas)));
     }
   };
 
+  const handleCheckboxChange = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  // BULK DELETE
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) {
+      toast.warn("Pilih minimal satu data.");
+      return;
+    }
+
+    ConfirmToast(
+      `Yakin ingin menghapus ${selectedIds.length} data?`,
+      async () => {
+        try {
+          await Promise.all(
+            selectedIds.map((id) => Api.delete(`/${prefix}/kelas/${id}`))
+          );
+
+          toast.success("Data berhasil dihapus.");
+          setSelectedIds([]);
+          fetchKelas();
+          onRefresh?.();
+        } catch (err) {
+          toast.error("Gagal menghapus beberapa data.");
+        }
+      }
+    );
+  };
+
   const handleDelete = (id) => {
-    ConfirmToast(`Yakin ingin menghapus ${mode} untuk kelas ini?`, async () => {
+    ConfirmToast(`Yakin ingin menghapus data ini?`, async () => {
       try {
         await Api.delete(`/${prefix}/kelas/${id}`);
-        toast.success(`${mode} untuk kelas ini berhasil dihapus.`);
+        toast.success("Data berhasil dihapus.");
         fetchKelas();
         onRefresh?.();
       } catch (err) {
-        toast.error(`Gagal menghapus ${mode}.`);
-        console.error(err);
+        toast.error("Gagal menghapus data.");
       }
     });
   };
@@ -85,62 +128,96 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
           <p className="text-center text-gray-500">Tidak ada kelas.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-          <table className="w-full border-collapse border text-sm">
-            <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-              <tr className="bg-white">
-                <th className="border px-3 py-2">No</th>
-                <th className="border px-3 py-2">Nama Kelas</th>
-                <th className="border px-3 py-2">Paket</th>
-                <th className="border px-3 py-2">Batch</th>
-                <th className="border px-3 py-2">Total Modul</th>
-                <th className="border px-3 py-2">Total Peserta</th>
-                <th className="border px-3 py-2">Total Mentor</th>
-                <th className="border px-3 py-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kelasData.map((kelas, index) => (
-                <tr
-                  key={index}
-                  className="text-center bg-gray-100 hover:bg-gray-300"
-                >
-                  <td className="px-2 py-2 text-xs sm:text-sm border text-center">
-                    {index + 1}
-                  </td>
-                  <td className="border px-3 py-2">{kelas.nama_kelas}</td>
-                  <td className="border px-3 py-2">{kelas.nama_paket}</td>
-                  <td className="border px-3 py-2">{kelas.nama_batch}</td>
-                  <td className="border px-3 py-2">{kelas.total_modul}</td>
-                  <td className="border px-3 py-2">{kelas.total_peserta}</td>
-                  <td className="border px-3 py-2">{kelas.total_mentor}</td>
-                  <td className="border px-3 py-2 text-xs sm:text-sm">
-                    <div className="relative group">
-                      <button
-                        onClick={() =>
-                          handleDelete(
-                            mode === "mentor"
-                              ? kelas.id_mentorkelas
-                              : kelas.id_modulkelas
-                          )
-                        }
-                        className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                      >
-                        <BsTrash3 className="w-4 h-4" />
-                      </button>
-                      <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
-                        Hapus data
-                      </span>
-                    </div>
-                  </td>
+        <>
+          {/* BULK ACTION BAR */}
+          {selectedIds.length > 0 && (
+            <div className="flex justify-between items-center mb-3 bg-red-50 px-3 py-2 rounded-lg">
+              <span className="text-sm text-gray-700">
+                {selectedIds.length} data terpilih
+              </span>
+
+              <button
+                onClick={handleBulkDelete}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg text-sm"
+              >
+                Hapus Terpilih
+              </button>
+            </div>
+          )}
+
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+            <table className="w-full border-collapse border text-sm">
+              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
+                <tr className="bg-white">
+                  <th className="border px-3 py-2 text-center">
+                    <input
+                      type="checkbox"
+                      ref={selectAllRef}
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                  <th className="border px-3 py-2">No</th>
+                  <th className="border px-3 py-2">Nama Kelas</th>
+                  <th className="border px-3 py-2">Paket</th>
+                  <th className="border px-3 py-2">Batch</th>
+                  <th className="border px-3 py-2">Total Modul</th>
+                  <th className="border px-3 py-2">Total Peserta</th>
+                  <th className="border px-3 py-2">Total Mentor</th>
+                  <th className="border px-3 py-2">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {kelasData.map((kelas, index) => {
+                  const id = getId(kelas);
+                  const isSelected = selectedIds.includes(id);
+
+                  return (
+                    <tr
+                      key={index}
+                      className={`text-center transition ${
+                        isSelected
+                          ? "bg-red-100"
+                          : "bg-gray-100 hover:bg-gray-300"
+                      }`}
+                    >
+                      <td className="border px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleCheckboxChange(id)}
+                        />
+                      </td>
+
+                      <td className="px-2 py-2 border">{index + 1}</td>
+                      <td className="border px-3 py-2">{kelas.nama_kelas}</td>
+                      <td className="border px-3 py-2">{kelas.nama_paket}</td>
+                      <td className="border px-3 py-2">{kelas.nama_batch}</td>
+                      <td className="border px-3 py-2">{kelas.total_modul}</td>
+                      <td className="border px-3 py-2">
+                        {kelas.total_peserta}
+                      </td>
+                      <td className="border px-3 py-2">{kelas.total_mentor}</td>
+
+                      <td className="border px-3 py-2">
+                        <button
+                          onClick={() => handleDelete(id)}
+                          className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          <BsTrash3 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
-      {/* Button Assign */}
+      {/* BUTTON ASSIGN */}
       <div className="flex justify-end pt-3">
         <button
           onClick={() => setShowAssignModal(true)}
@@ -150,7 +227,7 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
         </button>
       </div>
 
-      {/* Modal Assign */}
+      {/* MODAL ASSIGN */}
       {showAssignModal && (
         <div
           className="fixed inset-0 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center z-50"
@@ -160,17 +237,16 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
             className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Tombol Close */}
             <button
               onClick={() => setShowAssignModal(false)}
-              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+              className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
+
             <AssignKelasModal
               show={showAssignModal}
               onClose={() => setShowAssignModal(false)}
-              onSave={handleSaveAssign}
               {...(mode === "mentor"
                 ? { idMentor: idTarget }
                 : { idModul: idTarget })}

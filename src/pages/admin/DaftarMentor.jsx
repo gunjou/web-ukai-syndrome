@@ -289,7 +289,7 @@ const DaftarMentor = () => {
             {/* Tombol Close */}
             <button
               onClick={() => setShowListKelasModal(false)}
-              className="absolute top-5 right-4 text-gray-600 hover:text-red-500"
+              className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
             >
               <AiOutlineClose size={24} />
             </button>
