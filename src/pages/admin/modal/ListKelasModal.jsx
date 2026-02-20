@@ -112,6 +112,23 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
     });
   };
 
+  const handleSaveAssign = async (ids) => {
+    if (!idTarget) return;
+
+    try {
+      await Api.post(`/${prefix}/assign-kelas/${idTarget}`, {
+        id_paketkelas: ids,
+      });
+      toast.success(`Kelas berhasil di-assign ke ${mode}.`);
+      setShowAssignModal(false);
+      fetchKelas();
+      onRefresh?.();
+    } catch (err) {
+      console.error("Gagal assign kelas:", err);
+      toast.error(`Gagal assign kelas ke ${mode}.`);
+    }
+  };
+
   return (
     <div className="relative">
       <div className="flex justify-between items-center mb-3">
@@ -247,6 +264,7 @@ const ListKelasModal = ({ mode, idTarget, title, onRefresh }) => {
             <AssignKelasModal
               show={showAssignModal}
               onClose={() => setShowAssignModal(false)}
+              onSave={handleSaveAssign}
               {...(mode === "mentor"
                 ? { idMentor: idTarget }
                 : { idModul: idTarget })}
