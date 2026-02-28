@@ -69,8 +69,8 @@ const MateriList = ({
                   modul.visibility === "open"
                     ? "text-green-600 border-green-400"
                     : modul.visibility === "hold"
-                    ? "text-yellow-600 border-yellow-400"
-                    : "text-red-600 border-red-400"
+                      ? "text-yellow-600 border-yellow-400"
+                      : "text-red-600 border-red-400"
                 }`}
             >
               <option value="open">Open</option>
@@ -248,8 +248,8 @@ const Materi = () => {
         prev.map((modul) =>
           modul.id_modul === id_modul
             ? { ...modul, visibility: newVisibility }
-            : modul
-        )
+            : modul,
+        ),
       );
       // ✅ toast sukses
       toast.success(
@@ -257,7 +257,7 @@ const Materi = () => {
         {
           position: "top-right",
           autoClose: 3000,
-        }
+        },
       );
       setLoading(false);
     } catch (error) {
@@ -364,7 +364,7 @@ const Materi = () => {
       judul: generateJudulDocument(
         tanggalMateri,
         toTitleCase(nickname),
-        toTitleCase(activeModulNama)
+        toTitleCase(activeModulNama),
       ),
       tipe_materi: "document",
       url_file: urlFile,
@@ -404,12 +404,14 @@ const Materi = () => {
           </h1>
           <div className="flex items-center gap-3">
             {location.pathname === basePath ? (
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
-              >
-                Tambah Modul
-              </button>
+              <p>
+                {/* // <button
+                //   onClick={() => setShowAddModal(true)}
+                //   className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl text-sm"
+                // >
+                //   Tambah Modul
+                // </button> */}
+              </p>
             ) : (
               <button
                 onClick={() => setShowAddMateriModal(true)}
@@ -558,8 +560,8 @@ const Materi = () => {
                 visibility === "open"
                   ? "text-green-600 border-green-400"
                   : visibility === "hold"
-                  ? "text-yellow-600 border-yellow-400"
-                  : "text-red-600 border-red-400"
+                    ? "text-yellow-600 border-yellow-400"
+                    : "text-red-600 border-red-400"
               }`}
                 >
                   <option value="open">Open</option>
