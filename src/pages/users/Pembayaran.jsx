@@ -106,7 +106,7 @@ const Pembayaran = () => {
 
             <div className="text-left pt-8">
               <a
-                href={`https://wa.me/6285732012878?text=${encodeURIComponent(
+                href={`https://wa.me/628895946963?text=${encodeURIComponent(
                   (() => {
                     const user = JSON.parse(localStorage.getItem("user")) || {};
                     return `Halo Admin, saya ingin memesan paket:\n\nID User: ${
@@ -114,9 +114,9 @@ const Pembayaran = () => {
                     }\nNama: ${capitalizeWords(user.nama)}\nJenis Paket: ${
                       paket.title
                     }\nHarga: Rp ${paket.harga.toLocaleString(
-                      "id-ID"
+                      "id-ID",
                     )}\n\nMohon informasi lebih lanjut.`;
-                  })()
+                  })(),
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
