@@ -1,7 +1,7 @@
-import dokter from "../assets/coba.png";
+import dokter from "../assets/coba.webp";
 import indo_flag from "../assets/indo_flag.png";
 import garis from "../assets/garis-kanan.png";
-import garisyangbawah from "../assets/garisyangbawah.png";
+// import garisyangbawah from "../assets/garisyangbawah.png";
 
 const Hero = () => {
   return (
@@ -43,7 +43,10 @@ const Hero = () => {
         <img
           src={dokter}
           alt="Dokter"
-          className="w-full h-auto object-contain drop-shadow-xl"
+          loading="eager"
+          fetchpriority="high"
+          className="w-full h-auto object-contain"
+          // className="w-full h-auto object-contain drop-shadow-xl"
         />
       </div>
 
@@ -83,7 +86,8 @@ const Hero = () => {
         <img
           src={indo_flag}
           alt="Bendera Indonesia"
-          className="drop-shadow-xl w-full h-auto"
+          className="w-full h-auto"
+          // className="drop-shadow-xl w-full h-auto"
         />
       </div>
     </section>

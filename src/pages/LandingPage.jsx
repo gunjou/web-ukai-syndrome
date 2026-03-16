@@ -1,23 +1,32 @@
+import { lazy, Suspense } from "react";
+
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import Mentor from "../components/Mentor";
-import Modul from "../components/Modul";
-import Features from "../components/Features";
-import Footer from "../components/Footer";
-import About from "../components/About";
-import Download from "../components/Download";
+
+const Mentor = lazy(() => import("../components/Mentor"));
+const Modul = lazy(() => import("../components/Modul"));
+const Features = lazy(() => import("../components/Features"));
+const Download = lazy(() => import("../components/Download"));
+const About = lazy(() => import("../components/About"));
+const Footer = lazy(() => import("../components/Footer"));
 
 const LandingPage = () => {
   return (
     <div className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d]">
       <Navbar />
       <Hero />
-      <Mentor />
-      <Modul />
-      <Features />
-      <Download />
-      <About />
-      <Footer />
+      <Suspense
+        fallback={
+          <div className="text-white text-center py-10">Loading...</div>
+        }
+      >
+        <Mentor />
+        <Modul />
+        <Features />
+        <Download />
+        <About />
+        <Footer />
+      </Suspense>
     </div>
   );
 };

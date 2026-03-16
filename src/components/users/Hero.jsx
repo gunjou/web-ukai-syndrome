@@ -1,6 +1,6 @@
-import dokter from "../../assets/coba.png";
+import dokter from "../../assets/coba.webp";
 import garis from "../../assets/garis-kanan.png";
-import garisyangbawah from "../../assets/garisyangbawah.png";
+// import garisyangbawah from "../../assets/garisyangbawah.png";
 
 const Hero = () => {
   return (
@@ -25,6 +25,8 @@ const Hero = () => {
       <img
         src={dokter}
         alt="Dokter"
+        loading="eager"
+        fetchpriority="high"
         className="
     flex justify-center absolute top-[120px] left-1/2 transform -translate-x-1/2
     w-[55%]              /* ukuran kecil di mobile */
