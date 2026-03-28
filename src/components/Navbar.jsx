@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-scroll"; // Menggunakan Link dari react-scroll
+import { Link } from "react-scroll";
 import { FiMenu, FiX } from "react-icons/fi";
-import logo from "../assets/logo_syndrome_kuning.png";
-import { MdOutlineArrowDropDown } from "react-icons/md";
-import { Link as RouterLink } from "react-router-dom"; // Import Link dari react-router-dom untuk Login
+import { Link as RouterLink } from "react-router-dom";
+import { CDN_ASSET_URL } from "../utils/Api";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +12,11 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="home" smooth={true} className="flex items-center space-x-2">
-          <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto" />
+          <img
+            src={`${CDN_ASSET_URL}/logo_syndrome_kuning.png`}
+            alt="Logo"
+            className="h-8 sm:h-10 w-auto"
+          />
         </Link>
 
         {/* Mobile Menu Button */}

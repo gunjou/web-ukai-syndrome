@@ -1,6 +1,4 @@
-import dokter from "../assets/coba.webp";
-import indo_flag from "../assets/indo_flag.png";
-import garis from "../assets/garis-kanan.png";
+import { CDN_ASSET_URL } from "../utils/Api";
 // import garisyangbawah from "../assets/garisyangbawah.png";
 
 const Hero = () => {
@@ -10,12 +8,14 @@ const Hero = () => {
       className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] mt-5 pt-20 text-center w-auto h-auto poppins relative"
     >
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto"
+        alt=""
       />
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1]  transform z-0"
+        alt=""
       />
       {/* Judul */}
       <div className="flex justify-center text-4xl sm:text-7xl md:text-6xl font-bold text-white mb-4 mask-text-gradient tracking-wide whitespace-nowrap">
@@ -41,7 +41,7 @@ const Hero = () => {
 "
       >
         <img
-          src={dokter}
+          src={`${CDN_ASSET_URL}/dokter.png`}
           alt="Dokter"
           loading="eager"
           fetchpriority="high"
@@ -84,7 +84,7 @@ const Hero = () => {
 
       <div className="absolute bottom-0 sm:pb-[250px] pb-[100px] left-0 sm:w-64 w-32 sm:h-40 h-32 mt z-20">
         <img
-          src={indo_flag}
+          src={`${CDN_ASSET_URL}/indo_flag.png`}
           alt="Bendera Indonesia"
           className="w-full h-auto"
           // className="drop-shadow-xl w-full h-auto"

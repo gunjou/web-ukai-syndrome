@@ -2,6 +2,7 @@ import axios from "axios";
 
 const baseURL = process.env.REACT_APP_API_URL;
 // const baseURL = "http://127.0.0.1:5000";
+export const CDN_ASSET_URL = process.env.REACT_APP_CDN_ASSET_URL;
 const Api = axios.create({
   baseURL: baseURL,
   headers: { "Content-Type": "application/json" },
