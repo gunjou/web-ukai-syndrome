@@ -59,7 +59,7 @@ export default function LoginPage() {
       safeLocalStorage.set("token", access_token);
       safeLocalStorage.set(
         "user",
-        JSON.stringify({ id_user, nama, nickname, role })
+        JSON.stringify({ id_user, nama, nickname, role }),
       );
 
       if (remember) {
@@ -74,7 +74,15 @@ export default function LoginPage() {
       else if (role === "mentor") navigate("/mentor-home");
       else navigate("/home");
     } catch (err) {
-      setErrorMsg(err?.response?.data?.message || "Email atau password salah.");
+      // Ambil message dari key "status" sesuai return API Python Anda
+      const errorData = err.response?.data;
+
+      if (errorData && errorData.status) {
+        // Ini akan menangkap "Email tidak terdaftar", "Password salah", dll
+        setErrorMsg(errorData.status);
+      } else {
+        setErrorMsg("Gagal terhubung ke server. Silakan coba lagi.");
+      }
     } finally {
       if (mounted.current) setLoading(false);
     }
