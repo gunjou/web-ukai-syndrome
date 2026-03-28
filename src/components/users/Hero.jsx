@@ -1,5 +1,4 @@
-import dokter from "../../assets/coba.webp";
-import garis from "../../assets/garis-kanan.png";
+import { CDN_ASSET_URL } from "../../utils/Api";
 // import garisyangbawah from "../../assets/garisyangbawah.png";
 
 const Hero = () => {
@@ -9,11 +8,13 @@ const Hero = () => {
       className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] mt-5 pt-20 text-center w-auto h-auto poppins relative"
     >
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute top-0 right-0 pt-[90px] h-full w-auto"
       />
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1]  transform z-0"
       />
       {/* Judul */}
@@ -23,7 +24,7 @@ const Hero = () => {
 
       {/* Gambar dengan posisi floating */}
       <img
-        src={dokter}
+        src={`${CDN_ASSET_URL}/dokter.png`}
         alt="Dokter"
         loading="eager"
         fetchpriority="high"

@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
   Route,
@@ -11,7 +10,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import MateriListContent from "./MateriListContent";
-import Api from "../../utils/Api"; // menggunakan instance axios
+import Api, { CDN_ASSET_URL } from "../../utils/Api"; // menggunakan instance axios
 import { toast } from "react-toastify";
 
 // Komponen untuk daftar folder modul
@@ -32,7 +31,7 @@ const MateriList = ({
           onClick={() => onFolderClick(modul)}
         >
           <img
-            src={icon_folder}
+            src={`${CDN_ASSET_URL}/icon_folder.png`}
             alt="Folder Icon"
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />

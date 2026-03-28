@@ -1,6 +1,6 @@
 import React from "react";
 import { FaGooglePlay, FaApple, FaDownload } from "react-icons/fa";
-import screenshot from "../assets/ss.png"; // pakai 1 gambar utama
+import { CDN_ASSET_URL } from "../utils/Api";
 
 const Download = () => {
   const handleNotAvailable = (platform) => {
@@ -72,7 +72,7 @@ const Download = () => {
         {/* Bagian Kanan: Screenshot */}
         <div className="flex justify-center">
           <img
-            src={screenshot}
+            src={`${CDN_ASSET_URL}/screenshot.png`}
             alt="Tampilan Aplikasi Syndrome UKAI"
             className="rounded-2xl shadow-2xl max-w-[180px] md:max-w-[180px] lg:max-w-[180px] object-contain transform hover:scale-105 transition duration-300"
           />

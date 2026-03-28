@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import homepage_img from "../../assets/logo_syndrome_kuning.png";
 import { FiMenu, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import ProfileDropdown from "../../pages/admin/components/ProfileDropdown.jsx";
 
 const Header = () => {
@@ -96,7 +95,7 @@ const Header = () => {
         closeButton: false,
         draggable: false,
         pauseOnHover: false,
-      }
+      },
     );
 
     // OUTSIDE CLICK CLOSE
@@ -116,7 +115,11 @@ const Header = () => {
   return (
     <header className="bg-white py-4 px-8 shadow flex justify-between items-center rounded-b-[40px] sticky top-0 z-50">
       <Link to="/admin-home">
-        <img src={homepage_img} alt="Logo" className="h-10 cursor-pointer" />
+        <img
+          src={`${CDN_ASSET_URL}/logo_syndrome_kuning.png`}
+          alt="Logo"
+          className="h-10 cursor-pointer"
+        />
       </Link>
 
       {/* Tombol menu mobile */}

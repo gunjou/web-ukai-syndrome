@@ -3,8 +3,7 @@ import Header from "../../components/admin/Header.jsx";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahMentorForm from "./modal/TambahMentorForm.jsx";
 import EditMentorForm from "./modal/EditMentorForm.jsx";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
@@ -56,7 +55,7 @@ const DaftarMentor = () => {
           user.nama_batch,
           user.nama_kelas,
           user.nama_paket,
-        ].some((v) => (v ?? "").toLowerCase().includes(k))
+        ].some((v) => (v ?? "").toLowerCase().includes(k)),
       )
       .sort((a, b) => a.nama.localeCompare(b.nama));
   }, [userData, searchTerm]);
@@ -110,7 +109,7 @@ const DaftarMentor = () => {
           <button
             onClick={() => handleOpenListKelasModal(user.id_user)}
             className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
-              user.total_kelas
+              user.total_kelas,
             )}`}
           >
             {user.total_kelas} Kelas
@@ -149,12 +148,12 @@ const DaftarMentor = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />

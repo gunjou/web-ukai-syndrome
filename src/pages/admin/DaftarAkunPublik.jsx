@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import Header from "../../components/admin/Header.jsx";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
 import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
 import EditPesertaForm from "./modal/EditPesertaForm.jsx";
@@ -52,7 +51,7 @@ const DaftarAkunPublik = () => {
 
       // (opsional) deduplicate berdasarkan id_user
       const deduped = Array.from(
-        new Map(sorted.map((u) => [u.id_user, u])).values()
+        new Map(sorted.map((u) => [u.id_user, u])).values(),
       );
       setUserData(deduped);
     } catch (err) {
@@ -81,8 +80,8 @@ const DaftarAkunPublik = () => {
     const k = searchTerm.toLowerCase();
     return userData.filter((user) =>
       [user.nama, user.email, user.no_hp].some((v) =>
-        (v ?? "").toLowerCase().includes(k)
-      )
+        (v ?? "").toLowerCase().includes(k),
+      ),
     );
   }, [userData, searchTerm]);
 
@@ -165,12 +164,12 @@ const DaftarAkunPublik = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 z-0"
         alt=""
       />

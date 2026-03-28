@@ -9,8 +9,7 @@ import EditMateriForm from "./modal/EditMateriForm.jsx";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import { toast } from "react-toastify";
 
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 
 const DaftarMateri = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,8 +51,8 @@ const DaftarMateri = () => {
     return [...materiData] // copy array biar ga mutasi state asli
       .filter((materi) =>
         [materi.judul, materi.judul_modul, materi.tipe_materi].some((v) =>
-          (v ?? "").toLowerCase().includes(k)
-        )
+          (v ?? "").toLowerCase().includes(k),
+        ),
       );
   }, [materiData, searchTerm]);
 
@@ -80,8 +79,8 @@ const DaftarMateri = () => {
         prev.map((materi) =>
           materi.id_materi === id
             ? { ...materi, visibility: newStatus }
-            : materi
-        )
+            : materi,
+        ),
       );
     } catch (error) {
       console.error("Gagal mengubah visibility:", error);
@@ -172,10 +171,10 @@ const DaftarMateri = () => {
         materi.visibility === "open"
           ? "text-green-600"
           : materi.visibility === "hold"
-          ? "text-yellow-600"
-          : materi.visibility === "close"
-          ? "text-red-600"
-          : "text-gray-600"
+            ? "text-yellow-600"
+            : materi.visibility === "close"
+              ? "text-red-600"
+              : "text-gray-600"
       }
     `}
           >
@@ -224,12 +223,12 @@ const DaftarMateri = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />

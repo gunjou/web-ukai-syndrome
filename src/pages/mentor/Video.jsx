@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight } from "react-icons/hi";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import icon_folder from "../../assets/icon_folder.png";
 import {
   Routes,
   Route,
@@ -12,7 +11,7 @@ import {
 } from "react-router-dom";
 import { toast } from "react-toastify";
 import VideoListContent from "./VideoListContent";
-import Api from "../../utils/Api";
+import Api, { CDN_ASSET_URL } from "../../utils/Api";
 
 // Komponen daftar folder
 const VideoList = ({
@@ -32,7 +31,7 @@ const VideoList = ({
           onClick={() => onFolderClick(modul)}
         >
           <img
-            src={icon_folder}
+            src={`${CDN_ASSET_URL}/icon_folder.png`}
             alt="Folder Icon"
             className="w-auto h-[5rem] absolute -top-5 left-1/2 transform -translate-x-1/2"
           />
@@ -67,8 +66,8 @@ const VideoList = ({
                 modul.visibility === "open"
                   ? "text-green-600 border-green-400"
                   : modul.visibility === "hold"
-                  ? "text-yellow-600 border-yellow-400"
-                  : "text-red-600 border-red-400"
+                    ? "text-yellow-600 border-yellow-400"
+                    : "text-red-600 border-red-400"
               }`}
             >
               <option value="open">Open</option>
@@ -231,8 +230,8 @@ const Video = () => {
         prev.map((modul) =>
           modul.id_modul === id_modul
             ? { ...modul, visibility: newVisibility }
-            : modul
-        )
+            : modul,
+        ),
       );
 
       toast.success(
@@ -240,7 +239,7 @@ const Video = () => {
         {
           position: "top-right",
           autoClose: 3000,
-        }
+        },
       );
     } catch (error) {
       console.error("Gagal mengubah visibility:", error);
@@ -326,7 +325,7 @@ const Video = () => {
         {
           position: "top-right",
           autoClose: 4000,
-        }
+        },
       );
       return;
     }
@@ -362,7 +361,7 @@ const Video = () => {
       nickname,
       namaModul,
       tipeVideo,
-      timeTerjeda
+      timeTerjeda,
     ) => {
       if (!tanggalMateri || !nickname || !namaModul || !tipeVideo) return "";
       const base = `${formatTanggal(tanggalMateri)}_${nickname}_${namaModul}`;
@@ -385,7 +384,7 @@ const Video = () => {
       toTitleCase(nickname),
       toTitleCase(activeModulNama),
       tipeVideo,
-      timeTerjeda
+      timeTerjeda,
     );
 
     const payload = {
@@ -578,8 +577,8 @@ const Video = () => {
                     visibility === "open"
                       ? "text-green-600 border-green-400"
                       : visibility === "hold"
-                      ? "text-yellow-600 border-yellow-400"
-                      : "text-red-600 border-red-400"
+                        ? "text-yellow-600 border-yellow-400"
+                        : "text-red-600 border-red-400"
                   }`}
                 >
                   <option value="open">Open</option>

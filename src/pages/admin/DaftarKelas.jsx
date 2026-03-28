@@ -5,8 +5,7 @@ import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import Header from "../../components/admin/Header.jsx";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahKelasForm from "./modal/TambahKelasForm.jsx";
 import EditKelasForm from "./modal/EditKelasForm.jsx";
 import KelasPesertaModal from "./modal/KelasPesertaModal.jsx";
@@ -63,7 +62,7 @@ const DaftarKelas = () => {
         kelas.nama_paket,
         kelas.nama_batch,
         kelas.deskripsi,
-      ].some((v) => (v ?? "").toLowerCase().includes(k))
+      ].some((v) => (v ?? "").toLowerCase().includes(k)),
     );
   }, [kelasData, searchTerm]);
 
@@ -132,7 +131,7 @@ const DaftarKelas = () => {
               handleOpenListPesertaModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
             className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_peserta
+              kelas.total_peserta,
             )}`}
           >
             {kelas.total_peserta} Peserta
@@ -144,7 +143,7 @@ const DaftarKelas = () => {
               handleOpenListMentorModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
             className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_mentor
+              kelas.total_mentor,
             )}`}
           >
             {kelas.total_mentor} Mentor
@@ -156,7 +155,7 @@ const DaftarKelas = () => {
               handleOpenListModulModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
             className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_modul
+              kelas.total_modul,
             )}`}
           >
             {kelas.total_modul} Modul
@@ -196,12 +195,12 @@ const DaftarKelas = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />

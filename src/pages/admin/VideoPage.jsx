@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { FaUpload } from "react-icons/fa"; // Importing the icons
-import garisKanan from "../../assets/garis-kanan.png";
-import bgmaps from "../../assets/maps.png";
+import { FaUpload } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import VideoData from "./VideoData.js";
 import { LuPencil } from "react-icons/lu";
@@ -10,6 +8,7 @@ import { FaRegEdit } from "react-icons/fa";
 import { CiPlay1 } from "react-icons/ci";
 import { IoPlay } from "react-icons/io5";
 import { FiPlay } from "react-icons/fi";
+import { CDN_ASSET_URL } from "../../utils/Api.jsx";
 
 const VideoPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,7 +36,7 @@ const VideoPage = () => {
 
   // Filter the VideoData based on the search term
   const filteredData = VideoData.filter((Video) =>
-    Video.nama.toLowerCase().includes(searchTerm.toLowerCase())
+    Video.nama.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Render a row for each item in VideoData
@@ -54,8 +53,8 @@ const VideoPage = () => {
               Video.status === "open"
                 ? "text-green-500"
                 : Video.status === "hold"
-                ? "text-yellow-500"
-                : "text-red-500"
+                  ? "text-yellow-500"
+                  : "text-red-500"
             }`}
           >
             {Video.status}
@@ -104,11 +103,13 @@ const VideoPage = () => {
       /> */}
 
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute top-0 right-0 pt-[90px]  h-full w-auto opacity-40 z-0"
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute bottom-0 left-0 pt-[90px]  h-full w-auto opacity-40 rotate-180 transform z-0"
       />
       <Header />

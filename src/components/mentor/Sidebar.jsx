@@ -2,10 +2,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import homepage_img from "../../assets/logo-1.svg";
-import icon_file from "../../assets/icon_file.png";
-import icon_folder from "../../assets/icon_folder.png";
-import icon_pesan from "../../assets/icon_pesan.png";
-import icon_video from "../../assets/icon_video.png";
+import { CDN_ASSET_URL } from "../../utils/Api";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
@@ -26,7 +23,11 @@ const Sidebar = () => {
               }`
             }
           >
-            <img src={icon_folder} alt="Materi" className="w-7" />
+            <img
+              src={`${CDN_ASSET_URL}/icon_folder.png`}
+              alt="Materi"
+              className="w-7"
+            />
             <span>Materi</span>
           </NavLink>
         </li>
@@ -44,7 +45,11 @@ const Sidebar = () => {
               }`
             }
           >
-            <img src={icon_video} alt="Video" className="w-7" />
+            <img
+              src={`${CDN_ASSET_URL}/icon_video.png`}
+              alt="Video"
+              className="w-7"
+            />
             <span>Video</span>
           </NavLink>
         </li>
@@ -62,7 +67,11 @@ const Sidebar = () => {
               }`
             }
           >
-            <img src={icon_file} alt="Tryout" className="w-7" />
+            <img
+              src={`${CDN_ASSET_URL}/icon_file.png`}
+              alt="Tryout"
+              className="w-7"
+            />
             <span>Tryout</span>
           </NavLink>
         </li>
@@ -80,7 +89,11 @@ const Sidebar = () => {
               }`
             }
           >
-            <img src={icon_pesan} alt="Hasil Tryout" className="w-7" />
+            <img
+              src={`${CDN_ASSET_URL}/icon_pesan.png`}
+              alt="Hasil Tryout"
+              className="w-7"
+            />
             <span>Hasil Tryout</span>
           </NavLink>
         </li>

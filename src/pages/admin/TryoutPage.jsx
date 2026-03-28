@@ -5,9 +5,8 @@ import { LuPencil } from "react-icons/lu";
 import { BsTrash3 } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
-import garisKanan from "../../assets/garis-kanan.png";
 import TambahTryoutModal from "./modal/TambahTryoutModal.jsx";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import LihatSoalModal from "./modal/LihatSoalModal.jsx";
 import EditTryoutModal from "./modal/EditTryoutModal.jsx";
 
@@ -81,7 +80,7 @@ const TryoutPage = () => {
   // === BUAT BATCH UNIK DARI paket-kelas ===
   const batchOptions = [
     ...new Map(
-      paketKelas.map((item) => [item.id_batch, item.nama_batch])
+      paketKelas.map((item) => [item.id_batch, item.nama_batch]),
     ).entries(),
   ].map(([id, nama]) => ({ id, nama }));
 
@@ -107,7 +106,7 @@ const TryoutPage = () => {
       data = data.filter((t) =>
         Array.isArray(t.id_paketkelas)
           ? t.id_paketkelas.includes(Number(selectedKelas))
-          : t.id_paketkelas === Number(selectedKelas)
+          : t.id_paketkelas === Number(selectedKelas),
       );
     }
 
@@ -137,14 +136,14 @@ const TryoutPage = () => {
       // update langsung di state
       setTryoutData((prev) =>
         prev.map((t) =>
-          t.id_tryout === id_tryout ? { ...t, visibility: newStatus } : t
-        )
+          t.id_tryout === id_tryout ? { ...t, visibility: newStatus } : t,
+        ),
       );
     } catch (error) {
       console.error("Gagal ubah visibility:", error);
       toast.error(
         error?.response?.data?.message ||
-          "Terjadi kesalahan saat mengubah visibility"
+          "Terjadi kesalahan saat mengubah visibility",
       );
     } finally {
       setUpdatingId(null);
@@ -162,12 +161,12 @@ const TryoutPage = () => {
 
       const startUTC = makeUTCFromWIB(
         t.access_start_at_date,
-        t.access_start_at_time
+        t.access_start_at_time,
       );
 
       const endUTC = makeUTCFromWIB(
         t.access_end_at_date,
-        t.access_end_at_time || "23:59"
+        t.access_end_at_time || "23:59",
       );
 
       const expectedStatus =
@@ -183,8 +182,8 @@ const TryoutPage = () => {
             prev.map((x) =>
               x.id_tryout === t.id_tryout
                 ? { ...x, visibility: expectedStatus }
-                : x
-            )
+                : x,
+            ),
           );
 
           console.log(
@@ -196,7 +195,7 @@ const TryoutPage = () => {
             "\nend   :",
             endUTC.toISOString(),
             "\n→",
-            expectedStatus
+            expectedStatus,
           );
         } catch (err) {
           console.error("Auto visibility gagal:", err);
@@ -263,8 +262,8 @@ const TryoutPage = () => {
               t.visibility === "open"
                 ? "text-green-600"
                 : t.visibility === "hold"
-                ? "text-yellow-600"
-                : "text-red-600"
+                  ? "text-yellow-600"
+                  : "text-red-600"
             }`}
           >
             <option value="open">Open</option>
@@ -309,12 +308,12 @@ const TryoutPage = () => {
     <div className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       {/* Background Pattern */}
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />
@@ -521,7 +520,7 @@ const TryoutPage = () => {
                 {kelasModalData.nama_kelas
                   ?.filter(Boolean)
                   ?.filter((kls) =>
-                    kls.toLowerCase().includes(searchKelas.toLowerCase())
+                    kls.toLowerCase().includes(searchKelas.toLowerCase()),
                   )
                   ?.map((kls, i) => (
                     <div

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/admin/Header.jsx";
 import { LuPencil } from "react-icons/lu";
 import { BsTrash3 } from "react-icons/bs";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahBatchForm from "./modal/TambahBatchForm.jsx";
 import EditBatchForm from "./modal/EditBatchForm.jsx";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
@@ -44,7 +43,7 @@ const DaftarBatch = () => {
 
   const filteredData = batchData
     .filter((batch) =>
-      batch.nama_batch.toLowerCase().includes(searchTerm.toLowerCase())
+      batch.nama_batch.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => a.tanggal_mulai.localeCompare(b.tanggal_mulai));
 
@@ -102,7 +101,7 @@ const DaftarBatch = () => {
               handleOpenListPesertaModal(batch.id_batch, batch.nama_batch)
             }
             className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
-              batch.total_peserta
+              batch.total_peserta,
             )}`}
           >
             {batch.total_peserta} Peserta
@@ -148,12 +147,12 @@ const DaftarBatch = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />

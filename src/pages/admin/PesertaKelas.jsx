@@ -3,8 +3,7 @@ import Header from "../../components/admin/Header.jsx";
 import { MdClose } from "react-icons/md";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 
 const PesertaKelas = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,7 +61,7 @@ const PesertaKelas = () => {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const filteredData = userData.filter((user) =>
-    user.nama?.toLowerCase().includes(searchTerm.toLowerCase())
+    user.nama?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleChange = (e) => {
@@ -142,12 +141,12 @@ const PesertaKelas = () => {
                 user.nama_kelas === "Premium"
                   ? "bg-[#CD7F32]"
                   : user.nama_kelas === "Gold"
-                  ? "bg-yellow-500"
-                  : user.nama_kelas === "Silver"
-                  ? "bg-gray-400"
-                  : user.nama_kelas === "Diamond"
-                  ? "bg-blue-700"
-                  : "bg-[#CD7F32]"
+                    ? "bg-yellow-500"
+                    : user.nama_kelas === "Silver"
+                      ? "bg-gray-400"
+                      : user.nama_kelas === "Diamond"
+                        ? "bg-blue-700"
+                        : "bg-[#CD7F32]"
               }`}
           >
             {user.nama_kelas}
@@ -207,12 +206,12 @@ const PesertaKelas = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 z-0"
         alt=""
       />

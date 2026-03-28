@@ -9,8 +9,7 @@ import {
 } from "react-icons/ai";
 import { BsTrophy, BsFolder2Open } from "react-icons/bs";
 import Header from "../../components/admin/Header.jsx";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import StatistikTryoutModal from "./modal/laporan/StatistikTryoutModal.jsx";
 import LeaderboardTryoutModal from "./modal/laporan/LeaderboardTryoutModal.jsx";
 import RekapTryoutModal from "./modal/laporan/RekapTryoutModal.jsx";
@@ -87,7 +86,7 @@ export default function LaporanPage() {
     try {
       const clean = { ...params };
       Object.keys(clean).forEach(
-        (k) => (clean[k] === "" || clean[k] == null) && delete clean[k]
+        (k) => (clean[k] === "" || clean[k] == null) && delete clean[k],
       );
 
       const res = await Api.get("/hasil-tryout", { params: clean });
@@ -124,7 +123,7 @@ export default function LaporanPage() {
       };
       fetchData(params);
     }, 500),
-    [lastAppliedParams]
+    [lastAppliedParams],
   );
 
   const handleSearchChange = (e) => {
@@ -193,7 +192,7 @@ export default function LaporanPage() {
     if (!obj) return "-";
     const total = Object.keys(obj).length;
     const answered = Object.values(obj).filter(
-      (x) => x.jawaban !== null
+      (x) => x.jawaban !== null,
     ).length;
     const ragu = Object.values(obj).filter((x) => x.ragu === 1).length;
     return `${total} soal • ${answered} dijawab • ${ragu} ragu`;
@@ -283,12 +282,12 @@ export default function LaporanPage() {
     <div className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       {/* Background */}
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 z-0"
         alt=""
       />
@@ -462,8 +461,8 @@ export default function LaporanPage() {
         d.status_pengerjaan === "submitted"
           ? "bg-green-100 text-green-700"
           : d.status_pengerjaan === "ongoing"
-          ? "bg-yellow-100 text-yellow-700"
-          : "bg-gray-100 text-gray-700"
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-gray-100 text-gray-700"
       }
     `}
                       >

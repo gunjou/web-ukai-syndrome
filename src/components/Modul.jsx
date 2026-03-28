@@ -2,27 +2,25 @@ import React from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import modul_klinis from "../assets/modul/modul_klinis.png";
-import industri_sba from "../assets/modul/modul_industri_sba.png";
-import osce from "../assets/modul/modul_osce.png";
+import { CDN_ASSET_URL } from "../utils/Api";
 
 const Modul = () => {
   const modulData = [
     {
       title: "Klinis",
-      image: modul_klinis,
+      image: "modul_klinis.png",
       description:
         "Modul latihan soal klinis dengan total 600 halaman berisikan literature yang jelas sesuai PERMENKES, DiPiro, WHO, Koda-Kimbel.",
     },
     {
       title: "Industri + SBA",
-      image: industri_sba,
+      image: "modul_industri_sba.png",
       description:
         "Modul dan latihan soal industri dan SBA dengan total 450 halaman, berisikan literature yang jelas sesuai Farmakope edisi VI, Ansel dan Kemenkes Kefarmasian.",
     },
     {
       title: "OSCE",
-      image: osce,
+      image: "modul_osce.png",
       description:
         "Modul OSCE ± 200 halaman, dilengkapi dengan gambar alat dan prosedur kerja. Modul berwarna sesuai dengan blueprint dan soal OSCE terbaru.",
     },
@@ -58,7 +56,7 @@ const Modul = () => {
           {modulData.map((modul, index) => (
             <div key={index} className="p-4 text-center">
               <img
-                src={modul.image}
+                src={`${CDN_ASSET_URL}/${modul.image}`}
                 alt={modul.title}
                 className="w-[80%] mx-auto object-contain mb-4"
               />

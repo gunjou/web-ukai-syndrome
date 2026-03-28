@@ -3,8 +3,7 @@ import Header from "../../components/admin/Header.jsx";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
-import garisKanan from "../../assets/garis-kanan.png";
-import Api from "../../utils/Api.jsx";
+import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahModulForm from "./modal/TambahModulForm.jsx";
 import EditModulForm from "./modal/EditModalForm.jsx";
 import ListKelasModal from "./modal/ListKelasModal.jsx";
@@ -63,8 +62,8 @@ const DaftarModul = () => {
     return [...modulData] // copy array biar ga mutasi state asli
       .filter((modul) =>
         [modul.judul, modul.owner, modul.deskripsi].some((v) =>
-          (v ?? "").toLowerCase().includes(k)
-        )
+          (v ?? "").toLowerCase().includes(k),
+        ),
       );
   }, [modulData, searchTerm]);
 
@@ -81,8 +80,8 @@ const DaftarModul = () => {
       // Update lokal
       setModulData((prev) =>
         prev.map((modul) =>
-          modul.id_modul === id ? { ...modul, visibility: newStatus } : modul
-        )
+          modul.id_modul === id ? { ...modul, visibility: newStatus } : modul,
+        ),
       );
     } catch (error) {
       console.error("Gagal mengubah visibility:", error);
@@ -133,7 +132,7 @@ const DaftarModul = () => {
             <button
               onClick={() => handleOpenListKelasModal(modul.id_modul)}
               className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
-                modul.total_kelas
+                modul.total_kelas,
               )}`}
             >
               {modul.total_kelas} Kelas
@@ -155,10 +154,10 @@ const DaftarModul = () => {
                       modul.visibility === "open"
                         ? "text-green-600"
                         : modul.visibility === "hold"
-                        ? "text-yellow-600"
-                        : modul.visibility === "close"
-                        ? "text-red-600"
-                        : "text-gray-600"
+                          ? "text-yellow-600"
+                          : modul.visibility === "close"
+                            ? "text-red-600"
+                            : "text-gray-600"
                     }
                   `}
           >
@@ -200,12 +199,12 @@ const DaftarModul = () => {
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
       />

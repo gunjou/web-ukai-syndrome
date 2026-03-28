@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import Header from "../../components/admin/Header.jsx";
-import { FaRegEdit, FaUpload } from "react-icons/fa"; // Importing the icons
-import garisKanan from "../../assets/garis-kanan.png";
-import bgmaps from "../../assets/maps.png";
+import { FaRegEdit, FaUpload } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import ListPaket from "./ListPaket.js";
 import { LuPencil } from "react-icons/lu";
+import { CDN_ASSET_URL } from "../../utils/Api.jsx";
 
 const PaketPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +32,7 @@ const PaketPage = () => {
 
   // Filter the soalData based on the search term
   const filteredData = ListPaket.filter((list) =>
-    list.nama.toLowerCase().includes(searchTerm.toLowerCase())
+    list.nama.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Render a row for each item in soalData
@@ -56,8 +55,8 @@ const PaketPage = () => {
               list.status === "open"
                 ? "text-green-500"
                 : list.status === "hold"
-                ? "text-yellow-500"
-                : "text-red-500"
+                  ? "text-yellow-500"
+                  : "text-red-500"
             }`}
           >
             {list.status}
@@ -100,11 +99,13 @@ const PaketPage = () => {
       /> */}
 
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute top-0 right-0 pt-[90px]  h-full w-auto opacity-40 z-0"
       />
       <img
-        src={garisKanan}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute bottom-0 left-0 pt-[90px]  h-full w-auto opacity-40 rotate-180 transform z-0"
       />
       <Header />

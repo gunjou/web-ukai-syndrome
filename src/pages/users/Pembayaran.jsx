@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../components/users/Navbar";
-import garis from "../../assets/garis-kanan.png";
 import ModalMetode from "../../components/users/ModalMetode";
+import { CDN_ASSET_URL } from "../../utils/Api";
 
 function capitalizeWords(str) {
   if (!str) return "";
@@ -54,11 +54,13 @@ const Pembayaran = () => {
     <div className="min-h-screen bg-gradient-to-r from-[#a11d1d] to-[#531d1d] relative">
       <Navbar />
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute -top-12 right-0 pt-[90px] h-full w-50"
       />
       <img
-        src={garis}
+        src={`${CDN_ASSET_URL}/garis-kanan.png`}
+        alt=""
         className="absolute bottom-0 left-0 pt-[15rem] h-full w-auto scale-x-[-1] transform z-0"
       />
 

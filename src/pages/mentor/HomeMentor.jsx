@@ -1,11 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Api from "../../utils/Api";
-import logo from "../../assets/logo_syndrome_kuning.png";
-import homepage_img from "../../assets/dokter_admin.png";
-import garisKanan from "../../assets/garis-kanan.png";
-import bgmaps from "../../assets/maps.png";
+import Api, { CDN_ASSET_URL } from "../../utils/Api";
 import ModalProfile from "../../components/mentor/modal/ModalProfile";
 import LoadingOverlay from "../../utils/LoadingOverlay";
 
@@ -68,7 +64,7 @@ const HomeMentor = () => {
     localStorage.setItem("kelas", kelas.id_paketkelas); // simpan ke localStorage
     localStorage.setItem(
       "namaKelas",
-      JSON.stringify({ namaKelas: kelas.nama_kelas })
+      JSON.stringify({ namaKelas: kelas.nama_kelas }),
     );
     navigate("/mentor-dashboard/materi");
   };
@@ -84,13 +80,13 @@ const HomeMentor = () => {
 
       <div className="min-h-screen w-auto bg-gradient-to-r from-[#a11d1d] to-[#531d1d] flex flex-col items-center relative">
         <img
-          src={bgmaps}
-          alt="Background Image"
+          src={`${CDN_ASSET_URL}/maps.png`}
+          alt=""
           className="absolute top-0 right-0 pt-[90px] w-full h-full object-cover opacity-10"
         />
 
         <img
-          src={garisKanan}
+          src={`${CDN_ASSET_URL}/garis-kanan.png`}
           className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
           alt="garis kanan"
         />
@@ -99,7 +95,11 @@ const HomeMentor = () => {
         <div className="w-full flex items-center justify-between px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
           {/* Kiri: Logo */}
           <div className="flex items-center space-x-2">
-            <img src={logo} alt="logo" className="h-10" />
+            <img
+              src={`${CDN_ASSET_URL}/logo_syndrome_kuning.png`}
+              alt="logo"
+              className="h-10"
+            />
           </div>
 
           {/* Tengah: Judul */}
@@ -203,7 +203,7 @@ const HomeMentor = () => {
 
         {/* Bottom Image */}
         <img
-          src={homepage_img}
+          src={`${CDN_ASSET_URL}/dokter.png`}
           alt="welcome"
           className="lg:max-h-[50%] max-h-[35%] object-contain absolute bottom-0 left-0"
         />
