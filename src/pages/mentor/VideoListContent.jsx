@@ -59,32 +59,26 @@ const VideoListContent = () => {
 
   const fetchData = async (id_paketkelas) => {
     try {
-      setLoading(true);
-      const [materiRes, modulRes] = await Promise.all([
-        Api.get(`/materi/mentor/${id_paketkelas}`), // ✅ pakai id_paketkelas
-        Api.get("/modul"),
-      ]);
+      // 1. Ambil id_modul yang disimpan saat klik folder di halaman sebelumnya
+      const activeModulId = localStorage.getItem("activeModulId");
 
-      const materiData = materiRes.data.data || [];
-      const modulData = modulRes.data.data || [];
-
-      const selectedModul = modulData.find((modul) => {
-        const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
-        return slug === folder;
-      });
-
-      if (!selectedModul) {
-        setVideoList([]);
-        setError("Modul tidak ditemukan.");
+      if (!activeModulId) {
+        setError("ID Modul tidak ditemukan.");
         setLoading(false);
         return;
       }
 
+      // 2. Panggil API baru dengan query parameter id_modul
+      const response = await Api.get(
+        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`,
+      );
+
+      const materiData = response.data.data || [];
+
+      // 3. Tetap filter berdasarkan tipe video jika diperlukan
       const filtered = materiData.filter(
         (item) =>
-          item.id_modul === selectedModul.id_modul &&
-          item.tipe_materi === "video" &&
-          isValidVideoUrl(item.url_file)
+          item.tipe_materi === "video" && isValidVideoUrl(item.url_file),
       );
 
       setVideoList(filtered);
@@ -104,13 +98,13 @@ const VideoListContent = () => {
   const fetchKomentar = async (id_materi, id_paketkelas) => {
     try {
       const res = await Api.get(
-        `/komentar/${id_materi}/komentar/${id_paketkelas}`
+        `/komentar/${id_materi}/komentar/${id_paketkelas}`,
       );
       const rawKomentar = res.data.data || [];
 
       // urutkan komentar terbaru paling atas
       rawKomentar.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
       );
 
       const komentarMap = {};
@@ -123,7 +117,7 @@ const VideoListContent = () => {
       rawKomentar.forEach((item) => {
         if (item.parent_id) {
           komentarMap[item.parent_id]?.replies.push(
-            komentarMap[item.id_komentarmateri]
+            komentarMap[item.id_komentarmateri],
           );
         } else {
           rootKomentar.push(komentarMap[item.id_komentarmateri]);
@@ -189,7 +183,7 @@ const VideoListContent = () => {
 
       await Api.post(
         `/komentar/${selectedVideo.id_materi}/komentar/${selectedVideo.id_paketkelas}`,
-        payload
+        payload,
       );
       setNewComment("");
       setReplyingTo(null);

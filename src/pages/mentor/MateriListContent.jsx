@@ -5,7 +5,6 @@ import { useParams } from "react-router-dom";
 import { HiDocumentText } from "react-icons/hi";
 import { MdClose } from "react-icons/md";
 import Api from "../../utils/Api";
-import { pdfjs } from "react-pdf";
 
 const MateriListContent = () => {
   const { folder } = useParams();
@@ -14,7 +13,6 @@ const MateriListContent = () => {
   const [error, setError] = useState("");
   const [selectedMateri, setSelectedMateri] = useState(null);
   const [loadingChange, setLoadingChange] = useState(null); // id_materi yang sedang diproses
-  const [pageNumber, setPageNumber] = useState(1);
   const [pdfUrl, setPdfUrl] = useState("");
   const [userName, setUserName] = useState("User"); // default
 
@@ -34,30 +32,25 @@ const MateriListContent = () => {
 
   const fetchData = async (id_paketkelas) => {
     try {
-      const [materiRes, modulRes] = await Promise.all([
-        Api.get(`/materi/mentor/${id_paketkelas}`), // ✅ pakai id_paketkelas
-        Api.get("/modul"),
-      ]);
+      // 1. Ambil id_modul yang disimpan saat klik folder di halaman sebelumnya
+      const activeModulId = localStorage.getItem("activeModulId");
 
-      const materiData = materiRes.data.data || [];
-      const modulData = modulRes.data.data || [];
-
-      const selectedModul = modulData.find((modul) => {
-        const slug = modul.judul.toLowerCase().replace(/\s+/g, "-");
-        return slug === folder;
-      });
-
-      if (!selectedModul) {
-        setMateriList([]);
-        setError("Modul tidak ditemukan.");
+      if (!activeModulId) {
+        setError("ID Modul tidak ditemukan.");
         setLoading(false);
         return;
       }
 
+      // 2. Panggil API baru dengan query parameter id_modul
+      const response = await Api.get(
+        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`,
+      );
+
+      const materiData = response.data.data || [];
+
+      // 3. Tetap filter berdasarkan tipe dokumen jika diperlukan
       const filtered = materiData.filter(
-        (item) =>
-          item.id_modul === selectedModul.id_modul &&
-          item.tipe_materi === "document"
+        (item) => item.tipe_materi === "document",
       );
 
       setMateriList(filtered);
@@ -83,7 +76,7 @@ const MateriListContent = () => {
 
   const handleVisibilityChange = async (id_materi, newVisibility) => {
     const confirm = window.confirm(
-      `Ubah status materi menjadi "${newVisibility}"?`
+      `Ubah status materi menjadi "${newVisibility}"?`,
     );
     if (!confirm) return;
 
@@ -95,8 +88,8 @@ const MateriListContent = () => {
 
       setMateriList((prev) =>
         prev.map((m) =>
-          m.id_materi === id_materi ? { ...m, visibility: newVisibility } : m
-        )
+          m.id_materi === id_materi ? { ...m, visibility: newVisibility } : m,
+        ),
       );
 
       toast.success("Status materi diperbarui ✓");
@@ -124,8 +117,8 @@ const MateriListContent = () => {
         prev.map((m) =>
           m.id_materi === id_materi
             ? { ...m, is_downloadable: Number(value) }
-            : m
-        )
+            : m,
+        ),
       );
 
       toast.success("Downloadable diperbarui ✓");
@@ -189,8 +182,8 @@ const MateriListContent = () => {
         materi.visibility === "open"
           ? "text-green-600 border-green-400"
           : materi.visibility === "hold"
-          ? "text-yellow-600 border-yellow-400"
-          : "text-red-600 border-red-400"
+            ? "text-yellow-600 border-yellow-400"
+            : "text-red-600 border-red-400"
       }
       ${
         loadingChange === materi.id_materi

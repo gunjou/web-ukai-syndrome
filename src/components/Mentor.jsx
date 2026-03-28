@@ -69,10 +69,11 @@ const Mentor = () => {
             <div key={index} className="px-2">
               <div className="mentor-card bg-white pt-4 mx-auto w-[220px] text-center transition-all duration-300">
                 <img
-                  src={image}
-                  alt={`Mentor ${index + 1}`}
-                  className="w-full h-auto"
-                />
+  src={image}
+  alt={`Mentor ${index + 1}`}
+  loading="lazy"
+  className="w-full h-auto"
+/>
               </div>
             </div>
           ))}
