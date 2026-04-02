@@ -188,12 +188,12 @@ const DaftarBatch = () => {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data batch...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
+          <div className="overflow-x-auto max-h-[66vh]">
             <table className="min-w-full bg-white">
               <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
                 <tr>

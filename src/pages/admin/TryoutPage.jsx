@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import debounce from "lodash/debounce";
 import Header from "../../components/admin/Header.jsx";
 import { AiOutlinePlus, AiOutlineClose, AiOutlineEye } from "react-icons/ai";
 import { LuPencil } from "react-icons/lu";
 import { BsTrash3 } from "react-icons/bs";
 import { toast } from "react-toastify";
+
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import TambahTryoutModal from "./modal/TambahTryoutModal.jsx";
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
@@ -37,81 +39,86 @@ const TryoutPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tryoutData, setTryoutData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingVisibility, setLoadingVisibility] = useState(false);
+
+  // --- STATE PAGINATION & META ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [limit, setLimit] = useState(20);
+
+  // --- MODAL STATES ---
   const [showAddTryoutModal, setShowAddTryoutModal] = useState(false);
   const [selectedTryout, setSelectedTryout] = useState(null);
   const [selectedTryoutForQuestions, setSelectedTryoutForQuestions] =
     useState(null);
-  const [kelasModalData, setKelasModalData] = useState(null);
+
+  // --- KELAS MODAL STATES ---
+  const [kelasModalData, setKelasModalData] = useState(null); // Menyimpan info tryout yang dipilih
+  const [listKelasTryout, setListKelasTryout] = useState([]); // Menyimpan data dari endpoint /tryout/{id}/kelas
+  const [isLoadingKelas, setIsLoadingKelas] = useState(false);
   const [searchKelas, setSearchKelas] = useState("");
 
-  // 🔹 Filter state
-  const [paketKelas, setPaketKelas] = useState([]);
-  const [selectedKelas, setSelectedKelas] = useState("");
-  const [selectedBatch, setSelectedBatch] = useState("");
+  // 1. Fungsi Fetch Utama
+  const fetchTryoutData = useCallback(
+    async (page = 1, search = "", currentLimit = 20) => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.append("page", page);
+        params.append("limit", currentLimit);
+        if (search.trim()) params.append("search", search);
 
-  // === FETCH DATA ===
-  const fetchTryoutData = async () => {
-    try {
-      const response = await Api.get("/tryout/all-tryout");
-      setTryoutData(response.data.data);
-    } catch (error) {
-      console.error("Gagal mengambil data tryout:", error);
-      toast.error("Gagal memuat data tryout");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        const response = await Api.get(
+          `/tryout/all-tryout?${params.toString()}`,
+        );
+        const result = response.data;
 
-  const fetchPaketKelas = async () => {
-    try {
-      const res = await Api.get("/paket-kelas");
-      setPaketKelas(res.data.data);
-    } catch (error) {
-      console.error("Gagal mengambil data paket kelas:", error);
-    }
-  };
+        setTryoutData(result.data || []);
+        setTotalData(result.meta?.total || 0);
+        setTotalPage(result.meta?.total_page || 1);
+      } catch (error) {
+        toast.error("Gagal memuat data tryout");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  // 2. Debounce Search
+  const debouncedFetch = useRef(
+    debounce((nextSearch, nextLimit) => {
+      fetchTryoutData(1, nextSearch, nextLimit);
+    }, 500),
+  ).current;
 
   useEffect(() => {
-    fetchTryoutData();
-    fetchPaketKelas();
-  }, []);
+    setCurrentPage(1);
+    debouncedFetch(searchTerm, limit);
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, limit, debouncedFetch]);
 
-  // === BUAT BATCH UNIK DARI paket-kelas ===
-  const batchOptions = [
-    ...new Map(
-      paketKelas.map((item) => [item.id_batch, item.nama_batch]),
-    ).entries(),
-  ].map(([id, nama]) => ({ id, nama }));
-
-  // === FILTER KELAS BERDASARKAN BATCH YANG DIPILIH ===
-  const filteredKelas = selectedBatch
-    ? paketKelas.filter((k) => k.id_batch === Number(selectedBatch))
-    : paketKelas;
-
-  // === FILTERING DATA TRYOUT ===
-  const filteredData = useMemo(() => {
-    let data = [...tryoutData];
-
-    if (searchTerm) {
-      const key = searchTerm.toLowerCase();
-      data = data.filter((t) => t.judul?.toLowerCase().includes(key));
+  // 3. Fetch Detail Kelas saat tombol diklik
+  const handleOpenKelasModal = async (tryout) => {
+    setKelasModalData(tryout);
+    setListKelasTryout([]);
+    setIsLoadingKelas(true);
+    try {
+      const res = await Api.get(`/tryout/${tryout.id_tryout}/kelas`);
+      setListKelasTryout(res.data.data || []);
+    } catch (err) {
+      toast.error("Gagal mengambil daftar kelas");
+    } finally {
+      setIsLoadingKelas(false);
     }
+  };
 
-    if (selectedBatch) {
-      data = data.filter((t) => t.id_batch === Number(selectedBatch));
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPage) {
+      setCurrentPage(newPage);
+      fetchTryoutData(newPage, searchTerm, limit);
     }
-
-    if (selectedKelas) {
-      data = data.filter((t) =>
-        Array.isArray(t.id_paketkelas)
-          ? t.id_paketkelas.includes(Number(selectedKelas))
-          : t.id_paketkelas === Number(selectedKelas),
-      );
-    }
-
-    return data;
-  }, [tryoutData, searchTerm, selectedBatch, selectedKelas]);
+  };
 
   // === DELETE TRYOUT ===
   const handleDelete = (id) => {
@@ -126,25 +133,26 @@ const TryoutPage = () => {
   const [updatingId, setUpdatingId] = useState(null);
 
   const handleVisibilityChange = async (id_tryout, newStatus) => {
-    setUpdatingId(id_tryout); // tandai baris yang sedang diupdate
+    // 1. Tampilkan konfirmasi (Opsional tapi disarankan agar tidak salah klik)
+    const confirm = window.confirm(`Ubah status menjadi ${newStatus}?`);
+    if (!confirm) return;
+
+    setUpdatingId(id_tryout);
     try {
-      const res = await Api.put(`/tryout/${id_tryout}/visibility`, {
+      await Api.put(`/tryout/${id_tryout}/visibility`, {
         visibility: newStatus,
       });
-      toast.success(res?.data?.message || "Status tryout berhasil diubah");
 
-      // update langsung di state
+      toast.success("Status diperbarui");
+
+      // 2. Update state lokal
       setTryoutData((prev) =>
         prev.map((t) =>
           t.id_tryout === id_tryout ? { ...t, visibility: newStatus } : t,
         ),
       );
     } catch (error) {
-      console.error("Gagal ubah visibility:", error);
-      toast.error(
-        error?.response?.data?.message ||
-          "Terjadi kesalahan saat mengubah visibility",
-      );
+      toast.error("Gagal mengubah status");
     } finally {
       setUpdatingId(null);
     }
@@ -204,100 +212,95 @@ const TryoutPage = () => {
     }
   };
 
+  // Gunakan ref untuk mencegah loop atau pengecekan berlebih saat baru update manual
+  const isAutoChecking = useRef(false);
+
   useEffect(() => {
-    if (!isLoading && tryoutData.length) {
+    if (!isLoading && tryoutData.length && !isAutoChecking.current) {
+      // Jalankan auto update hanya sekali di awal atau via interval
       autoUpdateVisibility();
 
       const interval = setInterval(() => {
         autoUpdateVisibility();
-      }, 60000); // cek tiap 1 menit
+      }, 60000);
 
       return () => clearInterval(interval);
     }
-  }, [isLoading, tryoutData]);
+    // HAPUS tryoutData dari dependency array ini agar tidak trigger terus menerus
+    // saat Anda update status manual
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   // === RENDER TABEL ===
   const renderTableRows = () =>
-    filteredData.map((t, index) => (
+    tryoutData.map((t, index) => (
       <tr
         key={t.id_tryout}
-        className="bg-gray-100 hover:bg-gray-200 transition"
+        className="bg-gray-100 hover:bg-gray-200 transition text-xs sm:text-sm"
       >
-        <td className="px-2 py-2 text-xs text-center border">{index + 1}</td>
-        <td className="px-4 py-2 text-sm border capitalize">{t.judul}</td>
-        <td className="px-4 py-2 text-sm border text-center">
+        <td className="px-2 py-3 text-center border">
+          {(currentPage - 1) * limit + (index + 1)}
+        </td>
+        <td className="px-4 py-3 border font-semibold text-gray-800">
+          {t.judul}
+        </td>
+        <td className="px-4 py-3 border text-center font-bold text-blue-600">
           {t.jumlah_soal}
         </td>
-        <td className="px-4 py-2 text-sm border text-center">{t.durasi} mnt</td>
-        <td className="px-4 py-2 text-sm border text-center">
-          {t.max_attempt}x
-        </td>
-        <td className="px-4 py-2 text-sm border text-center">
-          {t.nama_batch || "-"}
-        </td>
-        <td className="px-4 py-2 text-sm border text-center">
+        <td className="px-4 py-3 border text-center">{t.durasi} mnt</td>
+        <td className="px-4 py-3 border text-center">{t.max_attempt}x</td>
+        <td className="px-4 py-3 border text-center">
           <button
-            onClick={() => setKelasModalData(t)}
-            className="bg-blue-500 text-white px-3 py-1 text-xs rounded-full hover:bg-blue-600"
+            onClick={() => handleOpenKelasModal(t)}
+            className="group flex items-center justify-center gap-2 mx-auto bg-white border border-blue-500 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-600 hover:text-white transition-all shadow-sm"
           >
-            {t.nama_kelas?.filter(Boolean).length || 0} Kelas
+            <span className="font-bold text-xs">{t.total_kelas || 0}</span>
+            <span className="text-[10px] uppercase font-medium">Kelas</span>
           </button>
         </td>
-
-        <td className="px-4 py-2 text-sm border text-center">
+        <td className="px-2 py-3 border text-center text-[10px] leading-tight">
+          <div className="font-bold text-green-600">Start:</div>
           {formatTanggalJamWIB(t.access_start_at_date, t.access_start_at_time)}
         </td>
-
-        <td className="px-4 py-2 text-sm border text-center">
+        <td className="px-2 py-3 border text-center text-[10px] leading-tight">
+          <div className="font-bold text-red-600">End:</div>
           {formatTanggalJamWIB(t.access_end_at_date, t.access_end_at_time)}
         </td>
-
-        <td className="px-4 py-2 text-sm border text-center">
+        <td className="px-4 py-3 border text-center">
           <select
             value={t.visibility || "hold"}
+            disabled={updatingId === t.id_tryout} // Tambahkan ini
             onChange={(e) =>
               handleVisibilityChange(t.id_tryout, e.target.value)
             }
-            className={`capitalize font-semibold rounded-md px-2 py-1 ${
-              t.visibility === "open"
-                ? "text-green-600"
-                : t.visibility === "hold"
-                  ? "text-yellow-600"
-                  : "text-red-600"
-            }`}
+            className={`font-bold rounded-md px-2 py-1 text-xs border focus:outline-none capitalize
+    ${updatingId === t.id_tryout ? "opacity-50 cursor-not-allowed" : ""}
+    ${t.visibility === "open" ? "text-green-600 bg-green-50 border-green-200" : "text-yellow-600 bg-yellow-50 border-yellow-200"}
+  `}
           >
             <option value="open">Open</option>
             <option value="hold">Hold</option>
           </select>
         </td>
-
-        {/* 🔹 Kolom aksi pakai icon */}
-        <td className="px-4 py-2 text-sm border text-center">
-          <div className="flex justify-center items-center gap-3">
-            {/* Lihat Soal */}
+        <td className="px-4 py-3 border text-center">
+          <div className="flex justify-center items-center gap-2">
             <button
               onClick={() => setSelectedTryoutForQuestions(t)}
-              className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition"
-              title="Lihat Soal"
+              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-sm"
             >
-              <AiOutlineEye size={18} />
+              <AiOutlineEye size={16} />
             </button>
-            {/* Edit */}
             <button
               onClick={() => setSelectedTryout(t)}
-              className="p-2 rounded-full bg-yellow-500 hover:bg-yellow-600 text-white transition"
-              title="Edit Tryout"
+              className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm"
             >
-              <LuPencil size={18} />
+              <LuPencil size={16} />
             </button>
-
-            {/* Hapus */}
             <button
               onClick={() => handleDelete(t.id_tryout)}
-              className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white transition"
-              title="Hapus Tryout"
+              className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 shadow-sm"
             >
-              <BsTrash3 size={16} />
+              <BsTrash3 size={14} />
             </button>
           </div>
         </td>
@@ -324,96 +327,99 @@ const TryoutPage = () => {
         {/* Header Atas */}
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
           {/* Kolom kiri */}
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari tryout..."
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              className="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-red-500 outline-none"
             />
           </div>
-
-          {/* Tengah */}
           <div className="flex justify-center">
             <h1 className="text-xl font-bold text-center">Daftar Tryout</h1>
           </div>
-
-          {/* Kanan */}
           <div className="flex justify-end">
             <button
               onClick={() => setShowAddTryoutModal(true)}
-              className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl flex items-center gap-2"
+              className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm shadow-md"
             >
               <AiOutlinePlus /> Tambah Tryout
             </button>
           </div>
         </div>
 
-        {/* 🔽 FILTER */}
-        <div className="flex flex-wrap gap-3 px-8 pb-4">
-          <select
-            value={selectedBatch}
-            onChange={(e) => {
-              setSelectedBatch(e.target.value);
-              setSelectedKelas("");
-            }}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">Semua Batch</option>
-            {batchOptions.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.nama}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedKelas}
-            onChange={(e) => setSelectedKelas(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">Semua Kelas</option>
-            {filteredKelas.map((k) => (
-              <option key={k.id_paketkelas} value={k.id_paketkelas}>
-                {k.nama_kelas}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Tabel */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data tryout...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white">
-              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 text-sm">No</th>
-                  <th className="px-4 py-2 text-sm">Judul</th>
-                  <th className="px-4 py-2 text-sm">Jumlah Soal</th>
-                  <th className="px-4 py-2 text-sm">Durasi</th>
-                  <th className="px-4 py-2 text-sm">Max Attempt</th>
-                  <th className="px-4 py-2 text-sm">Batch</th>
-                  <th className="px-4 py-2 text-sm">Kelas</th>
-                  <th className="px-4 py-2 text-sm">Mulai</th>
-                  <th className="px-4 py-2 text-sm">Selesai</th>
-                  <th className="px-4 py-2 text-sm">Status</th>
-                  <th className="px-4 py-2 text-sm">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows()}</tbody>
-            </table>
-          </div>
-        )}
+          <>
+            <div className="overflow-x-auto max-h-[60vh]">
+              <table className="min-w-full bg-white border-collapse">
+                <thead className="bg-gray-200 sticky top-0 z-10 border-b">
+                  <tr className="text-[10px] uppercase text-gray-600 tracking-widest font-extrabold">
+                    <th className="px-2 py-4">No</th>
+                    <th className="px-4 py-4 text-left">Judul Tryout</th>
+                    <th className="px-4 py-4">Soal</th>
+                    <th className="px-4 py-4">Durasi</th>
+                    <th className="px-4 py-4">Limit</th>
+                    <th className="px-4 py-4">Total Kelas</th>
+                    <th className="px-4 py-4">Mulai Akses</th>
+                    <th className="px-4 py-4">Selesai Akses</th>
+                    <th className="px-4 py-4 text-center">Status</th>
+                    <th className="px-4 py-4">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows()}</tbody>
+              </table>
+            </div>
 
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah tryout: {filteredData.length} data
-        </p>
+            {/* --- PAGINATION CONTROL --- */}
+            <div className="flex flex-col sm:flex-row items-center justify-between px-8 mt-6 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 border px-2 py-1 rounded-lg bg-gray-50 text-xs font-bold">
+                  <span className="text-gray-400">LIMIT:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="bg-transparent text-blue-600 focus:outline-none"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <p className="text-[11px] font-bold text-gray-500">
+                  Total: <span className="text-red-600">{totalData}</span> Data
+                  | Hal <span className="text-red-600">{currentPage}</span> /{" "}
+                  {totalPage}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${currentPage === 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white border border-red-500 text-red-500 hover:bg-red-50 shadow-sm"}`}
+                >
+                  Previous
+                </button>
+                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold shadow-md">
+                  {currentPage}
+                </div>
+                <button
+                  disabled={currentPage === totalPage}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${currentPage === totalPage ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white border border-red-500 text-red-500 hover:bg-red-50 shadow-sm"}`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal Tambah Tryout */}
@@ -476,65 +482,73 @@ const TryoutPage = () => {
           </div>
         </div>
       )}
+
+      {/* --- MODAL DETAIL KELAS --- */}
       {kelasModalData && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in"
           onClick={() => setKelasModalData(null)}
         >
           <div
-            className="bg-white shadow-xl rounded-2xl w-[95%] max-w-3xl relative animate-slide-up 
-                 max-h-[85vh] overflow-hidden border border-gray-200"
+            className="bg-white shadow-2xl rounded-2xl w-[95%] max-w-2xl relative animate-slide-up max-h-[80vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-20 bg-white border-b border-gray-200 p-6 flex flex-col gap-1">
-              {/* Close Button */}
+            <div className="p-6 border-b bg-gray-50">
               <button
                 onClick={() => setKelasModalData(null)}
-                className="absolute top-5 right-6 text-gray-500 hover:text-gray-700 transition"
+                className="absolute top-5 right-6 text-gray-400 hover:text-red-500 transition"
               >
                 <AiOutlineClose size={24} />
               </button>
-
-              <h2 className="text-xl font-semibold text-gray-800">
-                Daftar Kelas
+              <h2 className="text-lg font-bold text-gray-800">
+                Daftar Akses Kelas
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500 mt-1">
                 Tryout:{" "}
-                <span className="font-medium">{kelasModalData.judul}</span>
+                <span className="text-blue-600 font-bold">
+                  {kelasModalData.judul}
+                </span>
               </p>
-
-              {/* Search Bar */}
               <input
                 type="text"
-                placeholder="Cari kelas..."
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 mt-3
-                     focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+                placeholder="Cari nama kelas..."
+                className="w-full px-4 py-2 rounded-lg border mt-4 text-sm outline-none focus:ring-2 focus:ring-blue-400 transition-all"
                 onChange={(e) => setSearchKelas(e.target.value)}
               />
             </div>
-
-            {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto max-h-[65vh]">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {kelasModalData.nama_kelas
-                  ?.filter(Boolean)
-                  ?.filter((kls) =>
-                    kls.toLowerCase().includes(searchKelas.toLowerCase()),
-                  )
-                  ?.map((kls, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 border border-gray-200"
-                    >
-                      {kls}
-                    </div>
-                  ))}
-
-                {kelasModalData.nama_kelas?.filter(Boolean)?.length === 0 && (
-                  <p className="text-gray-500 text-sm">Tidak ada data kelas.</p>
-                )}
-              </div>
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
+              {isLoadingKelas ? (
+                <div className="flex justify-center py-10">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {listKelasTryout
+                    .filter((kls) =>
+                      kls.nama_kelas
+                        .toLowerCase()
+                        .includes(searchKelas.toLowerCase()),
+                    )
+                    .map((kls, i) => (
+                      <div
+                        key={i}
+                        className="p-3 bg-white border border-gray-100 rounded-xl shadow-sm flex flex-col hover:border-blue-300 transition-colors"
+                      >
+                        <span className="text-xs font-bold text-gray-800">
+                          {kls.nama_kelas}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium">
+                          {kls.nama_batch}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
+              {!isLoadingKelas && listKelasTryout.length === 0 && (
+                <p className="text-center text-gray-400 py-10 text-sm italic">
+                  Belum ada kelas yang didaftarkan untuk tryout ini.
+                </p>
+              )}
             </div>
           </div>
         </div>

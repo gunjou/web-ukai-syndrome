@@ -1,64 +1,92 @@
-import React, { useState, useEffect, useMemo } from "react";
-import Header from "../../components/admin/Header.jsx";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import debounce from "lodash/debounce";
+import { toast } from "react-toastify";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
+import Header from "../../components/admin/Header.jsx";
 import TambahMentorForm from "./modal/TambahMentorForm.jsx";
 import EditMentorForm from "./modal/EditMentorForm.jsx";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
-import { toast } from "react-toastify";
 import ListKelasModal from "./modal/ListKelasModal.jsx";
 
 const DaftarMentor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userData, setUserData] = useState([]);
+  const [fetchingData, setFetchingData] = useState(true);
+  const [error, setError] = useState("");
+
+  // State Pagination & Meta
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [limit, setLimit] = useState(20);
+
   const [showModal, setShowModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState(null);
-  const [fetchingData, setFetchingData] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [showListKelasModal, setShowListKelasModal] = useState(false);
 
+  // 1. Fungsi Fetch Server-Side
+  const fetchMentorData = useCallback(
+    async (page = 1, search = "", currentLimit = 20) => {
+      setFetchingData(true);
+      setError("");
+      try {
+        const params = new URLSearchParams();
+        params.append("page", page);
+        params.append("limit", currentLimit);
+
+        if (search && search.trim() !== "") {
+          params.append("search", search);
+        }
+
+        const response = await Api.get(`/mentor?${params.toString()}`);
+        const result = response.data;
+
+        setUserData(result.data || []);
+        setTotalData(result.meta?.total || 0);
+        setTotalPage(result.meta?.total_page || 1);
+      } catch (error) {
+        console.error("Gagal mengambil data:", error);
+        setError("Gagal memuat data mentor.");
+      } finally {
+        setFetchingData(false);
+      }
+    },
+    [],
+  );
+
+  // 2. Debounce Search
+  const debouncedFetch = useRef(
+    debounce((nextSearch, nextLimit) => {
+      fetchMentorData(1, nextSearch, nextLimit);
+    }, 500),
+  ).current;
+
+  // 3. Trigger Fetch saat Search atau Limit berubah
   useEffect(() => {
-    fetchMentorData();
-  }, []);
+    setCurrentPage(1);
+    debouncedFetch(searchTerm, limit);
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, limit, debouncedFetch]);
 
-  const handleRefreshFetch = async () => fetchMentorData();
-
-  // console.log(userData);
-
-  const fetchMentorData = async () => {
-    setFetchingData(true);
-    try {
-      const response = await Api.get("/mentor");
-      setUserData(response.data);
-    } catch (error) {
-      console.error("Gagal mengambil data:", error);
-      // alert("Gagal mengambil data mentor.");
-    } finally {
-      setFetchingData(false);
+  // Handle Page Change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPage) {
+      setCurrentPage(newPage);
+      fetchMentorData(newPage, searchTerm, limit);
     }
   };
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = useMemo(() => {
-    const k = searchTerm.toLowerCase();
-    return [...userData] // copy array biar ga mutasi state asli
-      .filter((user) =>
-        [
-          user.nama,
-          user.nickname,
-          user.email,
-          user.no_hp,
-          user.nama_batch,
-          user.nama_kelas,
-          user.nama_paket,
-        ].some((v) => (v ?? "").toLowerCase().includes(k)),
-      )
-      .sort((a, b) => a.nama.localeCompare(b.nama));
-  }, [userData, searchTerm]);
+  const handleRefreshFetch = async () => fetchMentorData();
+
+  // console.log(userData);
 
   // contoh dipanggil dari tabel
   const handleEditClick = (mentor) => {
@@ -88,10 +116,10 @@ const DaftarMentor = () => {
   };
 
   const renderTableRows = () =>
-    filteredData.map((user, index) => (
+    userData.map((user, index) => (
       <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-300">
         <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
-          {index + 1}
+          {(currentPage - 1) * limit + (index + 1)}
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm text-gray-800 border capitalize">
           {user.nama}
@@ -160,14 +188,14 @@ const DaftarMentor = () => {
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 max-h-screen relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
-          {/* Kolom kiri (Search) */}
+          {/* Search */}
           <div className="flex justify-start">
             <input
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Search"
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              placeholder="Cari nama atau email mentor..."
+              className="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-red-500 outline-none"
             />
           </div>
 
@@ -193,31 +221,84 @@ const DaftarMentor = () => {
         </div>
 
         {fetchingData ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data mentor...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">{error}</div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white border">
-              <thead className="bg-gray-200 sticky top-0 z-10">
-                <tr className="text-xs sm:text-sm">
-                  <th className="px-2 py-2 border">No</th>
-                  <th className="px-4 py-2 border">Nama Lengkap</th>
-                  <th className="px-4 py-2 border">Nama Panggilan</th>
-                  <th className="px-2 py-2 border">Email</th>
-                  <th className="px-2 py-2 border">No HP</th>
-                  <th className="px-2 py-2 border">List Kelas</th>
-                  <th className="px-4 py-2 border">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows()}</tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto max-h-[66vh]">
+              <table className="min-w-full bg-white border">
+                <thead className="bg-gray-200 sticky top-0 z-10">
+                  <tr className="text-xs sm:text-sm">
+                    <th className="px-2 py-2 border">No</th>
+                    <th className="px-4 py-2 border">Nama Lengkap</th>
+                    <th className="px-4 py-2 border">Nama Panggilan</th>
+                    <th className="px-2 py-2 border">Email</th>
+                    <th className="px-2 py-2 border">No HP</th>
+                    <th className="px-2 py-2 border">List Kelas</th>
+                    <th className="px-4 py-2 border">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows()}</tbody>
+              </table>
+            </div>
+
+            {/* --- PAGINATION & LIMIT CONTROL --- */}
+            <div className="flex flex-col sm:flex-row items-center justify-between px-8 mt-4 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 border px-2 py-1 rounded-lg bg-gray-50 text-xs">
+                  <span className="font-bold text-gray-500">LIMIT:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="bg-transparent focus:outline-none font-bold text-blue-600"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <p className="text-[11px] font-semibold text-gray-600">
+                  Menampilkan{" "}
+                  {totalData === 0 ? 0 : (currentPage - 1) * limit + 1} -{" "}
+                  {Math.min(currentPage * limit, totalData)} dari {totalData}{" "}
+                  mentor
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400"
+                      : "bg-blue-500 text-white shadow-md"
+                  }`}
+                >
+                  Prev
+                </button>
+                <span className="text-xs font-bold px-2 py-1 bg-gray-100 rounded-md">
+                  {currentPage} / {totalPage}
+                </span>
+                <button
+                  disabled={currentPage === totalPage}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                    currentPage === totalPage
+                      ? "bg-gray-100 text-gray-400"
+                      : "bg-blue-500 text-white shadow-md"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah mentor: {userData.length} orang
-        </p>
       </div>
 
       {showModal && (

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import debounce from "lodash/debounce";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
+
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
 import Header from "../../components/admin/Header.jsx";
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
@@ -16,6 +18,13 @@ const DaftarKelas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [kelasData, setKelasData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // --- STATE PAGINATION & META ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [limit, setLimit] = useState(20);
 
   const [showTambahModal, setShowTambahModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -27,44 +36,62 @@ const DaftarKelas = () => {
   const [selectedNamaKelas, setSelectedNamaKelas] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
 
-  const handleRefreshFetch = async () => fetchKelasData();
-
-  useEffect(() => {
-    const fetchData = async () => {
+  // 1. Fungsi Fetch Server-Side
+  const fetchKelasData = useCallback(
+    async (page = 1, search = "", currentLimit = 20) => {
+      setIsLoading(true);
+      setError("");
       try {
-        await fetchKelasData();
-      } catch (err) {
-        console.error("Gagal fetch data:", err);
+        const params = new URLSearchParams();
+        params.append("page", page);
+        params.append("limit", currentLimit);
+
+        if (search && search.trim() !== "") {
+          params.append("search", search);
+        }
+
+        const response = await Api.get(`/paket-kelas?${params.toString()}`);
+        const result = response.data;
+
+        // Sesuai struktur JSON: result.data dan result.meta
+        setKelasData(result.data || []);
+        setTotalData(result.meta?.total || 0);
+        setTotalPage(result.meta?.total_page || 1);
+      } catch (error) {
+        console.error("Gagal mengambil data kelas:", error);
+        setError("Gagal memuat data paket kelas.");
       } finally {
         setIsLoading(false);
       }
-    };
-    fetchData();
-  }, []);
+    },
+    [],
+  );
 
-  const fetchKelasData = async () => {
-    try {
-      const response = await Api.get("/paket-kelas");
-      setKelasData(response.data.data);
-    } catch (error) {
-      console.error("Gagal mengambil data kelas:", error);
+  // 2. Debounce Search
+  const debouncedFetch = useRef(
+    debounce((nextSearch, nextLimit) => {
+      fetchKelasData(1, nextSearch, nextLimit);
+    }, 500),
+  ).current;
+
+  // 3. Effect untuk memantau perubahan search dan limit
+  useEffect(() => {
+    setCurrentPage(1);
+    debouncedFetch(searchTerm, limit);
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, limit, debouncedFetch]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPage) {
+      setCurrentPage(newPage);
+      fetchKelasData(newPage, searchTerm, limit);
     }
   };
 
-  // 🔎 Search lebih luas (nama_kelas, nama_paket, nama_batch, deskripsi)
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleRefreshFetch = () =>
+    fetchKelasData(currentPage, searchTerm, limit);
 
-  const filteredData = useMemo(() => {
-    const k = searchTerm.toLowerCase();
-    return kelasData.filter((kelas) =>
-      [
-        kelas.nama_kelas,
-        kelas.nama_paket,
-        kelas.nama_batch,
-        kelas.deskripsi,
-      ].some((v) => (v ?? "").toLowerCase().includes(k)),
-    );
-  }, [kelasData, searchTerm]);
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const handleEditClick = (kelas) => {
     setSelectedId(kelas.id_paketkelas);
@@ -107,56 +134,54 @@ const DaftarKelas = () => {
   };
 
   const renderTableRows = () =>
-    filteredData.map((kelas, index) => (
-      <tr key={index} className="bg-gray-100 hover:bg-gray-300">
+    kelasData.map((kelas, index) => (
+      <tr
+        key={kelas.id_paketkelas || index}
+        className="bg-gray-100 hover:bg-gray-300"
+      >
         <td className="px-2 py-2 text-xs sm:text-sm border text-center">
-          {index + 1}
+          {(currentPage - 1) * limit + (index + 1)}
         </td>
-        <td className="px-4 py-2 text-sm border capitalize">
+        <td className="px-4 py-2 text-sm border capitalize font-semibold">
           {kelas.nama_kelas}
         </td>
         <td className="px-4 py-2 text-sm border capitalize">
-          {kelas.wali_kelas}
+          {kelas.wali_kelas || "-"}
         </td>
         <td className="px-4 py-2 text-sm border capitalize">
           {kelas.nama_paket}
         </td>
         <td className="px-4 py-2 text-sm border">{kelas.nama_batch}</td>
-        <td className="px-4 py-2 text-sm border capitalize">
+        <td className="px-4 py-2 text-sm border capitalize text-gray-600">
           {kelas.deskripsi}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+        {/* Tombol-tombol Badge List (Peserta, Mentor, Modul) */}
+        <td className="px-2 py-2 text-xs sm:text-sm text-center border">
           <button
             onClick={() =>
               handleOpenListPesertaModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_peserta,
-            )}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_peserta)}`}
           >
             {kelas.total_peserta} Peserta
           </button>
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center border">
           <button
             onClick={() =>
               handleOpenListMentorModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_mentor,
-            )}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_mentor)}`}
           >
             {kelas.total_mentor} Mentor
           </button>
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+        <td className="px-2 py-2 text-xs sm:text-sm text-center border">
           <button
             onClick={() =>
               handleOpenListModulModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 whitespace-nowrap ${getBadgeColor(
-              kelas.total_modul,
-            )}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_modul)}`}
           >
             {kelas.total_modul} Modul
           </button>
@@ -213,8 +238,8 @@ const DaftarKelas = () => {
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Search"
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              placeholder="Cari kelas, paket, atau batch..."
+              className="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-red-500 outline-none"
             />
           </div>
 
@@ -237,34 +262,90 @@ const DaftarKelas = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data kelas...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">{error}</div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white">
-              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 text-sm ">No</th>
-                  <th className="px-4 py-2 text-sm ">Nama Kelas</th>
-                  <th className="px-4 py-2 text-sm ">Wali Kelas</th>
-                  <th className="px-4 py-2 text-sm ">Paket</th>
-                  <th className="px-4 py-2 text-sm ">Batch</th>
-                  <th className="px-4 py-2 text-sm ">Deskripsi</th>
-                  <th className="px-4 py-2 text-sm ">Total Peserta</th>
-                  <th className="px-4 py-2 text-sm ">Total Mentor</th>
-                  <th className="px-4 py-2 text-sm ">Total Modul</th>
-                  <th className="px-4 py-2 text-sm ">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows()}</tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto max-h-[66vh]">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-200 sticky top-0 z-10 border-b">
+                  <tr className="text-xs uppercase text-gray-700">
+                    <th className="px-4 py-3">No</th>
+                    <th className="px-4 py-3">Nama Kelas</th>
+                    <th className="px-4 py-3">Wali Kelas</th>
+                    <th className="px-4 py-3">Paket</th>
+                    <th className="px-4 py-3">Batch</th>
+                    <th className="px-4 py-3">Deskripsi</th>
+                    <th className="px-4 py-3 text-center">Peserta</th>
+                    <th className="px-4 py-3 text-center">Mentor</th>
+                    <th className="px-4 py-3 text-center">Modul</th>
+                    <th className="px-4 py-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows()}</tbody>
+              </table>
+            </div>
+
+            {/* --- PAGINATION & LIMIT CONTROL --- */}
+            <div className="flex flex-col sm:flex-row items-center justify-between px-8 mt-4 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 border px-2 py-1 rounded-lg bg-gray-50 text-xs">
+                  <span className="font-bold text-gray-500">LIMIT:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="bg-transparent focus:outline-none font-bold text-blue-600 cursor-pointer"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <p className="text-[11px] font-semibold text-gray-500">
+                  Total: <span className="text-blue-600">{totalData}</span>{" "}
+                  Kelas | Hal{" "}
+                  <span className="text-blue-600">{currentPage}</span> dari{" "}
+                  {totalPage}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400"
+                      : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                  }`}
+                >
+                  Previous
+                </button>
+                <div className="flex gap-1">
+                  <span className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
+                    {currentPage}
+                  </span>
+                </div>
+                <button
+                  disabled={currentPage === totalPage}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                    currentPage === totalPage
+                      ? "bg-gray-100 text-gray-400"
+                      : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah kelas: {kelasData.length} kelas
-        </p>
       </div>
 
       {/* 🔹 Modal Tambah Kelas */}

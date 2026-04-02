@@ -1,14 +1,22 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import Header from "../../components/admin/Header.jsx";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import debounce from "lodash/debounce";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
+import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+import { toast } from "react-toastify";
+
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
+import Header from "../../components/admin/Header.jsx";
 import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
 import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
 import EditPesertaForm from "./modal/EditPesertaForm.jsx";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
-import { toast } from "react-toastify";
 
 const DaftarPeserta = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,45 +26,106 @@ const DaftarPeserta = () => {
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState("single"); // tab aktif
 
+  // --- STATE BARU UNTUK SERVER-SIDE ---
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [batchOptions, setBatchOptions] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState("");
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [limit, setLimit] = useState(20);
 
   // state untuk sort
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   const didFetch = useRef(false);
 
+  // 1. Ambil Daftar Batch untuk Dropdown
+  useEffect(() => {
+    const fetchBatch = async () => {
+      try {
+        const { data } = await Api.get("/batch");
+        setBatchOptions(data.data || []);
+      } catch (err) {
+        console.error("Gagal ambil batch", err);
+      }
+    };
+    fetchBatch();
+  }, []);
+
   useEffect(() => {
     if (didFetch.current) return; // guard StrictMode (dev) agar hanya sekali
     didFetch.current = true;
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      // const { data } = await Api.get("/peserta");
-      const { data } = await Api.get("/peserta/aktif");
+  // 2. Fungsi Fetch Utama (Server Side)
+  const fetchUsers = useCallback(
+    async (page = 1, search = "", batchId = "", currentLimit = 20) => {
+      setIsLoading(true);
+      setError("");
+      try {
+        // Gunakan URLSearchParams agar parameter bersih
+        const params = new URLSearchParams();
+        params.append("page", page);
+        params.append("limit", currentLimit);
 
-      // SALIN dulu, baru sort (hindari mutasi)
-      const sorted = [...data].sort((a, b) =>
-        (a.nama ?? "").localeCompare(b.nama ?? "", "id", {
-          sensitivity: "base",
-        }),
-      );
+        // Hanya tambahkan jika ada isinya (bukan string kosong atau null)
+        if (search && search.trim() !== "") {
+          params.append("search", search);
+        }
 
-      // (opsional) deduplicate berdasarkan id_user untuk amankan render
-      const deduped = Array.from(
-        new Map(sorted.map((u) => [u.id_user, u])).values(),
-      );
+        if (batchId && batchId !== "") {
+          params.append("id_batch", batchId);
+        }
 
-      setUserData(deduped);
-    } catch (err) {
-      setError("Gagal mengambil data peserta.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+        // Hasilnya: /peserta/aktif?page=1&limit=5 (tanpa &search= jika kosong)
+        const response = await Api.get(`/peserta/aktif?${params.toString()}`);
+
+        const result = response.data;
+        setUserData(result.data || []);
+        setTotalData(result.meta?.total || 0);
+        setTotalPage(result.meta?.total_page || 1);
+      } catch (err) {
+        setError("Gagal mengambil data peserta.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  // 3. Debounce Search agar tidak spam API
+  const debouncedFetch = useRef(
+    debounce((nextSearch, nextBatch, nextLimit) => {
+      fetchUsers(1, nextSearch, nextBatch, nextLimit);
+    }, 500),
+  ).current;
+
+  useEffect(() => {
+    setCurrentPage(1);
+    // Jalankan fetch
+    debouncedFetch(searchTerm, selectedBatch, limit);
+
+    // Cleanup debounce jika komponen unmount
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, selectedBatch, limit, debouncedFetch]);
+
+  // Handle Perubahan Input
+  useEffect(() => {
+    debouncedFetch(searchTerm, selectedBatch);
+  }, [searchTerm, selectedBatch, debouncedFetch]);
+
+  // Handle Ganti Halaman
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPage) {
+      setCurrentPage(newPage);
+      fetchUsers(newPage, searchTerm, selectedBatch);
     }
   };
 
@@ -70,9 +139,6 @@ const DaftarPeserta = () => {
       return { key, direction: "asc" };
     });
   };
-
-  // 🔎 Search lebih luas (nama, email, hp, batch, kelas)
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const filteredData = useMemo(() => {
     const k = searchTerm.toLowerCase();
@@ -188,15 +254,27 @@ const DaftarPeserta = () => {
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
-          {/* Kolom kiri (Search) */}
-          <div className="flex justify-start">
+          {/* Filter Bar */}
+          <div className="flex gap-2">
             <input
               type="text"
               value={searchTerm}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari peserta..."
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              className="border rounded-lg px-4 py-2 w-full text-sm"
             />
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              className="border rounded-lg px-2 py-2 text-sm w-full"
+            >
+              <option value="">Semua Batch</option>
+              {batchOptions.map((b) => (
+                <option key={b.id_batch} value={b.id_batch}>
+                  {b.nama_batch}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Kolom tengah (Judul) */}
@@ -222,14 +300,14 @@ const DaftarPeserta = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data peserta...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
         ) : error ? (
           <p className="text-center text-red-500 mt-4">{error}</p>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
+          <div className="overflow-x-auto max-h-[66vh]">
             <table className="min-w-full bg-white border">
               <thead className="bg-white sticky top-0 z-10">
                 <tr className="bg-gray-200 text-xs sm:text-sm">
@@ -298,9 +376,76 @@ const DaftarPeserta = () => {
             </table>
           </div>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah peserta: {userData.length} orang
-        </p>
+        {/* --- PAGINATION & LIMIT CONTROL --- */}
+        {!isLoading && userData.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between px-8 mt-3 gap-4">
+            {/* Sisi Kiri: Info & Selector Limit */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 border px-2 py-1 rounded-lg bg-gray-50">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">
+                  Limit:
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    const newLimit = Number(e.target.value);
+                    setLimit(newLimit);
+                    setCurrentPage(1); // Reset ke hal 1 setiap ganti limit
+                  }}
+                  className="text-xs bg-transparent focus:outline-none font-semibold text-blue-600 cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              <p className="text-xs font-semibold text-gray-600">
+                Menampilkan {(currentPage - 1) * limit + 1} -{" "}
+                {Math.min(currentPage * limit, totalData)} dari {totalData}{" "}
+                peserta
+              </p>
+            </div>
+
+            {/* Sisi Kanan: Navigasi Halaman */}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                Previous
+              </button>
+
+              <div className="flex items-center gap-1">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold shadow-md">
+                  {currentPage}
+                </span>
+                <span className="text-gray-400 mx-1 text-xs">dari</span>
+                <span className="text-gray-700 text-xs font-bold">
+                  {totalPage}
+                </span>
+              </div>
+
+              <button
+                disabled={currentPage === totalPage}
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentPage === totalPage
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (

@@ -1,71 +1,77 @@
-import React, { useState, useEffect, useMemo } from "react";
-import Header from "../../components/admin/Header.jsx";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import debounce from "lodash/debounce";
+import { toast } from "react-toastify";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
+
+import Header from "../../components/admin/Header.jsx";
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import TambahModulForm from "./modal/TambahModulForm.jsx";
 import EditModulForm from "./modal/EditModalForm.jsx";
 import ListKelasModal from "./modal/ListKelasModal.jsx";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
-import { toast } from "react-toastify";
 
 const DaftarModul = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [modulData, setModulData] = useState([]);
+  const [totalModul, setTotalModul] = useState(0); // State untuk total dari meta
   const [selectedId, setSelectedId] = useState(null);
   const [selectedModul, setSelectedModul] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showListKelasModal, setShowListKelasModal] = useState(false);
   const [showAddModulModal, setShowAddModulModal] = useState(false);
   const [showEditModulModal, setShowEditModulModal] = useState(false);
-  const [loadingVisibility, setLoadingVisibility] = useState(false); // ⬅️ state global loading
+  const [loadingVisibility, setLoadingVisibility] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await fetchModulData();
-      } catch (err) {
-        console.error("Gagal fetch data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const fetchModulData = async () => {
+  // 1. Fungsi Fetch Server-Side dengan parameter Search Opsional
+  const fetchModulData = useCallback(async (search = "") => {
+    setIsLoading(true);
+    setError("");
     try {
-      const response = await Api.get("/modul");
-      let data = response.data.data || [];
+      const params = new URLSearchParams();
+      if (search && search.trim() !== "") {
+        params.append("search", search);
+      }
 
-      // 🔹 Sort data
+      const response = await Api.get(`/modul?${params.toString()}`);
+      const result = response.data;
+      let data = result.data || [];
+
+      // Tetap gunakan logic sorting manual jika backend belum menyediakannya
       data.sort((a, b) => {
-        // 1️⃣ Prioritas: admin dulu
         if (a.owner === "admin" && b.owner !== "admin") return -1;
         if (a.owner !== "admin" && b.owner === "admin") return 1;
-
-        // 2️⃣ Kalau sama-sama admin atau sama-sama bukan admin → sort A-Z
         return a.judul.localeCompare(b.judul, "id", { sensitivity: "base" });
       });
 
       setModulData(data);
+      setTotalModul(result.meta?.total || 0); // Ambil total dari meta
     } catch (error) {
       console.error("Gagal mengambil data modul:", error);
+      setError("Gagal memuat data modul.");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
+
+  // 2. Debounce Search
+  const debouncedFetch = useRef(
+    debounce((nextSearch) => {
+      fetchModulData(nextSearch);
+    }, 500),
+  ).current;
+
+  // 3. Effect untuk memantau perubahan search
+  useEffect(() => {
+    debouncedFetch(searchTerm);
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, debouncedFetch]);
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const filteredData = useMemo(() => {
-    const k = searchTerm.toLowerCase();
-    return [...modulData] // copy array biar ga mutasi state asli
-      .filter((modul) =>
-        [modul.judul, modul.owner, modul.deskripsi].some((v) =>
-          (v ?? "").toLowerCase().includes(k),
-        ),
-      );
-  }, [modulData, searchTerm]);
+  const handleRefreshFetch = () => fetchModulData(searchTerm);
 
   const handleEditClick = (modul) => {
     setSelectedModul(modul);
@@ -92,8 +98,6 @@ const DaftarModul = () => {
     }
   };
 
-  const handleRefreshFetch = async () => fetchModulData();
-
   const handleDelete = (id) => {
     ConfirmToast("Yakin ingin menghapus modul ini?", async () => {
       await Api.delete(`/modul/${id}`);
@@ -116,48 +120,56 @@ const DaftarModul = () => {
   };
 
   const renderTableRows = () =>
-    filteredData.map((modul, index) => (
+    modulData.map((modul, index) => (
       <tr
-        key={filteredData.id_modul || index}
+        key={modul.id_modul || index}
         className="bg-gray-100 hover:bg-gray-300"
       >
         <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
           {index + 1}
         </td>
-        <td className="px-4 py-2 text-sm border">{modul.judul}</td>
-        <td className="px-4 py-2 text-sm border">{modul.owner}</td>
-        <td className="px-4 py-2 text-sm border">{modul.deskripsi}</td>
-        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border-b border-r">
+        <td className="px-4 py-2 text-sm border font-semibold">
+          {modul.judul}
+        </td>
+        <td className="px-4 py-2 text-sm border">
+          <span
+            className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${modul.owner === "admin" ? "bg-purple-100 text-purple-700" : "bg-orange-100 text-orange-700"}`}
+          >
+            {modul.owner}
+          </span>
+        </td>
+        <td className="px-4 py-2 text-sm border text-gray-600 italic">
+          {modul.deskripsi || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm text-center text-gray-800 border">
           {modul.owner === "admin" ? (
             <button
               onClick={() => handleOpenListKelasModal(modul.id_modul)}
-              className={`inline-block px-3 py-1 text-white rounded-full hover:bg-yellow-500 ${getBadgeColor(
+              className={`inline-block px-3 py-1 text-white text-xs rounded-full hover:bg-yellow-500 transition-colors ${getBadgeColor(
                 modul.total_kelas,
               )}`}
             >
               {modul.total_kelas} Kelas
             </button>
           ) : (
-            <p className="text-sm">
+            <p className="text-xs font-medium text-blue-600">
               {modul.paketkelas?.[0]?.nama_kelas || "-"}
             </p>
           )}
         </td>
-        <td className="px-4 py-2 text-sm border flex justify-center">
+        <td className="px-4 py-2 text-sm border text-center">
           <select
             value={modul.visibility}
             onChange={(e) =>
               handleVisibilityChange(modul.id_modul, e.target.value)
             }
-            className={`capitalize font-semibold rounded-md px-2 py-1
+            className={`capitalize font-bold rounded-md px-2 py-1 text-xs border focus:outline-none
                     ${
                       modul.visibility === "open"
-                        ? "text-green-600"
+                        ? "text-green-600 border-green-200 bg-green-50"
                         : modul.visibility === "hold"
-                          ? "text-yellow-600"
-                          : modul.visibility === "close"
-                            ? "text-red-600"
-                            : "text-gray-600"
+                          ? "text-yellow-600 border-yellow-200 bg-yellow-50"
+                          : "text-red-600 border-red-200 bg-red-50"
                     }
                   `}
           >
@@ -217,8 +229,8 @@ const DaftarModul = () => {
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Search"
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              placeholder="Cari judul atau deskripsi..."
+              className="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-red-500 outline-none"
             />
           </div>
 
@@ -239,31 +251,48 @@ const DaftarModul = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data modul...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500 font-medium">
+            {error}
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="min-w-full bg-white">
-              <thead className="border border-gray-200 font-bold bg-white sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 py-2 text-sm">No</th>
-                  <th className="px-4 py-2 text-sm capitalize">Judul</th>
-                  <th className="px-4 py-2 text-sm capitalize">Owner</th>
-                  <th className="px-4 py-2 text-sm capitalize">Deskripsi</th>
-                  <th className="px-4 py-2 text-sm">List Kelas</th>
-                  <th className="px-4 py-2 text-sm">Status</th>
-                  <th className="px-4 py-2 text-sm">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>{renderTableRows()}</tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto max-h-[66vh]">
+              <table className="min-w-full bg-white border-collapse">
+                <thead className="bg-gray-200 sticky top-0 z-10">
+                  <tr className="text-xs uppercase text-gray-700">
+                    <th className="px-4 py-3 border">No</th>
+                    <th className="px-4 py-3 border">Judul Modul</th>
+                    <th className="px-4 py-3 border text-center">Owner</th>
+                    <th className="px-4 py-3 border">Deskripsi</th>
+                    <th className="px-4 py-3 border text-center">Kelas</th>
+                    <th className="px-4 py-3 border text-center">Visibility</th>
+                    <th className="px-4 py-3 border">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>{renderTableRows()}</tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between px-6 pt-4">
+              <p className="text-xs font-semibold text-blue-600">
+                Total:{" "}
+                <span className="bg-blue-100 px-2 py-0.5 rounded">
+                  {totalModul}
+                </span>{" "}
+                modul ditemukan
+              </p>
+              {searchTerm && (
+                <p className="text-[10px] text-gray-400 italic">
+                  Hasil pencarian untuk: "{searchTerm}"
+                </p>
+              )}
+            </div>
+          </>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-blue-600">
-          <sup>*</sup>Jumlah modul: {modulData.length} modul
-        </p>
       </div>
 
       {/* Modal Tambah Modul */}
