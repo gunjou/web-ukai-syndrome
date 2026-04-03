@@ -50,7 +50,7 @@ const MentorKelas = () => {
 
   const fetchKelas = async () => {
     try {
-      const res = await Api.get("/paket-kelas");
+      const res = await Api.get("/paket-kelas/all");
       setKelasList(res.data.data || []);
     } catch (err) {
       console.error("Gagal mengambil data kelas", err);

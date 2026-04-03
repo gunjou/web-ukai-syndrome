@@ -38,7 +38,7 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
   useEffect(() => {
     const fetchPaketKelas = async () => {
       try {
-        const res = await Api.get("/paket-kelas");
+        const res = await Api.get("/paket-kelas/all");
         setPaketKelas(res.data.data || []);
       } catch (err) {
         toast.error("Gagal mengambil data kelas");
@@ -98,7 +98,7 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
         access_end_time: form.access_end_time || null, // Add end time to payload
         visibility: getAutoVisibility(
           form.access_start_date,
-          form.access_end_date
+          form.access_end_date,
         ),
       };
 

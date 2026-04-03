@@ -50,7 +50,7 @@ const EditMentorForm = ({
   // 🔹 Fetch daftar kelas
   useEffect(() => {
     if (showModal) {
-      Api.get("/paket-kelas")
+      Api.get("/paket-kelas/all")
         .then((res) => setKelasOptions(res.data.data))
         .catch((err) => console.error("Gagal fetch kelas:", err));
     }
@@ -77,7 +77,7 @@ const EditMentorForm = ({
       await Api.put(`/mentor/${initialData.id_user}`, payload);
 
       toast.success(
-        `Data mentor berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`
+        `Data mentor berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`,
       );
 
       onSuccess?.(); // trigger close modal + refresh

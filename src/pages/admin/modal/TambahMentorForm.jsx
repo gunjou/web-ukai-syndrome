@@ -26,7 +26,7 @@ const TambahMentorForm = ({ showModal, fetchMentorData, onSuccess }) => {
   // 🔹 Fetch daftar kelas dari API saat modal muncul
   useEffect(() => {
     if (showModal) {
-      Api.get("/paket-kelas")
+      Api.get("/paket-kelas/all")
         .then((res) => setKelasOptions(res.data.data))
         .catch((err) => console.error("Gagal fetch kelas:", err));
     }
@@ -50,7 +50,7 @@ const TambahMentorForm = ({ showModal, fetchMentorData, onSuccess }) => {
 
         // 🔹 Notif sukses
         setSuccessMessage(
-          `${status}\nNama: ${data.nama}\nEmail: ${data.email}`
+          `${status}\nNama: ${data.nama}\nEmail: ${data.email}`,
         );
         setErrorMessage(null);
 

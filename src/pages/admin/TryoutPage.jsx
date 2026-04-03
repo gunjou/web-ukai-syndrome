@@ -357,7 +357,7 @@ const TryoutPage = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto max-h-[60vh]">
+            <div className="overflow-x-auto max-h-[66vh]">
               <table className="min-w-full bg-white border-collapse">
                 <thead className="bg-gray-200 sticky top-0 z-10 border-b">
                   <tr className="text-[10px] uppercase text-gray-600 tracking-widest font-extrabold">

@@ -22,14 +22,14 @@ const TambahPesertaForm = ({ setShowModal, fetchUsers }) => {
   useEffect(() => {
     const fetchKelas = async () => {
       try {
-        const res = await Api.get("/paket-kelas");
+        const res = await Api.get("/paket-kelas/all");
         const options = res.data.data
           .map((k) => ({
             value: k, // seluruh objek kelas
             label: k.nama_kelas, // untuk dropdown
           }))
           .sort((a, b) =>
-            a.label.localeCompare(b.label, "id", { sensitivity: "base" })
+            a.label.localeCompare(b.label, "id", { sensitivity: "base" }),
           );
 
         setKelasOptions(options);
@@ -77,7 +77,7 @@ const TambahPesertaForm = ({ setShowModal, fetchUsers }) => {
 
       // Tampilkan notifikasi sukses dengan nama & email
       setSuccessMessage(
-        `Peserta berhasil ditambahkan!\nNama: ${formData.nama}\nEmail: ${formData.email}`
+        `Peserta berhasil ditambahkan!\nNama: ${formData.nama}\nEmail: ${formData.email}`,
       );
       setErrorMessage(null);
 
