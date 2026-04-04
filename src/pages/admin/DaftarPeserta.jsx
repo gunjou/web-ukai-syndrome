@@ -65,7 +65,13 @@ const DaftarPeserta = () => {
 
   // 2. Fungsi Fetch Utama (Server Side)
   const fetchUsers = useCallback(
-    async (page = 1, search = "", batchId = "", currentLimit = 20) => {
+    async (
+      page = 1,
+      search = "",
+      batchId = "",
+      currentLimit = 20,
+      batchFilter = "aktif",
+    ) => {
       setIsLoading(true);
       setError("");
       try {
@@ -73,6 +79,7 @@ const DaftarPeserta = () => {
         const params = new URLSearchParams();
         params.append("page", page);
         params.append("limit", currentLimit);
+        params.append("batch_filter", batchFilter);
 
         // Hanya tambahkan jika ada isinya (bukan string kosong atau null)
         if (search && search.trim() !== "") {

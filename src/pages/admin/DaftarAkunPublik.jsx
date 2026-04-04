@@ -1,14 +1,22 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import Header from "../../components/admin/Header.jsx";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import debounce from "lodash/debounce";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
+import { AiOutlineClose } from "react-icons/ai";
+import { toast } from "react-toastify";
+
 import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
+import Header from "../../components/admin/Header.jsx";
 import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
 import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
 import EditPesertaForm from "./modal/EditPesertaForm.jsx";
-import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { ConfirmToast } from "./modal/ConfirmToast.jsx";
-import { toast } from "react-toastify";
 
 const DaftarAkunPublik = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,47 +26,78 @@ const DaftarAkunPublik = () => {
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState("single"); // tab aktif
 
+  // --- STATE BARU UNTUK SERVER-SIDE ---
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [batchFilter, setBatchFilter] = useState("publik"); // Default ke Alumni (nonaktif)
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalData, setTotalData] = useState(0);
+  const [limit, setLimit] = useState(20);
 
   // state untuk sort
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-  const didFetch = useRef(false);
+  // 2. Fungsi Fetch Utama
+  const fetchUsers = useCallback(
+    async (
+      page = 1,
+      search = "",
+      currentLimit = 20,
+      currentFilter = "publik",
+    ) => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams();
+        params.append("page", page);
+        params.append("limit", currentLimit);
 
+        if (currentFilter) {
+          params.append("batch_filter", currentFilter);
+        }
+
+        if (search && search.trim() !== "") {
+          params.append("search", search);
+        }
+
+        const response = await Api.get(`/peserta/aktif?${params.toString()}`);
+        const result = response.data;
+
+        setUserData(result.data || []);
+        setTotalData(result.meta?.total || 0);
+        setTotalPage(result.meta?.total_page || 1);
+      } catch (err) {
+        setError("Gagal mengambil data.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  // 3. Debounce
+  const debouncedFetch = useRef(
+    debounce((nextSearch, nextFilter, nextLimit) => {
+      fetchUsers(1, nextSearch, nextLimit, nextFilter);
+    }, 500),
+  ).current;
+
+  // Trigger Fetch saat state berubah
   useEffect(() => {
-    if (didFetch.current) return; // guard StrictMode (dev) agar hanya sekali
-    didFetch.current = true;
-    fetchUsers();
-  }, []);
+    setCurrentPage(1);
+    debouncedFetch(searchTerm, batchFilter, limit);
+    return () => debouncedFetch.cancel();
+  }, [searchTerm, batchFilter, limit, debouncedFetch]);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const { data } = await Api.get("/peserta/public");
-      // Salin dulu, lalu sort
-      const sorted = [...data].sort((a, b) => {
-        const namaA = (a.nama ?? "").trim();
-        const namaB = (b.nama ?? "").trim();
-        // Jika salah satu kosong, taruh paling bawah
-        if (!namaA && namaB) return 1; // a kosong → setelah b
-        if (namaA && !namaB) return -1; // b kosong → setelah a
-        if (!namaA && !namaB) return 0; // dua-duanya kosong → dianggap sama
-        // Kalau keduanya ada nama → urutkan A-Z
-        return namaA.localeCompare(namaB, "id", { sensitivity: "base" });
-      });
-
-      // (opsional) deduplicate berdasarkan id_user
-      const deduped = Array.from(
-        new Map(sorted.map((u) => [u.id_user, u])).values(),
-      );
-      setUserData(deduped);
-    } catch (err) {
-      setError("Gagal mengambil data peserta.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+  // Handle Ganti Halaman
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPage) {
+      setCurrentPage(newPage);
+      fetchUsers(newPage, searchTerm, limit, batchFilter);
     }
   };
 
@@ -73,15 +112,17 @@ const DaftarAkunPublik = () => {
     });
   };
 
-  // 🔎 Search lebih luas (nama, email, hp, batch, kelas)
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-
   const filteredData = useMemo(() => {
     const k = searchTerm.toLowerCase();
     return userData.filter((user) =>
-      [user.nama, user.email, user.no_hp].some((v) =>
-        (v ?? "").toLowerCase().includes(k),
-      ),
+      [
+        user.nama,
+        user.email,
+        user.no_hp,
+        user.nama_batch,
+        user.nama_kelas,
+        user.nama_paket,
+      ].some((v) => (v ?? "").toLowerCase().includes(k)),
     );
   }, [userData, searchTerm]);
 
@@ -120,28 +161,37 @@ const DaftarAkunPublik = () => {
           {user.nama}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
-        <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
-          {user.kode_pemulihan || "-"}
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.kode_pemulihan}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.no_hp || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_batch || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_paket || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_kelas || "-"}
         </td>
         {/* Kolom aksi */}
         <td className="px-4 py-2 text-xs sm:text-sm border w-[80px]">
           <div className="flex justify-center gap-2">
             {/* Tombol Edit */}
-            {/* <div className="relative group">
+            <div className="relative group">
               <button
                 onClick={() => handleEdit(user)}
                 className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <LuPencil className="w-4 h-4" />
-              </button> */}
-            {/* Tooltip */}
-            {/* <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+              </button>
+              {/* Tooltip */}
+              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
                 Edit data
               </span>
-            </div> */}
+            </div>
 
             {/* Tombol Hapus */}
             <div className="relative group">
@@ -174,29 +224,39 @@ const DaftarAkunPublik = () => {
         alt=""
       />
       <Header />
-      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 relative">
+      <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">
-          {/* Kolom kiri (Search) */}
-          <div className="flex justify-start">
+          {/* Filter Bar */}
+          <div className="flex gap-2">
             <input
               type="text"
               value={searchTerm}
-              onChange={handleSearchChange}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari peserta..."
-              className="border rounded-lg px-4 py-2 w-full sm:w-48"
+              className="border rounded-lg px-4 py-2 w-full text-sm"
             />
+            {/* Dropdown Filter Status */}
+            <select
+              value={batchFilter}
+              onChange={(e) => setBatchFilter(e.target.value)}
+              className="border rounded-lg px-2 py-2 text-sm w-full font-bold text-gray-700 bg-white cursor-pointer outline-none focus:ring-2 focus:ring-red-400"
+            >
+              <option value="publik">Semua (Publik & Alumni)</option>
+              <option value="nonaktif">Alumni (Batch Nonaktif)</option>
+              <option value="tanpa">Publik (Tanpa Batch)</option>
+            </select>
           </div>
 
           {/* Kolom tengah (Judul) */}
           <div className="flex justify-center">
             <h1 className="text-xl font-bold text-center">
-              Akun Publik - Ukai Syndrome
+              Akun Publik dan Alumni
             </h1>
           </div>
 
           {/* Kolom kanan (Button) */}
-          {/* <div className="flex justify-end">
-            <button
+          <div className="flex justify-end">
+            {/* <button
               onClick={() => {
                 setShowModal(true);
                 setEditMode(false);
@@ -205,19 +265,19 @@ const DaftarAkunPublik = () => {
               className="bg-yellow-500 hover:bg-yellow-700 text-white px-4 py-1 rounded-xl shadow-md flex items-center gap-2"
             >
               <AiOutlinePlus size={18} /> Tambah Peserta
-            </button>
-          </div> */}
+            </button> */}
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            <p className="text-gray-600">Memuat data peserta...</p>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2">
+            <div className="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 text-sm italic">Memuat data...</p>
           </div>
         ) : error ? (
           <p className="text-center text-red-500 mt-4">{error}</p>
         ) : (
-          <div className="overflow-x-auto max-h-[70vh]">
+          <div className="overflow-x-auto max-h-[66vh]">
             <table className="min-w-full bg-white border">
               <thead className="bg-white sticky top-0 z-10">
                 <tr className="bg-gray-200 text-xs sm:text-sm">
@@ -244,8 +304,41 @@ const DaftarAkunPublik = () => {
                         : "▼"
                       : ""}
                   </th>
-                  <th className="px-4 py-2 border">Kode Pemulihan</th>
+                  <th className="px-4 py-2 border">Token</th>
                   <th className="px-4 py-2 border">No HP</th>
+                  <th
+                    onClick={() => handleSort("nama_batch")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Batch{" "}
+                    {sortConfig.key === "nama_batch"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("nama_paket")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Paket{" "}
+                    {sortConfig.key === "nama_paket"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("nama_kelas")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Kelas{" "}
+                    {sortConfig.key === "nama_kelas"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
                   <th className="px-4 py-2 border">Aksi</th>
                 </tr>
               </thead>
@@ -253,10 +346,76 @@ const DaftarAkunPublik = () => {
             </table>
           </div>
         )}
-        <p className="pl-4 pt-2 text-xs font-semibold text-red-600">
-          <sup>*</sup>Akun publik (tidak terdaftar di batch maupun kelas)
-          {" - "}Jumlah akun: {userData.length} akun
-        </p>
+        {/* --- PAGINATION & LIMIT CONTROL --- */}
+        {!isLoading && userData.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between px-8 mt-3 gap-4">
+            {/* Sisi Kiri: Info & Selector Limit */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 border px-2 py-1 rounded-lg bg-gray-50">
+                <span className="text-[10px] font-bold text-gray-500 uppercase">
+                  Limit:
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    const newLimit = Number(e.target.value);
+                    setLimit(newLimit);
+                    setCurrentPage(1); // Reset ke hal 1 setiap ganti limit
+                  }}
+                  className="text-xs bg-transparent focus:outline-none font-semibold text-blue-600 cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              <p className="text-xs font-semibold text-gray-600">
+                Menampilkan {(currentPage - 1) * limit + 1} -{" "}
+                {Math.min(currentPage * limit, totalData)} dari {totalData}{" "}
+                peserta
+              </p>
+            </div>
+
+            {/* Sisi Kanan: Navigasi Halaman */}
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                Previous
+              </button>
+
+              <div className="flex items-center gap-1">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold shadow-md">
+                  {currentPage}
+                </span>
+                <span className="text-gray-400 mx-1 text-xs">dari</span>
+                <span className="text-gray-700 text-xs font-bold">
+                  {totalPage}
+                </span>
+              </div>
+
+              <button
+                disabled={currentPage === totalPage}
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  currentPage === totalPage
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-blue-500 text-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (
