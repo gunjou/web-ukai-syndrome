@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Api from "./utils/Api";
 import Sidebar from "./components/users/Sidebar";
 import MenuBar from "./components/users/Menubar";
 import Video from "./pages/users/Video";
@@ -10,6 +11,8 @@ import Modul from "./pages/users/Modul";
 
 const User = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Proteksi aktif
@@ -36,18 +39,45 @@ const User = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const checkBatchStatus = async () => {
+      try {
+        const res = await Api.get("/peserta-kelas/status-batch-peserta");
+        // Jika tidak aktif (0) atau tidak punya batch (null), lempar ke home
+        if (res.data.is_batch_active !== 1) {
+          navigate("/home", { replace: true });
+        }
+      } catch (err) {
+        navigate("/login");
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkBatchStatus();
+
+    // Proteksi Inspect Element
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    // ... rest of your protection code
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
-      {/* Navbar / MenuBar */}
       <MenuBar onToggleSidebar={setSidebarOpen} />
-
-      {/* Sidebar + Konten */}
       <div className="flex pt-[65px]">
         <Sidebar
           isOpenExternal={sidebarOpen}
           onCloseExternal={setSidebarOpen}
         />
-
         <main className="flex-1 p-4 md:ml-64 transition-all duration-300">
           <Routes>
             <Route path="/tryout/*" element={<TryOut />} />

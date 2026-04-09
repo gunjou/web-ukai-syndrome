@@ -152,7 +152,14 @@ function App() {
         <Route path="/home" element={<HomePageUser />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
         {/* Route for User Dashboard */}
-        <Route path="/dashboard/*" element={<User />} />
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute allow={["peserta"]}>
+              <User />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/mentor-home" element={<HomeMentor />} />
         <Route path="/mentor-dashboard/*" element={<MentorJs />} />
         {/* Privacy Policy */}

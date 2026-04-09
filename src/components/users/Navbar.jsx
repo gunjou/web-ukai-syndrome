@@ -1,19 +1,9 @@
-import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom"; // ✅ ganti Link → NavLink
-import { FiMenu, FiX } from "react-icons/fi";
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import Api, { CDN_ASSET_URL } from "../../utils/Api";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasPaket, setHasPaket] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const paket = localStorage.getItem("paketTerpilih");
-    if (paket) {
-      setHasPaket(true);
-    }
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -25,23 +15,6 @@ const Navbar = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("paketTerpilih");
     navigate("/");
-  };
-
-  const handleKelasSaya = async () => {
-    try {
-      const res = await Api.get("/profile/kelas-saya");
-      const user = res.data;
-      // console.log(user);
-
-      if (!user || user.nama_kelas === null) {
-        alert("Belum ada paket terdaftar. Silakan beli paket terlebih dahulu.");
-      } else {
-        navigate("/dashboard/materi");
-      }
-    } catch (err) {
-      console.error("Gagal cek kelas saya:", err);
-      alert("Terjadi kesalahan. Coba lagi.");
-    }
   };
 
   return (
@@ -57,126 +30,25 @@ const Navbar = () => {
         </NavLink>
 
         {/* Desktop Menu */}
-        <ul className="hidden md:flex space-x-6 items-center text-white">
-          <li>
-            <NavLink
-              to="/home"
-              className={({ isActive }) =>
-                `flex items-center space-x-1 hover:text-yellow-600 ${
-                  isActive ? "text-yellow-400 font-semibold" : ""
-                }`
-              }
-            >
-              Home
-            </NavLink>
-          </li>
-
-          {hasPaket && (
-            <li>
-              <NavLink
-                to="/pembayaran"
-                className={({ isActive }) =>
-                  `hover:text-yellow-600 ${
-                    isActive ? "text-yellow-400 font-semibold" : ""
-                  }`
-                }
-              >
-                Pembayaran
-              </NavLink>
-            </li>
-          )}
-
-          <li>
-            <button onClick={handleKelasSaya} className="hover:text-yellow-600">
-              Kelas Saya
-            </button>
-          </li>
-
-          {/* Logout Button */}
+        <div className="hidden md:flex items-center">
           <button
             onClick={handleLogout}
             className="ml-4 bg-yellow-500 text-white font-semibold px-6 py-1 rounded-[20px] hover:bg-yellow-700 transition"
           >
             Logout
           </button>
-        </ul>
+        </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden text-white">
-          <button onClick={() => setIsOpen(true)}>
-            <FiMenu size={24} />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 z-40 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex justify-end p-4">
-          <button onClick={() => setIsOpen(false)}>
-            <FiX size={24} />
-          </button>
-        </div>
-        <ul className="flex flex-col space-y-4 px-6 text-gray-800">
-          <NavLink
-            to="/home"
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `hover:text-yellow-600 ${
-                isActive ? "text-yellow-600 font-bold" : ""
-              }`
-            }
-          >
-            Home
-          </NavLink>
-
-          {hasPaket && (
-            <NavLink
-              to="/pembayaran"
-              onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                `hover:text-yellow-600 ${
-                  isActive ? "text-yellow-600 font-bold" : ""
-                }`
-              }
-            >
-              Pembayaran
-            </NavLink>
-          )}
-
+        <div className="md:hidden">
           <button
-            onClick={() => {
-              setIsOpen(false);
-              handleKelasSaya();
-            }}
-            className="text-left hover:text-yellow-600"
-          >
-            Kelas Saya
-          </button>
-
-          {/* Logout Button */}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              handleLogout();
-            }}
-            className="bg-yellow-500 text-white text-center font-semibold px-6 py-2 rounded-[20px] hover:bg-yellow-700 transition"
+            onClick={handleLogout}
+            className="ml-4 bg-yellow-500 text-white font-semibold px-4 py-1 rounded-[20px] hover:bg-yellow-700 transition"
           >
             Logout
           </button>
-        </ul>
+        </div>
       </div>
-
-      {/* Background overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 z-30"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </nav>
   );
 };

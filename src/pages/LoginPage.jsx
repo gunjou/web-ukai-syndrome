@@ -56,12 +56,14 @@ export default function LoginPage() {
       const res = await Api.post("/auth/login/web", { email, password });
       const { access_token, id_user, nama, nickname, role } = res.data || {};
 
+      // 1. Simpan data dasar ke localStorage
       safeLocalStorage.set("token", access_token);
       safeLocalStorage.set(
         "user",
         JSON.stringify({ id_user, nama, nickname, role }),
       );
 
+      // Logika Remember Me
       if (remember) {
         safeLocalStorage.set("savedEmail", email);
         safeLocalStorage.set("remember", "true");
@@ -70,15 +72,38 @@ export default function LoginPage() {
         safeLocalStorage.remove("remember");
       }
 
-      if (role === "admin") navigate("/admin-home");
-      else if (role === "mentor") navigate("/mentor-home");
-      else navigate("/home");
-    } catch (err) {
-      // Ambil message dari key "status" sesuai return API Python Anda
-      const errorData = err.response?.data;
+      // 2. LOGIKA REDIRECT BERDASARKAN ROLE
+      if (role === "admin") {
+        navigate("/admin-home");
+      } else if (role === "mentor") {
+        navigate("/mentor-home");
+      } else if (role === "peserta") {
+        // --- LOGIKA KHUSUS PESERTA ---
+        try {
+          // Cek status batch langsung setelah login berhasil
+          const statusRes = await Api.get(
+            "/peserta-kelas/status-batch-peserta",
+          );
+          const isBatchActive = statusRes.data.is_batch_active;
 
+          if (isBatchActive === 1) {
+            // Jika aktif, langsung ke materi utama
+            navigate("/dashboard/materi");
+          } else {
+            // Jika 0 atau null, ke home (Landing Page Info)
+            navigate("/home");
+          }
+        } catch (statusErr) {
+          // Jika gagal cek status, default arahkan ke home agar aman
+          navigate("/home");
+        }
+      } else {
+        // Fallback jika role tidak dikenal
+        navigate("/");
+      }
+    } catch (err) {
+      const errorData = err.response?.data;
       if (errorData && errorData.status) {
-        // Ini akan menangkap "Email tidak terdaftar", "Password salah", dll
         setErrorMsg(errorData.status);
       } else {
         setErrorMsg("Gagal terhubung ke server. Silakan coba lagi.");
