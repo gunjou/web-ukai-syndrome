@@ -26,6 +26,7 @@ const Header = () => {
     { name: "Mentor", href: "/mentor" },
     { name: "Batch", href: "/batch" },
     { name: "Kelas", href: "/kelas" },
+    { name: "Private", href: "/private" },
     { name: "Modul", href: "/modul" },
     { name: "Materi", href: "/materi" },
     { name: "Tryout", href: "/tryout" },
@@ -135,7 +136,7 @@ const Header = () => {
           <Link
             key={item.name}
             to={item.href}
-            className={`rounded-md p-2 flex items-center gap-2 transition-colors duration-200 ${
+            className={`rounded-md p-2 flex items-center gap-2 whitespace-nowrap transition-colors duration-200 ${
               isMenuActive(item)
                 ? "bg-yellow-500 text-white"
                 : "text-gray-700 hover:bg-gray-200"

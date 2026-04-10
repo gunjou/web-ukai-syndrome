@@ -1,26 +1,41 @@
 // src/components/users/Sidebar.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import homepage_img from "../../assets/logo-1.svg";
-import { CDN_ASSET_URL } from "../../utils/Api";
+import Api, { CDN_ASSET_URL } from "../../utils/Api";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
+  const [hasPrivate, setHasPrivate] = useState(false);
+
+  // Ambil status kelas private saat sidebar di-mount
+  useEffect(() => {
+    const checkPrivateStatus = async () => {
+      try {
+        const res = await Api.get("/peserta-kelas/status-private-peserta");
+        // Jika has_private_class bernilai 1, maka tampilkan menu
+        console.log("Status Kelas Private:", res.data);
+        if (res.data.has_private_class === 1) {
+          setHasPrivate(true);
+        }
+      } catch (err) {
+        console.error("Gagal mengecek status kelas private:", err);
+      }
+    };
+    checkPrivateStatus();
+  }, []);
 
   const MenuItems = ({ isMobile }) => (
     <nav>
       <ul className="space-y-2 px-4">
+        {/* Menu Materi Umum */}
         <li>
           <NavLink
             to="/dashboard/materi"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
-               ${
-                 isActive
-                   ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                   : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
-               }`
+               ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
             }
           >
             <img
@@ -31,17 +46,15 @@ const Sidebar = () => {
             <span>Materi</span>
           </NavLink>
         </li>
+
+        {/* Menu Video Umum */}
         <li>
           <NavLink
             to="/dashboard/video"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
-                ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
-                }`
+                ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
             }
           >
             <img
@@ -52,17 +65,14 @@ const Sidebar = () => {
             <span>Video</span>
           </NavLink>
         </li>
+
         <li>
           <NavLink
             to="/dashboard/tryout"
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
-                ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
-                }`
+                ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
             }
           >
             <img
@@ -79,11 +89,7 @@ const Sidebar = () => {
             onClick={() => isMobile && setOpen(false)}
             className={({ isActive }) =>
               `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
-                ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white"
-                    : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"
-                }`
+                ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
             }
           >
             <img
@@ -94,6 +100,53 @@ const Sidebar = () => {
             <span>Hasil Tryout</span>
           </NavLink>
         </li>
+
+        {/* --- MENU PRIVATE (Hanya Tampil Jika hasPrivate = true) --- */}
+        {hasPrivate && (
+          <>
+            <div className="pt-4 pb-1 px-2">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Kelas Private
+              </p>
+              <hr className="border-gray-200 dark:border-gray-700 mt-1" />
+            </div>
+            <li>
+              <NavLink
+                to="/dashboard/materi-private"
+                onClick={() => isMobile && setOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
+                  ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
+                }
+              >
+                <img
+                  src={`${CDN_ASSET_URL}/icon_folder.png`}
+                  alt="Materi Private"
+                  className="h-auto w-7"
+                />
+                <span>Materi Private</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/dashboard/video-private"
+                onClick={() => isMobile && setOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 text-lg font-semibold rounded-lg py-2 px-2 cursor-pointer dark:text-gray-100
+                  ${isActive ? "bg-gradient-to-r from-[#a11d1d] to-[#531d1d] text-white" : "hover:bg-gray-200 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-100"}`
+                }
+              >
+                <img
+                  src={`${CDN_ASSET_URL}/icon_video.png`}
+                  alt="Video Private"
+                  className="h-auto w-7"
+                />
+                <span>Video Private</span>
+              </NavLink>
+            </li>
+          </>
+        )}
+        {/* --- END MENU PRIVATE --- */}
       </ul>
     </nav>
   );
@@ -104,7 +157,6 @@ const Sidebar = () => {
       <div className="md:hidden fixed top-4 left-4 z-30">
         <button
           onClick={() => setOpen(true)}
-          aria-label="Open menu"
           className="p-2 rounded-md bg-white shadow-md focus:outline-none focus:ring dark:bg-gray-800"
         >
           <svg
@@ -112,7 +164,6 @@ const Sidebar = () => {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -130,23 +181,13 @@ const Sidebar = () => {
           <div
             className="fixed inset-0 bg-black bg-opacity-40 dark:bg-opacity-60 z-30"
             onClick={() => setOpen(false)}
-            aria-hidden="true"
           />
-
-          <aside className="fixed left-0 top-0 w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-700 h-full shadow-md z-40 md:hidden transform transition-transform">
-            <div className="p-6 pl-4 text-2xl font-bold text-yellow-600 flex items-center justify-between">
-              <a className="flex justify-left" href="/home">
-                <img
-                  src={homepage_img}
-                  alt="Homepage Logo"
-                  className="h-12 cursor-pointer"
-                />
+          <aside className="fixed left-0 top-0 w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-700 h-full shadow-md z-40 md:hidden overflow-y-auto">
+            <div className="p-6 pl-4 text-2xl font-bold flex items-center justify-between">
+              <a href="/home">
+                <img src={homepage_img} alt="Logo" className="h-12" />
               </a>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 focus:outline-none focus:ring"
-              >
+              <button onClick={() => setOpen(false)}>
                 <svg
                   className="w-6 h-6 text-gray-800 dark:text-gray-100"
                   fill="none"
@@ -162,7 +203,6 @@ const Sidebar = () => {
                 </svg>
               </button>
             </div>
-
             <div className="px-2">
               <MenuItems isMobile={true} />
             </div>
@@ -170,15 +210,11 @@ const Sidebar = () => {
         </>
       )}
 
-      {/* Desktop sidebar (unchanged) */}
-      <aside className="w-64 bg-white dark:bg-gray-900 min-h-screen border-r dark:border-gray-700 shadow-md hidden md:block fixed top-0 z-20">
+      {/* Desktop sidebar */}
+      <aside className="w-64 bg-white dark:bg-gray-900 min-h-screen border-r dark:border-gray-700 shadow-md hidden md:block fixed top-0 z-20 overflow-y-auto">
         <div className="pt-4 px-4">
-          <a className="flex justify-left" href="/home">
-            <img
-              src={homepage_img}
-              alt="Homepage Logo"
-              className="h-12 cursor-pointer"
-            />
+          <a href="/home">
+            <img src={homepage_img} alt="Logo" className="h-12" />
           </a>
         </div>
         <div className="pt-4">

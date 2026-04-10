@@ -8,6 +8,7 @@ import Materi from "./pages/users/Materi";
 import TryOut from "./pages/users/TryOut";
 import HasilTO from "./pages/users/HasilTO";
 import Modul from "./pages/users/Modul";
+import MateriPrivate from "./pages/users/MateriPrivate";
 
 const User = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -85,6 +86,8 @@ const User = () => {
             <Route path="/video/*" element={<Video />} />
             <Route path="/materi/*" element={<Materi />} />
             <Route path="/modul/*" element={<Modul />} />
+            <Route path="materi-private/*" element={<MateriPrivate />} />
+            <Route path="video-private/*" element={<MateriPrivate />} />
           </Routes>
         </main>
       </div>

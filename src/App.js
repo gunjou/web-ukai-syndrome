@@ -52,6 +52,8 @@ import DataDeletionRequestEN from "./utils/DataDeletionRequestEN.jsx";
 import DataDeletionRequestID from "./utils/DataDeletionRequestID.jsx";
 import HomeMentor from "./pages/mentor/HomeMentor.jsx";
 import ProtectedRoute from "./utils/ProtectedRoute.jsx";
+import DaftarPrivate from "./pages/admin/DaftarPrivate.jsx";
+import MateriPrivateListContent from "./pages/users/MateriPrivateListContent.jsx";
 
 function App() {
   // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
@@ -102,6 +104,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/private"
+          element={
+            <ProtectedRoute allow={["superadmin"]}>
+              <DaftarPrivate />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
         <Route
           path="/modul"
@@ -146,6 +156,14 @@ function App() {
         <Route path="/soal" element={<SoalPage />} />
         <Route path="/materi" element={<MateriPage />} />
         <Route path="/video" element={<VideoPage />} />
+        <Route
+          path="/materi-private"
+          element={<MateriPrivateListContent tipe="document" />}
+        />
+        <Route
+          path="/video-private"
+          element={<MateriPrivateListContent tipe="video" />}
+        />
         <Route path="/paket" element={<PaketPage />} />
         <Route path="/pendaftaran" element={<PendaftaranPage />} />
         {/* Routes for user */}

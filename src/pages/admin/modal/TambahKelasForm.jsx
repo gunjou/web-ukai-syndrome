@@ -32,21 +32,21 @@ const TambahKelasForm = ({ setShowModal, fetchKelas }) => {
           (batchRes.data.data || []).map((b) => ({
             value: b.id_batch,
             label: b.nama_batch,
-          }))
+          })),
         );
 
         setPaketOptions(
           (paketRes.data.data || []).map((p) => ({
             value: p.id_paket,
             label: p.nama_paket,
-          }))
+          })),
         );
 
         setMentorOptions(
           (mentorRes.data.data || []).map((p) => ({
             value: p.id_user,
             label: p.nama,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Gagal ambil data:", err);
