@@ -63,10 +63,10 @@ const ProtectedRoute = ({ allow, children }) => {
   }
 
   // 4. Proteksi Admin / Mentor (Role Based)
-  if (!allow.includes(role)) {
-    const fallback = role === "mentor" ? "/mentor-home" : "/admin-home";
-    return <Navigate to={fallback} replace />;
-  }
+  // if (!allow.includes(role)) {
+  //   const fallback = role === "mentor" ? "/mentor-home" : "/admin-home";
+  //   return <Navigate to={fallback} replace />;
+  // }
 
   return children;
 };
