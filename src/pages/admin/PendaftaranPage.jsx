@@ -81,16 +81,6 @@ const PendaftaranPage = () => {
         className="absolute top-0 right-0 pt-[90px] w-full h-full object-cover opacity-10 z-0"
       /> */}
 
-      <img
-        src={`${CDN_ASSET_URL}/garis-kanan.png`}
-        alt=""
-        className="absolute top-0 right-0 pt-[90px]  h-full w-auto opacity-40 z-0"
-      />
-      <img
-        src={`${CDN_ASSET_URL}/garis-kanan.png`}
-        alt=""
-        className="absolute bottom-0 left-0 pt-[90px]  h-full w-auto opacity-40 rotate-180 transform z-0"
-      />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-6 max-h-screen relative">
         {/* Search Bar, Title, and File Upload with Upload Button */}

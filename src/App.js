@@ -1,199 +1,201 @@
-// eslint-disable-next-line no-unused-vars
-import { useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "leaflet/dist/leaflet.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import useAntiInspect from "./utils/useAntiInspect.js";
+import "leaflet/dist/leaflet.css";
 
-// Import components
-// import Features from "./components/Features";
-// import Modul from "./components/Modul";
-// import Mentor from "./components/Mentor";
-import LandingPage from "./pages/LandingPage";
+import useAntiInspect from "./utils/useAntiInspect";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import RedirectByRole from "./utils/RedirectByRole";
 
-// Import admin pages
-import HomeAdmin from "./pages/admin/HomeAdmin";
-import PesertaPage from "./pages/admin/DaftarPeserta.jsx";
-import SoalPage from "./pages/admin/SoalPage";
-import MateriPage from "./pages/admin/MateriPage";
-import VideoPage from "./pages/admin/VideoPage";
-import PaketPage from "./pages/admin/PaketPage.jsx";
-import PendaftaranPage from "./pages/admin/PendaftaranPage.jsx";
-import LaporanPage from "./pages/admin/LaporanPage.jsx";
-import TryoutPage from "./pages/admin/TryoutPage.jsx";
-// import PesertaKelas from "./pages/admin/PesertaKelas.jsx";
-import DaftarAkunPublik from "./pages/admin/DaftarAkunPublik.jsx";
-import DaftarMentor from "./pages/admin/DaftarMentor.jsx";
-import DaftarKelas from "./pages/admin/DaftarKelas.jsx";
-import DaftarModul from "./pages/admin/DaftarModul.jsx";
-import DaftarMateri from "./pages/admin/DaftarMateri.jsx";
+// LAZY LOAD (IMPORTANT)
+const LoginPage = lazy(() => import("./pages/LoginPage"));
 
-// Import authentication pages
-import LoginPage from "./pages/LoginPage";
-// import RegisterPage from "./pages/RegisterPage";
+// ADMIN
+const HomeAdmin = lazy(() => import("./pages/admin/HomeAdmin"));
+const DaftarAkunPublik = lazy(() => import("./pages/admin/DaftarAkunPublik"));
+const PesertaPage = lazy(() => import("./pages/admin/DaftarPeserta"));
+const DaftarMentor = lazy(() => import("./pages/admin/DaftarMentor"));
+const DaftarBatch = lazy(() => import("./pages/admin/DaftarBatch"));
+const DaftarKelas = lazy(() => import("./pages/admin/DaftarKelas"));
+const DaftarPrivate = lazy(() => import("./pages/admin/DaftarPrivate"));
+const DaftarModul = lazy(() => import("./pages/admin/DaftarModul"));
+const DaftarMateri = lazy(() => import("./pages/admin/DaftarMateri"));
+const TryoutPage = lazy(() => import("./pages/admin/TryoutPage"));
+const LaporanPage = lazy(() => import("./pages/admin/LaporanPage"));
 
-import HomePageUser from "./pages/users/HomePage.jsx";
+// USER
+const User = lazy(() => import("./User"));
+const HomePageUser = lazy(() => import("./pages/users/HomePage"));
+const Pembayaran = lazy(() => import("./pages/users/Pembayaran"));
+const MateriPrivateListContent = lazy(
+  () => import("./pages/users/MateriPrivateListContent"),
+);
 
-// Import components
-// import About from "./components/About";
-import User from "./User"; // Import User component
-import Pembayaran from "./pages/users/Pembayaran.jsx";
-import DaftarBatch from "./pages/admin/DaftarBatch.jsx";
-import MentorKelas from "./pages/admin/MentorKelas.jsx";
-// import UserBatch from "./pages/admin/UserBatch.jsx";
-
-// mentor
-
-import MentorJs from "./Mentor.js";
-import PrivacyPolicyEN from "./utils/PrivacyPolicyEN.jsx";
-import PrivacyPolicyID from "./utils/PrivacyPolicyID.jsx";
-import DataDeletionRequestEN from "./utils/DataDeletionRequestEN.jsx";
-import DataDeletionRequestID from "./utils/DataDeletionRequestID.jsx";
-import HomeMentor from "./pages/mentor/HomeMentor.jsx";
-import ProtectedRoute from "./utils/ProtectedRoute.jsx";
-import DaftarPrivate from "./pages/admin/DaftarPrivate.jsx";
-import MateriPrivateListContent from "./pages/users/MateriPrivateListContent.jsx";
+// MENTOR
+const HomeMentor = lazy(() => import("./pages/mentor/HomeMentor"));
+const MentorJs = lazy(() => import("./Mentor"));
 
 function App() {
-  // aktifkan proteksi → ganti ke false kalau lagi ngedevelop
   useAntiInspect(true);
 
   return (
     <Router>
-      <Routes>
-        {/* Routes for ADMIN */}
-        <Route path="/admin-home" element={<HomeAdmin />} />
-        <Route
-          path="/akun-publik"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarAkunPublik />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/peserta"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <PesertaPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mentor"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarMentor />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/batch"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarBatch />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/kelas"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarKelas />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/private"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarPrivate />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/mentor/mentor-kelas" element={<MentorKelas />} />
-        <Route
-          path="/modul"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarModul />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/materi"
-          element={
-            <ProtectedRoute allow={["superadmin"]}>
-              <DaftarMateri />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tryout"
-          element={
-            <ProtectedRoute allow={["superadmin", "tryout"]}>
-              <TryoutPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/laporan"
-          element={
-            <ProtectedRoute allow={["superadmin", "tryout"]}>
-              <LaporanPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* <Route path="/batch/peserta-batch" element={<UserBatch />} /> */}
-        {/* <Route path="/peserta/peserta-kelas" element={<PesertaKelas />} /> */}
+      <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
+        <Routes>
+          {/* ROOT REDIRECT */}
+          <Route path="/" element={<RedirectByRole />} />
 
-        {/* Routes for landing, login, and register pages */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        {/* <Route path="/register" element={<RegisterPage />} />  */}
-        {/* Routes for admin dashboard */}
-        <Route path="/soal" element={<SoalPage />} />
-        <Route path="/materi" element={<MateriPage />} />
-        <Route path="/video" element={<VideoPage />} />
-        <Route
-          path="/materi-private"
-          element={<MateriPrivateListContent tipe="document" />}
-        />
-        <Route
-          path="/video-private"
-          element={<MateriPrivateListContent tipe="video" />}
-        />
-        <Route path="/paket" element={<PaketPage />} />
-        <Route path="/pendaftaran" element={<PendaftaranPage />} />
-        {/* Routes for user */}
-        <Route path="/home" element={<HomePageUser />} />
-        <Route path="/pembayaran" element={<Pembayaran />} />
-        {/* Route for User Dashboard */}
-        <Route
-          path="/dashboard/*"
-          element={
-            <ProtectedRoute allow={["peserta"]}>
-              <User />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/mentor-home" element={<HomeMentor />} />
-        <Route path="/mentor-dashboard/*" element={<MentorJs />} />
-        {/* Privacy Policy */}
-        <Route path="/privacy-policy" element={<PrivacyPolicyEN />} />
-        <Route path="/privacy-policy-id" element={<PrivacyPolicyID />} />
-        {/* Data Deletion */}
-        <Route
-          path="/data-deletion-request-en"
-          element={<DataDeletionRequestEN />}
-        />
-        <Route
-          path="/data-deletion-request-id"
-          element={<DataDeletionRequestID />}
-        />
-      </Routes>
-      {/* Notifikasi Toast */}
+          {/* AUTH */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* ================= ADMIN ================= */}
+          <Route
+            path="/admin-home"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <HomeAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/akun-publik"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarAkunPublik />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/peserta"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <PesertaPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mentor"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarMentor />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/batch"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarBatch />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/kelas"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarKelas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/private"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarPrivate />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/modul"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarModul />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/materi"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarMateri />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tryout"
+            element={
+              <ProtectedRoute allow={["superadmin", "tryout"]}>
+                <TryoutPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/laporan"
+            element={
+              <ProtectedRoute allow={["superadmin", "tryout"]}>
+                <LaporanPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= USER ================= */}
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute allow={["peserta"]}>
+                <User />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/home" element={<HomePageUser />} />
+          <Route path="/pembayaran" element={<Pembayaran />} />
+
+          <Route
+            path="/materi-private"
+            element={<MateriPrivateListContent tipe="document" />}
+          />
+
+          <Route
+            path="/video-private"
+            element={<MateriPrivateListContent tipe="video" />}
+          />
+
+          {/* ================= MENTOR ================= */}
+          <Route
+            path="/mentor-home"
+            element={
+              <ProtectedRoute allow={["mentor"]}>
+                <HomeMentor />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mentor-dashboard/*"
+            element={
+              <ProtectedRoute allow={["mentor"]}>
+                <MentorJs />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= FALLBACK ================= */}
+          <Route path="*" element={<RedirectByRole />} />
+        </Routes>
+      </Suspense>
+
       <ToastContainer position="top-center" autoClose={3000} />
     </Router>
   );

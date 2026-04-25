@@ -79,18 +79,6 @@ const HomeMentor = () => {
       {loading && <LoadingOverlay />}
 
       <div className="min-h-screen w-auto bg-gradient-to-r from-[#a11d1d] to-[#531d1d] flex flex-col items-center relative">
-        <img
-          src={`${CDN_ASSET_URL}/maps.png`}
-          alt=""
-          className="absolute top-0 right-0 pt-[90px] w-full h-full object-cover opacity-10"
-        />
-
-        <img
-          src={`${CDN_ASSET_URL}/garis-kanan.png`}
-          className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
-          alt="garis kanan"
-        />
-
         {/* Header */}
         <div className="w-full flex items-center justify-between px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
           {/* Kiri: Logo */}
@@ -200,13 +188,6 @@ const HomeMentor = () => {
             </div>
           </div>
         </div>
-
-        {/* Bottom Image */}
-        <img
-          src={`${CDN_ASSET_URL}/dokter.png`}
-          alt="welcome"
-          className="lg:max-h-[50%] max-h-[35%] object-contain absolute bottom-0 left-0"
-        />
       </div>
     </>
   );

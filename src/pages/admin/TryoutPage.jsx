@@ -310,7 +310,7 @@ const TryoutPage = () => {
   return (
     <div className="bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
       {/* Background Pattern */}
-      <img
+      {/* <img
         src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
         alt=""
@@ -319,7 +319,7 @@ const TryoutPage = () => {
         src={`${CDN_ASSET_URL}/garis-kanan.png`}
         className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 transform z-0"
         alt=""
-      />
+      /> */}
 
       <Header />
 

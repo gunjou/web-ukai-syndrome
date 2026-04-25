@@ -248,16 +248,6 @@ const DaftarPeserta = () => {
 
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
-      <img
-        src={`${CDN_ASSET_URL}/garis-kanan.png`}
-        className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40 z-0"
-        alt=""
-      />
-      <img
-        src={`${CDN_ASSET_URL}/garis-kanan.png`}
-        className="absolute bottom-0 left-0 pt-[90px] h-full w-auto opacity-40 rotate-180 z-0"
-        alt=""
-      />
       <Header />
       <div className="bg-white shadow-md rounded-[30px] mx-4 mt-8 pb-4 relative">
         <div className="grid grid-cols-3 items-center py-2 px-8 gap-4">

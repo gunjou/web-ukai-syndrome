@@ -4,7 +4,6 @@ import {
   FaUsers,
   FaChalkboardTeacher,
   FaLayerGroup,
-  FaClipboardList,
   FaFileAlt,
   FaBook,
   FaUserTie,
@@ -14,7 +13,7 @@ import { IoCreateSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import Api, { CDN_ASSET_URL } from "../../utils/Api";
+import { CDN_ASSET_URL } from "../../utils/Api";
 import ProfileDropdown from "./components/ProfileDropdown";
 
 const HomeAdmin = () => {
@@ -187,18 +186,6 @@ const HomeAdmin = () => {
 
   return (
     <div className="min-h-screen w-auto bg-gradient-to-r from-[#a11d1d] to-[#531d1d] flex flex-col items-center relative">
-      <img
-        src={`${CDN_ASSET_URL}/maps.png`}
-        alt=""
-        className="absolute top-0 right-0 pt-[90px] w-full h-full object-cover opacity-10"
-      />
-
-      <img
-        src={`${CDN_ASSET_URL}/garis-kanan.png`}
-        className="absolute top-0 right-0 pt-[90px] h-full w-auto opacity-40"
-        alt=""
-      />
-
       {/* Header */}
       <div className="w-full flex items-center px-6 py-4 shadow-lg bg-white rounded-b-[40px] relative">
         {/* Logo kiri */}
@@ -268,13 +255,6 @@ const HomeAdmin = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Image */}
-      <img
-        src={`${CDN_ASSET_URL}/dokter.png`}
-        alt="welcome"
-        className="lg:max-h-[50%] max-h-[35%] object-contain absolute bottom-0 left-0"
-      />
     </div>
   );
 };
