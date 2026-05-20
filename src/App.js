@@ -7,6 +7,8 @@ import "leaflet/dist/leaflet.css";
 import useAntiInspect from "./utils/useAntiInspect";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import RedirectByRole from "./utils/RedirectByRole";
+import PrivateMentorshipLayout from "./pages/mentor/PrivateMentorshipLayout";
+import PrivateMateri from "./pages/mentor/PrivateMateri";
 
 // LAZY LOAD (IMPORTANT)
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -190,6 +192,13 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/mentor-dashboard/private"
+            element={<PrivateMentorshipLayout />}
+          >
+            <Route index element={<PrivateMateri />} />
+          </Route>
 
           {/* ================= FALLBACK ================= */}
           <Route path="*" element={<RedirectByRole />} />

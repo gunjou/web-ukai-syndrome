@@ -32,6 +32,7 @@ const MenuBar = ({ onToggleSidebar }) => {
   const initials = userName
     .split(" ")
     .map((n) => n[0])
+    .slice(0, 2)
     .join("")
     .toUpperCase();
 
@@ -89,18 +90,26 @@ const MenuBar = ({ onToggleSidebar }) => {
     localStorage.setItem("kelas", kelas.id_paketkelas);
     localStorage.setItem(
       "namaKelas",
-      JSON.stringify({ namaKelas: kelas.nama_kelas })
+      JSON.stringify({ namaKelas: kelas.nama_kelas }),
     );
     setShowListKelasModal(false);
     window.location.href = "/mentor-dashboard/materi";
   };
 
   const handleLogout = async () => {
+    const confirmed = window.confirm("Yakin ingin logout?");
+
+    if (!confirmed) return;
+
     try {
       await Api.post("/auth/logout");
-    } catch {}
-    localStorage.clear();
-    navigate("/login");
+    } catch (error) {
+      console.error("Gagal logout dari server:", error);
+    } finally {
+      localStorage.clear();
+
+      navigate("/login");
+    }
   };
 
   /* =======================

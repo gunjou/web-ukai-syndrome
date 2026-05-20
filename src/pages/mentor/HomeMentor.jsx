@@ -1,24 +1,28 @@
-import React, { useEffect, useState, useRef } from "react";
+// src/pages/mentor/HomeMentor.jsx
+
+import React, { useEffect, useState } from "react";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Api, { CDN_ASSET_URL } from "../../utils/Api";
 import ModalProfile from "../../components/mentor/modal/ModalProfile";
 import LoadingOverlay from "../../utils/LoadingOverlay";
+import { FiChevronDown, FiSearch } from "react-icons/fi";
 
 const HomeMentor = () => {
   const [kelasList, setKelasList] = useState([]);
+  const [search, setSearch] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState("all");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const menuRef = useRef(null);
-  const [isWaliKelas, setIsWaliKelas] = useState(false);
+  const [activeTab, setActiveTab] = useState("semua");
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userName = storedUser?.nama || "User";
 
   const initials = userName
     .split(" ")
+    .slice(0, 2)
     .map((n) => n[0])
     .join("")
     .toUpperCase();
@@ -36,17 +40,24 @@ const HomeMentor = () => {
 
   const avatarColor = stringToColor(userName);
 
-  // ambil kelas yang diampu mentor
+  // ambil kelas mentor
   useEffect(() => {
     const fetchKelas = async () => {
       try {
         setLoading(true);
-        const endpoint = isWaliKelas
-          ? "/paket-kelas/wali-kelas"
-          : "/paket-kelas/mentor";
+
+        let endpoint = "/paket-kelas/mentor";
+
+        if (activeTab === "wali") {
+          endpoint = "/paket-kelas/wali-kelas";
+        } else if (activeTab === "private") {
+          endpoint = "/kelas-private/mentor";
+        }
 
         const response = await Api.get(endpoint);
+
         setKelasList(response.data.data || []);
+
         console.log("Data kelas:", response.data.data);
       } catch (error) {
         console.error("Gagal mengambil kelas:", error);
@@ -56,21 +67,78 @@ const HomeMentor = () => {
     };
 
     fetchKelas();
-  }, [isWaliKelas]);
+  }, [activeTab]);
+
+  /* =========================
+    UNIQUE BATCH
+  ========================= */
+  const batchOptions = [
+    "all",
+    ...new Set(kelasList.map((item) => item.nama_batch).filter(Boolean)),
+  ];
+
+  /* =========================
+    FILTER SEARCH
+    ========================= */
+  const filteredKelas = kelasList.filter((kelas) => {
+    const keyword = search.trim().toLowerCase();
+
+    const namaKelas =
+      activeTab === "private" ? kelas.nama_mentorship : kelas.nama_kelas;
+
+    const subText =
+      activeTab === "private" ? kelas.nama_peserta : kelas.nama_batch;
+
+    /* SEARCH MATCH */
+    const matchesSearch =
+      !keyword ||
+      namaKelas?.toLowerCase().includes(keyword) ||
+      subText?.toLowerCase().includes(keyword);
+
+    /* BATCH MATCH */
+    const matchesBatch =
+      selectedBatch === "all" || kelas.nama_batch === selectedBatch;
+
+    return matchesSearch && matchesBatch;
+  });
 
   const handleKelasClick = (kelas) => {
-    // arahkan ke halaman materi dengan membawa id_paketkelas
-    // navigate(`/mentor-dashboard/materi?kelas=${kelas.nama_kelas}`);
-    localStorage.setItem("kelas", kelas.id_paketkelas); // simpan ke localStorage
-    localStorage.setItem(
-      "namaKelas",
-      JSON.stringify({ namaKelas: kelas.nama_kelas }),
-    );
+    const isPrivate = activeTab === "private";
+
+    const kelasId = isPrivate ? kelas.id_mentorship : kelas.id_paketkelas;
+
+    const namaKelas = isPrivate ? kelas.nama_mentorship : kelas.nama_kelas;
+
+    localStorage.setItem("kelas", kelasId);
+
+    localStorage.setItem("namaKelas", JSON.stringify({ namaKelas }));
+
+    // PRIVATE CLASS
+    if (isPrivate) {
+      localStorage.setItem("selectedPrivateClass", JSON.stringify(kelas));
+
+      navigate("/mentor-dashboard/private");
+      return;
+    }
+
+    // REGULAR CLASS
     navigate("/mentor-dashboard/materi");
   };
 
-  const onToggleWaliKelas = () => {
-    setIsWaliKelas((prev) => !prev); // toggle true/false
+  const handleLogout = async () => {
+    const confirmed = window.confirm("Yakin ingin logout?");
+
+    if (!confirmed) return;
+
+    try {
+      await Api.post("/auth/logout");
+    } catch (error) {
+      console.error("Gagal logout dari server:", error);
+    } finally {
+      localStorage.clear();
+
+      navigate("/login");
+    }
   };
 
   return (
@@ -96,26 +164,55 @@ const HomeMentor = () => {
           </h1>
 
           <div className="flex items-center space-x-4">
-            {/* Toggle Wali Kelas */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">
-                Wali Kelas
-              </span>
+            {/* Tabs */}
+            <div className="flex items-center bg-gray-100 rounded-full p-1 shadow-inner">
               <button
-                onClick={onToggleWaliKelas}
-                className={`w-12 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
-                  isWaliKelas ? "bg-green-500" : "bg-gray-300"
+                onClick={() => {
+                  setActiveTab("semua");
+                  setSearch("");
+                  setSelectedBatch("all");
+                }}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activeTab === "semua"
+                    ? "bg-yellow-500 text-white shadow"
+                    : "text-gray-600 hover:text-black"
                 }`}
               >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
-                    isWaliKelas ? "translate-x-6" : "translate-x-0"
-                  }`}
-                ></div>
+                Semua
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab("wali");
+                  setSearch("");
+                  setSelectedBatch("all");
+                }}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activeTab === "wali"
+                    ? "bg-green-500 text-white shadow"
+                    : "text-gray-600 hover:text-black"
+                }`}
+              >
+                Wali Kelas
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab("private");
+                  setSearch("");
+                  setSelectedBatch("all");
+                }}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activeTab === "private"
+                    ? "bg-blue-500 text-white shadow"
+                    : "text-gray-600 hover:text-black"
+                }`}
+              >
+                Private
               </button>
             </div>
             {/* Kanan: Profile */}
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowProfile(true)}
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full hover:bg-gray-300 transition"
@@ -130,6 +227,12 @@ const HomeMentor = () => {
                 avatarColor={avatarColor}
                 initials={initials}
               />
+              <button
+                onClick={handleLogout}
+                className="py-1 px-4 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center rounded-full"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -145,44 +248,168 @@ const HomeMentor = () => {
               Pilih kelas yang Anda ampu untuk masuk ke materi
             </div>
 
+            {/* SEARCH & FILTER */}
+            <div className="w-full flex flex-col sm:flex-row gap-3 justify-end mb-5">
+              {/* FILTER BATCH */}
+              {activeTab !== "private" && (
+                <div className="relative min-w-[180px]">
+                  {/* ICON */}
+                  <FiChevronDown
+                    className="
+      absolute
+      right-4
+      top-1/2
+      -translate-y-1/2
+        text-gray-500
+        z-10
+        pointer-events-none
+    "
+                    size={18}
+                  />
+
+                  <select
+                    value={selectedBatch}
+                    onChange={(e) => setSelectedBatch(e.target.value)}
+                    className="
+      appearance-none
+      w-full
+      rounded-2xl
+      bg-white/95
+      backdrop-blur-sm
+      border
+      border-white/20
+      px-4
+      pr-10
+      py-3
+      text-sm
+      text-gray-800
+      outline-none
+      focus:ring-2
+      focus:ring-yellow-400
+      shadow-lg
+      cursor-pointer
+    "
+                  >
+                    <option value="all">Semua Batch</option>
+
+                    {batchOptions
+                      .filter((batch) => batch !== "all")
+                      .map((batch) => (
+                        <option key={batch} value={batch}>
+                          {batch}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              {/* SEARCH */}
+              <div className="relative w-full max-w-md">
+                <FiSearch
+                  className="
+        absolute
+        left-3
+        top-1/2
+        -translate-y-1/2
+        text-gray-500
+        z-10
+        pointer-events-none
+      "
+                  size={18}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Cari nama kelas..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="
+        w-full
+        rounded-2xl
+        bg-white/95
+        backdrop-blur-sm
+        border
+        border-white/20
+        pl-10
+        pr-4
+        py-3
+        text-sm
+        text-gray-800
+        placeholder:text-gray-400
+        outline-none
+        focus:ring-2
+        focus:ring-yellow-400
+        shadow-lg
+      "
+                />
+              </div>
+            </div>
+
             <div className="w-full max-h-[60vh] overflow-y-auto py-4">
               {loading ? (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                   <div className="w-16 h-16 border-4 border-yellow-500 border-dashed rounded-full animate-spin"></div>
                 </div>
-              ) : kelasList.length === 0 ? (
+              ) : filteredKelas.length === 0 ? (
                 <div className="text-white">Anda belum memiliki kelas.</div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-10 py-4 sticky z-10">
-                  {kelasList.map((kelas, idx) => (
-                    <div key={idx} className="relative">
-                      <div
-                        onClick={() => handleKelasClick(kelas)}
-                        className="flex w-full h-14 pr-8 rounded-lg overflow-hidden shadow-md bg-[#f9f9f9] hover:brightness-95 transition cursor-pointer"
-                      >
-                        {/* Left Icon */}
-                        <div className="relative lg:w-[40%] md:w-[40%] bg-yellow-500 flex items-center justify-center">
-                          <div className="bg-white rounded-full p-3 mx-1.5 relative">
-                            <FaChalkboardTeacher className="text-yellow-500 text-sm" />
-                            {/* Badge Notifikasi */}
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                              5
-                            </span>
-                          </div>
-                        </div>
+                <div className="flex flex-col gap-2 py-2">
+                  {filteredKelas.map((kelas, idx) => {
+                    const namaKelas =
+                      activeTab === "private"
+                        ? kelas.nama_mentorship
+                        : kelas.nama_kelas;
 
-                        {/* Right Text */}
-                        <div className="lg:w-[80%] flex flex-col justify-center pl-2 pr-2">
-                          <div className="text-xs sm:text-sm text-left font-bold text-[#1f1f1f] capitalize">
-                            {kelas.nama_kelas}
+                    const subText =
+                      activeTab === "private"
+                        ? kelas.nama_peserta
+                        : kelas.nama_batch;
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleKelasClick(kelas)}
+                        className="w-full bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100 px-3 py-2"
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Icon */}
+                          <div
+                            className={`min-w-[38px] h-[38px] rounded-lg flex items-center justify-center text-white text-sm ${
+                              activeTab === "private"
+                                ? "bg-blue-500"
+                                : activeTab === "wali"
+                                  ? "bg-green-500"
+                                  : "bg-yellow-500"
+                            }`}
+                          >
+                            <FaChalkboardTeacher />
                           </div>
-                          <div className="text-[10px] text-left text-gray-600">
-                            {kelas.nama_batch}
+
+                          {/* Text */}
+                          <div className="flex-1 min-w-0 text-left">
+                            <h2 className="text-sm font-semibold text-gray-800 truncate">
+                              {namaKelas}
+                            </h2>
+
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-[11px] text-gray-500 truncate">
+                                {subText}
+                              </p>
+
+                              {activeTab === "private" && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 font-medium">
+                                  Private
+                                </span>
+                              )}
+                            </div>
                           </div>
+
+                          {/* Arrow */}
+                          <div className="text-gray-400 text-sm">→</div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
