@@ -10,6 +10,7 @@ import {
   Trash2,
   PlayCircle,
   FileText,
+  Eye,
 } from "lucide-react";
 import Api from "../../utils/Api";
 import ModalEditPrivateMateri from "./modal/ModalEditPrivateMateri";
@@ -279,14 +280,39 @@ const PrivateMateri = () => {
                     {/* ACTION */}
                     <div
                       className="
-            flex
-            items-center
-            gap-1
-            opacity-0
-            group-hover:opacity-100
-            transition
-          "
+                        flex
+                        items-center
+                        gap-1
+                        opacity-0
+                        group-hover:opacity-100
+                        transition
+                      "
                     >
+                      {/* PREVIEW BUTTON */}
+                      <button
+                        onClick={() => {
+                          window.open(materi.url_file, "_blank");
+                        }}
+                        className="
+                          w-8
+                          h-8
+                          rounded-lg
+                          flex
+                          items-center
+                          justify-center
+                          hover:bg-blue-100
+                          dark:hover:bg-blue-900/20
+                          transition
+                        "
+                        title="Preview Materi"
+                      >
+                        {/* Menggunakan ikon Eye dari package icon Anda (Lucide / AiOutlineEye) */}
+                        <Eye
+                          size={15}
+                          className="text-blue-600 dark:text-blue-400"
+                        />
+                      </button>
+
                       {/* EDIT */}
                       <button
                         onClick={() => {
@@ -294,16 +320,17 @@ const PrivateMateri = () => {
                           setShowEditModal(true);
                         }}
                         className="
-              w-8
-              h-8
-              rounded-lg
-              flex
-              items-center
-              justify-center
-              hover:bg-gray-200
-              dark:hover:bg-slate-700
-              transition
-            "
+                          w-8
+                          h-8
+                          rounded-lg
+                          flex
+                          items-center
+                          justify-center
+                          hover:bg-gray-200
+                          dark:hover:bg-slate-700
+                          transition
+                        "
+                        title="Edit Materi"
                       >
                         <Pencil
                           size={15}
@@ -315,16 +342,17 @@ const PrivateMateri = () => {
                       <button
                         onClick={() => handleDeleteMateri(materi)}
                         className="
-              w-8
-              h-8
-              rounded-lg
-              flex
-              items-center
-              justify-center
-              hover:bg-red-100
-              dark:hover:bg-red-900/20
-              transition
-            "
+                          w-8
+                          h-8
+                          rounded-lg
+                          flex
+                          items-center
+                          justify-center
+                          hover:bg-red-100
+                          dark:hover:bg-red-900/20
+                          transition
+                        "
+                        title="Hapus Materi"
                       >
                         <Trash2 size={15} className="text-red-500" />
                       </button>
