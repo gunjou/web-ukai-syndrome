@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { AiOutlineFilePdf } from "react-icons/ai";
 import { FiUsers, FiRepeat, FiTrendingUp, FiAward } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 
 export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [listTryout, setListTryout] = useState([]);
@@ -16,6 +17,9 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [limit, setLimit] = useState("");
   const [firstAttemptOnly, setFirstAttemptOnly] = useState(false);
   const [selectedClass, setSelectedClass] = useState("");
+  const [searchName, setSearchName] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     if (open) fetchTryoutList();
@@ -58,6 +62,8 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
       setLimit("");
       setFirstAttemptOnly(false);
       setSelectedClass("");
+      setSearchName("");
+      setCurrentPage(1);
       fetchLeaderboard(selected);
     }
   }, [selected]);
@@ -102,8 +108,77 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     setLeaderboard(result);
   }, [limit, firstAttemptOnly, selectedClass, rawLeaderboard]);
 
+  // Reset ke halaman 1 setiap kali filter/search berubah supaya tidak
+  // terjebak di halaman kosong
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [limit, firstAttemptOnly, selectedClass, searchName, pageSize]);
+
+  // Hasil akhir setelah search nama (tidak mengubah rank, hanya menyaring tampilan)
+  const searchedLeaderboard = useMemo(() => {
+    if (!searchName.trim()) return leaderboard;
+    const q = searchName.trim().toLowerCase();
+    return leaderboard.filter((d) =>
+      String(d.name || "")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [leaderboard, searchName]);
+
+  // Ringkasan dihitung ulang mengikuti filter kelas & percobaan pertama,
+  // supaya tidak lagi menampilkan angka dari SEMUA kelas ketika sedang difilter.
+  // Limit rank & search sengaja tidak dilibatkan di sini karena keduanya bersifat
+  // "tampilan" (top-N / cari nama), bukan definisi ulang populasi datanya.
+  const displaySummary = useMemo(() => {
+    const isFiltered = Boolean(selectedClass) || firstAttemptOnly;
+
+    if (!isFiltered) return summary;
+
+    let base = rawLeaderboard;
+    if (firstAttemptOnly) base = base.filter((d) => d.attempt === 1);
+    if (selectedClass) base = base.filter((d) => d.class === selectedClass);
+
+    if (base.length === 0) {
+      return {
+        total_participants: 0,
+        total_attempt: 0,
+        average_score: 0,
+        highest_score: 0,
+      };
+    }
+
+    const scores = base.map((d) => Number(d.score) || 0);
+    const uniqueParticipants = new Set(base.map((d) => d.user_id ?? d.name))
+      .size;
+
+    return {
+      total_participants: uniqueParticipants,
+      total_attempt: base.length,
+      average_score: scores.reduce((a, b) => a + b, 0) / scores.length,
+      highest_score: Math.max(...scores),
+    };
+  }, [rawLeaderboard, selectedClass, firstAttemptOnly, summary]);
+
+  // Pagination dihitung dari data yang sudah lolos search
+  const totalPages = Math.max(
+    1,
+    Math.ceil(searchedLeaderboard.length / pageSize)
+  );
+
+  const paginatedLeaderboard = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return searchedLeaderboard.slice(start, start + pageSize);
+  }, [searchedLeaderboard, currentPage, pageSize]);
+
+  const goToPage = (page) => {
+    const clamped = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(clamped);
+  };
+
   const downloadPDF = () => {
-    if (leaderboard.length === 0) return;
+    // PDF mengambil seluruh data hasil filter (termasuk search), bukan hanya
+    // yang tampil di halaman aktif.
+    if (searchedLeaderboard.length === 0) return;
 
     const doc = new jsPDF();
     const tryoutName = listTryout.find((t) => t.id_tryout == selected)?.judul;
@@ -114,14 +189,14 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     doc.setFontSize(11);
     doc.text(`Tryout: ${tryoutName || "-"}`, 14, 22);
 
-    if (summary) {
+    if (displaySummary) {
       doc.setFontSize(10);
       doc.text(
-        `Peserta: ${summary.total_participants} | Percobaan: ${
-          summary.total_attempt
-        } | Rata-rata: ${Number(summary.average_score).toFixed(
+        `Peserta: ${displaySummary.total_participants} | Percobaan: ${
+          displaySummary.total_attempt
+        } | Rata-rata: ${Number(displaySummary.average_score).toFixed(
           2
-        )} | Tertinggi: ${summary.highest_score}`,
+        )} | Tertinggi: ${displaySummary.highest_score}`,
         14,
         28
       );
@@ -135,7 +210,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
       "Percobaan",
       "Durasi (menit)",
     ];
-    const tableRows = leaderboard.map((d) => [
+    const tableRows = searchedLeaderboard.map((d) => [
       `#${d.rank}`,
       d.name,
       d.class,
@@ -147,7 +222,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: summary ? 33 : 28,
+      startY: displaySummary ? 33 : 28,
       theme: "grid",
     });
 
@@ -165,6 +240,10 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
 
     if (firstAttemptOnly) {
       parts.push("PercobaanPertama");
+    }
+
+    if (searchName.trim()) {
+      parts.push(`Cari-${searchName.trim()}`);
     }
 
     const fileName = parts
@@ -190,24 +269,24 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
             exit={{ y: 60, opacity: 0 }}
             className="bg-white rounded-3xl shadow-2xl w-[92%] max-w-6xl max-h-[92vh] p-7 relative overflow-hidden flex flex-col border border-gray-200"
           >
-            <div className="flex justify-between items-center border-b pb-3">
+            <div className="shrink-0 relative flex justify-between items-center border-b pb-3">
               <h2 className="text-xl font-bold">Leaderboard Tryout</h2>
               <button
                 onClick={() => setOpen(false)}
-                className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+                className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
               >
                 ✕
               </button>
             </div>
 
-            {/* Baris filter: Pilih Tryout, Kelas, Batasi Rank, Checkbox, Download PDF */}
-            <div className="mt-4 flex flex-wrap items-end gap-4">
-              <div className="flex-1 min-w-[220px]">
-                <label className="text-sm font-semibold text-gray-700">
+            {/* Baris filter: Pilih Tryout, Kelas, Batasi Rank, Checkbox, Cari, Download PDF — dibuat 1 baris */}
+            <div className="shrink-0 mt-4 flex flex-nowrap items-end gap-2 overflow-x-auto pb-1">
+              <div className="min-w-[160px] flex-1">
+                <label className="text-xs font-semibold text-gray-700">
                   Pilih Tryout
                 </label>
                 <select
-                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  className="w-full border rounded-lg px-2 py-1.5 mt-1 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
                   value={selected}
                   onChange={(e) => setSelected(e.target.value)}
                 >
@@ -220,17 +299,17 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                 </select>
               </div>
 
-              <div className="w-48">
-                <label className="text-sm font-semibold text-gray-700">
+              <div className="w-28 shrink-0">
+                <label className="text-xs font-semibold text-gray-700">
                   Kelas
                 </label>
                 <select
-                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm disabled:opacity-50"
+                  className="w-full border rounded-lg px-2 py-1.5 mt-1 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm disabled:opacity-50"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
                   disabled={classOptions.length === 0}
                 >
-                  <option value="">— Semua Kelas —</option>
+                  <option value="">Semua</option>
                   {classOptions.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -239,42 +318,61 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                 </select>
               </div>
 
-              <div className="w-40">
-                <label className="text-sm font-semibold text-gray-700">
-                  Batasi Rank
+              <div className="w-20 shrink-0">
+                <label className="text-xs font-semibold text-gray-700 whitespace-nowrap">
+                  Rank
                 </label>
                 <input
                   type="number"
-                  placeholder="Contoh: 5, 10"
-                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  placeholder="Top N"
+                  className="w-full border rounded-lg px-2 py-1.5 mt-1 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
                   value={limit}
                   onChange={(e) => setLimit(e.target.value)}
                 />
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 whitespace-nowrap pb-3">
+              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-gray-700 whitespace-nowrap pb-2 shrink-0">
                 <input
                   type="checkbox"
                   checked={firstAttemptOnly}
                   onChange={() => setFirstAttemptOnly((v) => !v)}
                 />
-                Percobaan Pertama Saja
+                Percobaan 1
               </label>
 
-              {leaderboard.length > 0 && (
+              <div className="w-40 shrink-0">
+                <label className="text-xs font-semibold text-gray-700">
+                  Cari Nama
+                </label>
+                <div className="relative mt-1">
+                  <FiSearch
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={14}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nama peserta"
+                    className="w-full border rounded-lg pl-7 pr-2 py-1.5 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {searchedLeaderboard.length > 0 && (
                 <button
                   onClick={downloadPDF}
-                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-5 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-semibold active:scale-95 whitespace-nowrap"
+                  className="flex items-center gap-1.5 shrink-0 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3 py-1.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-semibold active:scale-95 whitespace-nowrap"
                 >
-                  <AiOutlineFilePdf size={20} className="animate-pulse" />
-                  Download PDF
+                  <AiOutlineFilePdf size={16} />
+                  PDF
                 </button>
               )}
             </div>
 
             {/* Ringkasan */}
-            {summary && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {displaySummary && (
+              <div className="shrink-0 mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-2xl p-4 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
                   <div className="flex items-center justify-center gap-1.5 text-blue-500 mb-1">
                     <FiUsers size={14} />
@@ -283,7 +381,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-blue-700">
-                    {summary.total_participants}
+                    {displaySummary.total_participants}
                   </p>
                 </div>
 
@@ -295,7 +393,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-purple-700">
-                    {summary.total_attempt}
+                    {displaySummary.total_attempt}
                   </p>
                 </div>
 
@@ -307,7 +405,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-green-700">
-                    {Number(summary.average_score).toFixed(2)}
+                    {Number(displaySummary.average_score).toFixed(2)}
                   </p>
                 </div>
 
@@ -319,13 +417,13 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-yellow-700">
-                    {summary.highest_score}
+                    {displaySummary.highest_score}
                   </p>
                 </div>
               </div>
             )}
 
-            <div className="mt-5 overflow-y-auto max-h-[60vh] pr-1">
+            <div className="flex-1 min-h-0 mt-5 overflow-y-auto pr-1">
               {!selected ? (
                 <p className="text-gray-500 text-center py-10">
                   Silakan pilih tryout terlebih dahulu.
@@ -335,9 +433,11 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                   <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
                   <p className="text-gray-600 mt-2">Memuat leaderboard...</p>
                 </div>
-              ) : leaderboard.length === 0 ? (
+              ) : searchedLeaderboard.length === 0 ? (
                 <p className="text-gray-500 text-center py-10">
-                  Leaderboard masih kosong.
+                  {searchName.trim()
+                    ? "Tidak ada peserta dengan nama tersebut."
+                    : "Leaderboard masih kosong."}
                 </p>
               ) : (
                 <table className="min-w-full mt-2 border">
@@ -352,9 +452,9 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {leaderboard.map((d) => (
+                    {paginatedLeaderboard.map((d) => (
                       <tr
-                        key={d.user_id}
+                        key={`${d.user_id}-${d.attempt}`}
                         className="odd:bg-white even:bg-gray-50"
                       >
                         <td className="border p-2 text-center font-bold text-blue-700">
@@ -373,6 +473,63 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                 </table>
               )}
             </div>
+
+            {/* Pagination */}
+            {selected && !loading && searchedLeaderboard.length > 0 && (
+              <div className="shrink-0 mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>
+                    Menampilkan{" "}
+                    <span className="font-semibold text-gray-800">
+                      {(currentPage - 1) * pageSize + 1}
+                      {"–"}
+                      {Math.min(
+                        currentPage * pageSize,
+                        searchedLeaderboard.length
+                      )}
+                    </span>{" "}
+                    dari{" "}
+                    <span className="font-semibold text-gray-800">
+                      {searchedLeaderboard.length}
+                    </span>{" "}
+                    peserta
+                  </span>
+                  <select
+                    className="border rounded-lg px-2 py-1 bg-gray-50 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                  >
+                    {[10, 25, 50, 100].map((size) => (
+                      <option key={size} value={size}>
+                        {size} / halaman
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    <FiChevronLeft size={16} />
+                  </button>
+
+                  <span className="px-3 text-sm font-medium text-gray-700">
+                    Halaman {currentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    <FiChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}
