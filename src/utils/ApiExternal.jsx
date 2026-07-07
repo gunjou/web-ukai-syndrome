@@ -8,7 +8,6 @@ const ApiExternal = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Sisipkan token yang sama seperti di Api.js
 ApiExternal.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Api from "../../../../utils/Api";
 import ApiExternal from "../../../../utils/ApiExternal";
@@ -15,6 +15,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState("");
   const [firstAttemptOnly, setFirstAttemptOnly] = useState(false);
+  const [selectedClass, setSelectedClass] = useState("");
 
   useEffect(() => {
     if (open) fetchTryoutList();
@@ -52,30 +53,54 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
   };
 
   useEffect(() => {
-    if (selected) fetchLeaderboard(selected);
+    if (selected) {
+      // Reset filter saat ganti tryout supaya tidak membingungkan
+      setLimit("");
+      setFirstAttemptOnly(false);
+      setSelectedClass("");
+      fetchLeaderboard(selected);
+    }
   }, [selected]);
 
-  // Filter limit rank + percobaan pertama dilakukan di frontend
+  // Daftar kelas unik yang tersedia pada tryout yang dipilih
+  const classOptions = useMemo(() => {
+    const classes = rawLeaderboard
+      .map((d) => d.class)
+      .filter((c) => c !== undefined && c !== null && c !== "");
+    return [...new Set(classes)].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+  }, [rawLeaderboard]);
+
+  // Filter limit rank + percobaan pertama + kelas dilakukan di frontend
   useEffect(() => {
     let result = rawLeaderboard;
 
     // Filter percobaan pertama saja (attempt === 1)
     if (firstAttemptOnly) {
-      result = result
-        .filter((d) => d.attempt === 1)
-        // rawLeaderboard sudah terurut berdasarkan skor (rank asli),
-        // jadi urutan relatifnya tetap valid setelah difilter
-        .map((d, idx) => ({ ...d, rank: idx + 1 }));
+      result = result.filter((d) => d.attempt === 1);
     }
 
-    // Filter limit rank
+    // Filter berdasarkan kelas
+    if (selectedClass) {
+      result = result.filter((d) => d.class === selectedClass);
+    }
+
+    // Susun ulang rank mulai dari 1 setiap kali salah satu filter
+    // (percobaan pertama / kelas) aktif, karena urutan relatifnya
+    // (berdasarkan skor dari rawLeaderboard) tetap valid setelah difilter.
+    if (firstAttemptOnly || selectedClass) {
+      result = result.map((d, idx) => ({ ...d, rank: idx + 1 }));
+    }
+
+    // Filter limit rank (memakai rank yang sudah disusun ulang di atas)
     const n = parseInt(limit, 10);
     if (limit && !isNaN(n) && n > 0) {
       result = result.filter((d) => d.rank <= n);
     }
 
     setLeaderboard(result);
-  }, [limit, firstAttemptOnly, rawLeaderboard]);
+  }, [limit, firstAttemptOnly, selectedClass, rawLeaderboard]);
 
   const downloadPDF = () => {
     if (leaderboard.length === 0) return;
@@ -129,6 +154,10 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
     // Susun nama file sesuai filter yang aktif
     const parts = [tryoutName || "Tryout"];
 
+    if (selectedClass) {
+      parts.push(`Kelas${selectedClass}`);
+    }
+
     const n = parseInt(limit, 10);
     if (limit && !isNaN(n) && n > 0) {
       parts.push(`Top${n}`);
@@ -171,7 +200,7 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
               </button>
             </div>
 
-            {/* Baris filter: Pilih Tryout, Batasi Rank, Checkbox, Download PDF */}
+            {/* Baris filter: Pilih Tryout, Kelas, Batasi Rank, Checkbox, Download PDF */}
             <div className="mt-4 flex flex-wrap items-end gap-4">
               <div className="flex-1 min-w-[220px]">
                 <label className="text-sm font-semibold text-gray-700">
@@ -186,6 +215,25 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                   {listTryout.map((t) => (
                     <option key={t.id_tryout} value={t.id_tryout}>
                       {t.judul}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="w-48">
+                <label className="text-sm font-semibold text-gray-700">
+                  Kelas
+                </label>
+                <select
+                  className="w-full border rounded-xl px-3 py-3 mt-2 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm disabled:opacity-50"
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  disabled={classOptions.length === 0}
+                >
+                  <option value="">— Semua Kelas —</option>
+                  {classOptions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
                     </option>
                   ))}
                 </select>
