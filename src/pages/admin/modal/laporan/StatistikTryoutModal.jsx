@@ -30,6 +30,11 @@ export default function StatistikTryoutModal({ open, setOpen }) {
   const [loading, setLoading] = useState(false);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
 
+  // ==== STATE: DETAIL PILIHAN JAWABAN PER SOAL ====
+  const [choiceDetail, setChoiceDetail] = useState(null);
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
+  const [loadingChoiceDetail, setLoadingChoiceDetail] = useState(false);
+
   useEffect(() => {
     if (open) fetchTryoutList();
   }, [open]);
@@ -109,6 +114,23 @@ export default function StatistikTryoutModal({ open, setOpen }) {
       setQuestionAnalysis([]);
     } finally {
       setLoadingQuestion(false);
+    }
+  };
+
+  // ==== FETCH: DETAIL PILIHAN JAWABAN PER SOAL ====
+  const fetchQuestionChoices = async (idSoal) => {
+    try {
+      setChoiceDetail(null);
+      setShowChoiceModal(true);
+      setLoadingChoiceDetail(true);
+
+      const res = await ApiExternal.get(`/tryout/question/${idSoal}/choices`);
+      setChoiceDetail(res.data?.data || null);
+    } catch (err) {
+      console.error("Gagal fetch detail pilihan jawaban", err);
+      setChoiceDetail(null);
+    } finally {
+      setLoadingChoiceDetail(false);
     }
   };
 
@@ -485,6 +507,9 @@ export default function StatistikTryoutModal({ open, setOpen }) {
                 </p>
               ) : (
                 <>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Klik salah satu baris untuk melihat detail pilihan jawaban.
+                  </p>
                   <div className="overflow-x-auto">
                     <table className="min-w-full border text-sm">
                       <thead className="bg-gray-100 sticky top-0 z-10">
@@ -510,7 +535,9 @@ export default function StatistikTryoutModal({ open, setOpen }) {
                           return (
                             <tr
                               key={q.id}
-                              className="odd:bg-white even:bg-gray-50"
+                              onClick={() => fetchQuestionChoices(q.id)}
+                              title="Klik untuk detail pilihan jawaban"
+                              className="odd:bg-white even:bg-gray-50 cursor-pointer hover:bg-blue-50 transition-colors"
                             >
                               <td className="border p-2 text-center font-semibold">
                                 #{q.number}
@@ -618,6 +645,103 @@ export default function StatistikTryoutModal({ open, setOpen }) {
           )}
         </div>
       </div>
+
+      {/* MODAL: DETAIL PILIHAN JAWABAN PER SOAL */}
+      {showChoiceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-[92%] max-w-lg p-6 relative border border-gray-200">
+            <button
+              onClick={() => setShowChoiceModal(false)}
+              className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-bold mb-4 text-center text-gray-800">
+              Detail Pilihan Jawaban
+            </h3>
+
+            {loadingChoiceDetail && (
+              <div className="flex flex-col items-center py-10">
+                <div className="w-8 h-8 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+                <p className="text-gray-600 mt-2 text-sm">Memuat detail...</p>
+              </div>
+            )}
+
+            {!loadingChoiceDetail && !choiceDetail && (
+              <p className="text-gray-500 text-center py-8 text-sm">
+                Data tidak ditemukan.
+              </p>
+            )}
+
+            {!loadingChoiceDetail && choiceDetail && (
+              <div className="space-y-5">
+                {/* SUMMARY */}
+                <div className="grid grid-cols-2 gap-3 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border">
+                  <p>
+                    <b>No. Soal:</b> #{choiceDetail.number}
+                  </p>
+                  <p>
+                    <b>Kunci Jawaban:</b>{" "}
+                    <span className="text-green-700 font-bold">
+                      {choiceDetail.correct_answer}
+                    </span>
+                  </p>
+                  <p>
+                    <b>Total Peserta:</b> {choiceDetail.total_participant}
+                  </p>
+                  <p>
+                    <b>Total Menjawab:</b> {choiceDetail.total_answer}
+                  </p>
+                  <p>
+                    <b>Kosong:</b> {choiceDetail.blank}
+                  </p>
+                  <p>
+                    <b>Ragu-ragu:</b> {choiceDetail.doubt}
+                  </p>
+                </div>
+
+                {/* BAR CHART DISTRIBUSI PILIHAN */}
+                <div className="w-full h-56">
+                  <ResponsiveContainer>
+                    <BarChart
+                      data={["a", "b", "c", "d", "e"].map((opt) => ({
+                        option: opt.toUpperCase(),
+                        count: choiceDetail[opt] ?? 0,
+                      }))}
+                      barSize={40}
+                    >
+                      <XAxis dataKey="option" tick={{ fontSize: 13 }} />
+                      <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar
+                        dataKey="count"
+                        name="Jumlah Pemilih"
+                        radius={[6, 6, 0, 0]}
+                      >
+                        {["a", "b", "c", "d", "e"].map((opt, index) => (
+                          <Cell
+                            key={index}
+                            fill={
+                              opt.toUpperCase() === choiceDetail.correct_answer
+                                ? "#4ade80"
+                                : "#60a5fa"
+                            }
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <p className="text-xs text-gray-500 text-center">
+                  Bar hijau menandakan pilihan jawaban yang benar.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
