@@ -8,6 +8,55 @@ import { AiOutlineFilePdf } from "react-icons/ai";
 import { FiUsers, FiRepeat, FiTrendingUp, FiAward } from "react-icons/fi";
 import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
 
+// ==== KONFIGURASI PEMBEDA VISUAL UNTUK RANK 1, 2, 3 ====
+const RANK_BADGE = {
+  1: {
+    emoji: "🥇",
+    label: "Juara 1",
+    rowClass: "bg-gradient-to-r from-yellow-50 to-amber-50",
+    rankTextClass: "text-amber-600",
+    pillClass: "bg-amber-100 text-amber-700 border border-amber-300",
+  },
+  2: {
+    emoji: "🥈",
+    label: "Juara 2",
+    rowClass: "bg-gradient-to-r from-slate-50 to-gray-100",
+    rankTextClass: "text-slate-500",
+    pillClass: "bg-slate-200 text-slate-700 border border-slate-300",
+  },
+  3: {
+    emoji: "🥉",
+    label: "Juara 3",
+    rowClass: "bg-gradient-to-r from-orange-50 to-orange-100",
+    rankTextClass: "text-orange-600",
+    pillClass: "bg-orange-100 text-orange-700 border border-orange-300",
+  },
+};
+
+function formatDuration(seconds) {
+  const totalSeconds = Number(seconds);
+
+  if (!totalSeconds || totalSeconds <= 0) {
+    return "0 detik";
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours} jam ${minutes} menit` : `${hours} jam`;
+  }
+
+  if (minutes > 0) {
+    return remainingSeconds > 0
+      ? `${minutes} menit ${remainingSeconds} detik`
+      : `${minutes} menit`;
+  }
+
+  return `${remainingSeconds} detik`;
+}
+
 export default function LeaderboardTryoutModal({ open, setOpen }) {
   const [listTryout, setListTryout] = useState([]);
   const [selected, setSelected] = useState("");
@@ -208,15 +257,17 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
       "Kelas",
       "Skor",
       "Percobaan",
-      "Durasi (menit)",
+      "Durasi",
     ];
     const tableRows = searchedLeaderboard.map((d) => [
       `#${d.rank}`,
       d.name,
       d.class,
-      d.score,
+      Number(d.score).toLocaleString("en-US", {
+        maximumFractionDigits: 2,
+      }),
       d.attempt,
-      d.duration,
+      formatDuration(d.duration),
     ]);
 
     autoTable(doc, {
@@ -405,7 +456,12 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-green-700">
-                    {Number(displaySummary.average_score).toFixed(2)}
+                    {Number(displaySummary.average_score).toLocaleString(
+                      "en-US",
+                      {
+                        maximumFractionDigits: 2,
+                      }
+                    )}{" "}
                   </p>
                 </div>
 
@@ -417,7 +473,12 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                     </p>
                   </div>
                   <p className="text-2xl font-extrabold text-yellow-700">
-                    {displaySummary.highest_score}
+                    {Number(displaySummary.highest_score).toLocaleString(
+                      "en-US",
+                      {
+                        maximumFractionDigits: 2,
+                      }
+                    )}
                   </p>
                 </div>
               </div>
@@ -448,27 +509,60 @@ export default function LeaderboardTryoutModal({ open, setOpen }) {
                       <th className="p-2 border text-sm">Kelas</th>
                       <th className="p-2 border text-sm">Skor</th>
                       <th className="p-2 border text-sm">Percobaan</th>
-                      <th className="p-2 border text-sm">Durasi (menit)</th>
+                      <th className="p-2 border text-sm">Durasi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedLeaderboard.map((d) => (
-                      <tr
-                        key={`${d.user_id}-${d.attempt}`}
-                        className="odd:bg-white even:bg-gray-50"
-                      >
-                        <td className="border p-2 text-center font-bold text-blue-700">
-                          #{d.rank}
-                        </td>
-                        <td className="border p-2 capitalize">{d.name}</td>
-                        <td className="border p-2 text-center">{d.class}</td>
-                        <td className="border p-2 text-center text-blue-800 font-bold">
-                          {d.score}
-                        </td>
-                        <td className="border p-2 text-center">{d.attempt}</td>
-                        <td className="border p-2 text-center">{d.duration}</td>
-                      </tr>
-                    ))}
+                    {paginatedLeaderboard.map((d) => {
+                      // ==== PEMBEDA VISUAL RANK 1, 2, 3 ====
+                      const badge = RANK_BADGE[d.rank];
+
+                      return (
+                        <tr
+                          key={`${d.user_id}-${d.attempt}`}
+                          className={
+                            badge
+                              ? `${badge.rowClass} font-semibold`
+                              : "odd:bg-white even:bg-gray-50"
+                          }
+                        >
+                          <td className="border p-2 text-center">
+                            {badge ? (
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-bold ${badge.pillClass}`}
+                                title={badge.label}
+                              >
+                                <span className="text-base leading-none">
+                                  {badge.emoji}
+                                </span>
+                                #{d.rank}
+                              </span>
+                            ) : (
+                              <span className="font-bold text-blue-700">
+                                #{d.rank}
+                              </span>
+                            )}
+                          </td>
+                          <td className="border p-2 capitalize">{d.name}</td>
+                          <td className="border p-2 text-center">{d.class}</td>
+                          <td
+                            className={`border p-2 text-center font-bold ${
+                              badge ? badge.rankTextClass : "text-blue-800"
+                            }`}
+                          >
+                            {Number(d.score).toLocaleString("en-US", {
+                              maximumFractionDigits: 2,
+                            })}
+                          </td>
+                          <td className="border p-2 text-center">
+                            {d.attempt}
+                          </td>
+                          <td className="border p-2 text-center">
+                            {formatDuration(d.duration)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
