@@ -299,7 +299,7 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
                 <option value="">-- Belum Menentukan Jawaban --</option>
 
                 {["A", "B", "C", "D", "E"].map((j) => (
-                  <option key={j} value={j.toLowerCase()}>
+                  <option key={j} value={j.toUpperCase()}>
                     {j}
                   </option>
                 ))}
