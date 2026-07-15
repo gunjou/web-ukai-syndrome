@@ -284,12 +284,30 @@ const TryoutPage = () => {
         </td>
         <td className="px-4 py-3 border text-center">
           <div className="flex justify-center items-center gap-2">
-            <button
-              onClick={() => setSelectedTryoutForQuestions(t)}
-              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-sm"
-            >
-              <AiOutlineEye size={16} />
-            </button>
+            <div className="relative inline-block">
+              <button
+                onClick={() => setSelectedTryoutForQuestions(t)}
+                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-sm"
+              >
+                <AiOutlineEye size={16} />
+              </button>
+
+              {t.has_unanswered && (
+                <div className="absolute -top-2 -right-2 group">
+                  {/* Badge */}
+                  <span className=" min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-md border-2 border-white cursor-help">
+                    {t.unanswered_count}
+                  </span>
+
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible z-50">
+                    ⚠ {t.unanswered_count} soal belum memiliki jawaban benar
+                    {/* Panah tooltip */}
+                    <div className="absolute top-full right-3 w-2 h-2 bg-gray-900 rotate-45 -mt-1" />
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setSelectedTryout(t)}
               className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm"

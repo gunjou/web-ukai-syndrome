@@ -14,10 +14,22 @@ const LihatSoalModal = ({ tryout, onClose }) => {
   const [editData, setEditData] = useState(null);
   const [deleteData, setDeleteData] = useState(null);
 
+  const [meta, setMeta] = useState({
+    unanswered_count: 0,
+    has_unanswered: false,
+  });
+
   const getSoal = async () => {
     try {
       const res = await Api.get(`/soal-tryout/${tryout.id_tryout}`);
+
       setSoal(res.data.data || []);
+      setMeta(
+        res.data.meta || {
+          unanswered_count: 0,
+          has_unanswered: false,
+        },
+      );
     } catch (err) {
       console.error("Gagal memuat soal:", err);
     } finally {
@@ -75,10 +87,23 @@ const LihatSoalModal = ({ tryout, onClose }) => {
             </button>
           </div>
 
-          <p className="text-sm text-gray-500">
-            Total Soal:{" "}
-            <span className="font-semibold text-gray-800">{soal.length}</span>
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-500">
+              Total Soal:
+              <span className="ml-1 font-semibold text-gray-800">
+                {soal.length}
+              </span>
+            </p>
+
+            {meta.has_unanswered && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-1 rounded-full">
+                <span>⚠</span>
+                <span className="text-sm font-semibold">
+                  {meta.unanswered_count} soal belum memiliki jawaban
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* LIST SOAL */}
@@ -98,7 +123,20 @@ const LihatSoalModal = ({ tryout, onClose }) => {
               {soal.map((s, i) => (
                 <div
                   key={s.id_soaltryout}
-                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 relative"
+                  className={`
+  rounded-xl
+  p-5
+  shadow-sm
+  hover:shadow-md
+  transition-all
+  duration-300
+  relative
+  ${
+    s.jawaban_benar == null
+      ? "bg-red-50 border-2 border-red-400"
+      : "bg-white border border-gray-200"
+  }
+`}
                 >
                   {/* EDIT + DELETE */}
                   <div className="absolute top-3 right-3 flex gap-2">
@@ -124,6 +162,11 @@ const LihatSoalModal = ({ tryout, onClose }) => {
                       dangerouslySetInnerHTML={{ __html: s.pertanyaan }}
                     />
                   </div>
+                  {s.jawaban_benar == null && (
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                      ⚠ Belum menentukan jawaban benar
+                    </div>
+                  )}
 
                   {/* PILIHAN */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
