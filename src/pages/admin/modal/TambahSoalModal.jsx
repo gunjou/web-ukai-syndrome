@@ -66,7 +66,7 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
     pilihan_c: "",
     pilihan_d: "",
     pilihan_e: "",
-    jawaban_benar: "A",
+    jawaban_benar: null,
     pembahasan: "",
   });
 
@@ -102,7 +102,10 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
   // Change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "jawaban_benar" && value === "" ? null : value,
+    }));
   };
 
   // Upload gambar untuk pertanyaan
@@ -171,9 +174,12 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
         pilihan_c: formData.pilihan_c,
         pilihan_d: formData.pilihan_d,
         pilihan_e: formData.pilihan_e,
-        jawaban_benar: formData.jawaban_benar,
         pembahasan: formData.pembahasan,
       };
+
+      if (formData.jawaban_benar !== null) {
+        payload.jawaban_benar = formData.jawaban_benar;
+      }
 
       await Api.post("/soal-tryout", payload);
 
@@ -284,12 +290,16 @@ const TambahSoalModal = ({ idTryout, onClose, onSuccess }) => {
               <label className="block text-sm font-medium">Jawaban Benar</label>
               <select
                 name="jawaban_benar"
-                value={formData.jawaban_benar}
+                // Gunakan "" jika formData.jawaban_benar bernilai null agar select memilih opsi default
+                value={formData.jawaban_benar ?? ""}
                 onChange={handleChange}
-                className="w-full border rounded-md px-3 py-1.5"
+                className="w-full border rounded-md px-3 py-1.5 bg-white"
               >
+                {/* Opsi default saat belum ada jawaban yang dipilih */}
+                <option value="">-- Belum Menentukan Jawaban --</option>
+
                 {["A", "B", "C", "D", "E"].map((j) => (
-                  <option key={j} value={j}>
+                  <option key={j} value={j.toLowerCase()}>
                     {j}
                   </option>
                 ))}

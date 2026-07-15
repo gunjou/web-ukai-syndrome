@@ -28,7 +28,7 @@ const EditSoalModal = ({ data, onClose, onSuccess }) => {
     pilihan_c: data.pilihan_c,
     pilihan_d: data.pilihan_d,
     pilihan_e: data.pilihan_e,
-    jawaban_benar: data.jawaban_benar,
+    jawaban_benar: data.jawaban_benar || null,
     pembahasan: data.pembahasan || "",
   });
 
@@ -46,7 +46,13 @@ const EditSoalModal = ({ data, onClose, onSuccess }) => {
 
   /* ================= HANDLERS ================= */
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      // Konversi ke null jika opsi default terpilih
+      [name]: name === "jawaban_benar" && value === "" ? null : value,
+    }));
   };
 
   /* === Upload gambar pertanyaan === */
@@ -105,7 +111,19 @@ const EditSoalModal = ({ data, onClose, onSuccess }) => {
     setLoading(true);
 
     try {
-      await Api.put(`/soal-tryout/${data.id_soaltryout}/edit`, form);
+      // Copy object form
+      const payload = { ...form };
+
+      // Jika user menghapus jawaban benar
+      if (payload.jawaban_benar === null) {
+        delete payload.jawaban_benar;
+        payload.hapus_jawaban_benar = true;
+      }
+
+      console.log("Payload:", payload);
+
+      await Api.put(`/soal-tryout/${data.id_soaltryout}/edit`, payload);
+
       onSuccess();
       onClose();
     } catch (err) {
@@ -219,10 +237,14 @@ const EditSoalModal = ({ data, onClose, onSuccess }) => {
               <label className="text-sm font-medium">Jawaban Benar</label>
               <select
                 name="jawaban_benar"
-                value={form.jawaban_benar}
+                // Gunakan "" jika form.jawaban_benar bernilai null
+                value={form.jawaban_benar ?? ""}
                 onChange={handleChange}
-                className="w-full border rounded p-2"
+                className="w-full border rounded p-2 bg-white"
               >
+                {/* Opsi default jika belum ada jawaban benar */}
+                <option value="">-- Belum Menentukan Jawaban --</option>
+
                 {["A", "B", "C", "D", "E"].map((j) => (
                   <option key={j} value={j}>
                     {j}
