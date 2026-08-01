@@ -73,7 +73,7 @@ export default function LaporanPage() {
   // FETCH TRYOUTS
   const fetchTryoutList = async () => {
     try {
-      const res = await Api.get("/tryout/all-tryout");
+      const res = await Api.get("/tryout/dropdown-list");
       setListTryout(res.data.data || []);
     } catch (e) {
       console.error("Gagal mengambil daftar tryout:", e);
