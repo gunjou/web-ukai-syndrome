@@ -86,7 +86,7 @@ export default function LaporanPage() {
     try {
       const clean = { ...params };
       Object.keys(clean).forEach(
-        (k) => (clean[k] === "" || clean[k] == null) && delete clean[k],
+        (k) => (clean[k] === "" || clean[k] == null) && delete clean[k]
       );
 
       const res = await Api.get("/hasil-tryout", { params: clean });
@@ -123,7 +123,7 @@ export default function LaporanPage() {
       };
       fetchData(params);
     }, 500),
-    [lastAppliedParams],
+    [lastAppliedParams]
   );
 
   const handleSearchChange = (e) => {
@@ -192,41 +192,173 @@ export default function LaporanPage() {
     if (!obj) return "-";
     const total = Object.keys(obj).length;
     const answered = Object.values(obj).filter(
-      (x) => x.jawaban !== null,
+      (x) => x.jawaban !== null
     ).length;
     const ragu = Object.values(obj).filter((x) => x.ragu === 1).length;
     return `${total} soal • ${answered} dijawab • ${ragu} ragu`;
   };
 
+  // Bangun label filter yang readable untuk nama file & summary
+  const buildFilterLabel = () => {
+    const parts = [];
+
+    if (filters.tanggalMulai && filters.tanggalAkhir) {
+      parts.push(`${filters.tanggalMulai}_sd_${filters.tanggalAkhir}`);
+    } else if (filters.tanggalMulai) {
+      parts.push(filters.tanggalMulai);
+    }
+
+    if (filters.selectedTryouts && filters.selectedTryouts.length > 0) {
+      const titles = filters.selectedTryouts
+        .map((id) => {
+          const t = listTryout.find((lt) => lt.id_tryout === id);
+          return t ? t.judul : id;
+        })
+        .join("-");
+      parts.push(titles);
+    }
+
+    if (filters.statusPengerjaan) parts.push(filters.statusPengerjaan);
+    if (filters.attemptKe) parts.push(`attempt${filters.attemptKe}`);
+    if (filters.nilaiMin || filters.nilaiMax) {
+      parts.push(`nilai${filters.nilaiMin || 0}-${filters.nilaiMax || 100}`);
+    }
+    if (search) parts.push(`cari-${search}`);
+
+    return parts.length > 0 ? parts.join("_") : "semua-data";
+  };
+
+  // Sanitasi jadi nama file yang aman
+  const generateFileName = (ext) => {
+    const label = buildFilterLabel()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-_]/g, "");
+    const timestamp = new Date().toISOString().slice(0, 10);
+    return `laporan_tryout_${label}_${timestamp}.${ext}`;
+  };
+
+  // Ringkasan singkat untuk summary di PDF
+  const buildSummaryStats = () => {
+    const total = data.length;
+    if (total === 0) {
+      return {
+        total: 0,
+        rataRata: 0,
+        tertinggi: 0,
+        terendah: 0,
+        submitted: 0,
+        ongoing: 0,
+      };
+    }
+    const nilaiList = data.map((d) => Number(d.nilai) || 0);
+    return {
+      total,
+      rataRata: (nilaiList.reduce((a, b) => a + b, 0) / total).toFixed(2),
+      tertinggi: Math.max(...nilaiList),
+      terendah: Math.min(...nilaiList),
+      submitted: data.filter((d) => d.status_pengerjaan === "submitted").length,
+      ongoing: data.filter((d) => d.status_pengerjaan === "ongoing").length,
+    };
+  };
+
+  // EXPORT EXCEL
   // EXPORT EXCEL
   const exportExcel = () => {
+    const stats = buildSummaryStats();
+    const filterLabel = buildFilterLabel().replace(/_/g, " | ");
+
+    // ===== SHEET 1: RINGKASAN =====
+    const summaryRows = [
+      ["Laporan Hasil Tryout"],
+      [`Filter: ${filterLabel}`],
+      [],
+      ["Metrik", "Nilai"],
+      ["Total Data", stats.total],
+      ["Rata-rata Nilai", stats.rataRata],
+      ["Nilai Tertinggi", stats.tertinggi],
+      ["Nilai Terendah", stats.terendah],
+      ["Submitted", stats.submitted],
+      ["Ongoing", stats.ongoing],
+    ];
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+    wsSummary["!cols"] = [{ wch: 22 }, { wch: 20 }];
+
+    // ===== SHEET 2: DATA =====
     const excelData = data.map((d) => ({
-      User: d.nama_user,
+      Nama: d.nama_user,
+      Email: d.email,
+      no_hp: d.no_hp,
+      Kelas: d.nama_kelas,
       Tryout: d.judul_tryout,
       Attempt: d.attempt_ke,
-      Nilai: d.nilai,
       Benar: d.benar,
       Salah: d.salah,
       Kosong: d.kosong,
-      Jawaban: ringkasJawaban(d.jawaban_user),
+      Nilai: d.nilai,
       Submit: formatTanggal(d.tanggal_pengerjaan),
       Status: d.status_pengerjaan,
     }));
 
-    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wsData = XLSX.utils.json_to_sheet(excelData);
+    wsData["!cols"] = [
+      { wch: 25 }, // Nama
+      { wch: 28 }, // Email
+      { wch: 15 }, // no_hp
+      { wch: 15 }, // Kelas
+      { wch: 30 }, // Tryout
+      { wch: 10 }, // Attempt
+      { wch: 8 }, // Benar
+      { wch: 8 }, // Salah
+      { wch: 8 }, // Kosong
+      { wch: 8 }, // Nilai
+      { wch: 20 }, // Submit
+      { wch: 12 }, // Status
+    ];
+
+    // ===== GABUNGKAN WORKBOOK =====
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Laporan");
-    XLSX.writeFile(wb, "laporan_tryout.xlsx");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
+    XLSX.utils.book_append_sheet(wb, wsData, "Data");
+
+    XLSX.writeFile(wb, generateFileName("xlsx"));
   };
 
   // EXPORT PDF
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
+    const stats = buildSummaryStats();
+    const filterLabel = buildFilterLabel().replace(/_/g, " | ");
+
+    // Judul
+    doc.setFontSize(14);
     doc.text("Laporan Hasil Tryout", 14, 15);
+
+    // Info filter aktif
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Filter: ${filterLabel}`, 14, 21);
+
+    // Ringkasan singkat data
+    doc.setFontSize(9);
+    doc.setTextColor(0);
+    const summaryText = [
+      `Total Data: ${stats.total}`,
+      `Rata-rata Nilai: ${stats.rataRata}`,
+      `Nilai Tertinggi: ${stats.tertinggi}`,
+      `Nilai Terendah: ${stats.terendah}`,
+      `Submitted: ${stats.submitted}`,
+      `Ongoing: ${stats.ongoing}`,
+    ].join("   |   ");
+    doc.text(summaryText, 14, 27);
 
     const tableData = data.map((d, i) => [
       i + 1,
       d.nama_user,
+      d.email,
+      d.no_hp,
+      d.nama_kelas,
       d.judul_tryout,
       d.attempt_ke,
       d.benar,
@@ -237,13 +369,15 @@ export default function LaporanPage() {
       d.status_pengerjaan,
     ]);
 
-    // use imported autoTable function instead of doc.autoTable to ensure compatibility
     autoTable(doc, {
-      startY: 20,
+      startY: 32,
       head: [
         [
           "No",
-          "User",
+          "Nama",
+          "Email",
+          "No Hp",
+          "Kelas",
           "Tryout",
           "Attempt Ke",
           "Benar",
@@ -255,10 +389,21 @@ export default function LaporanPage() {
         ],
       ],
       body: tableData,
-      styles: { fontSize: 8 },
+      theme: "grid", // <-- semua sisi sel diberi border
+      styles: {
+        fontSize: 8,
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0],
+      },
+      headStyles: {
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0],
+        fillColor: [161, 29, 29], // sesuai tema warna admin kamu
+        textColor: 255,
+      },
     });
 
-    doc.save("laporan_tryout.pdf");
+    doc.save(generateFileName("pdf"));
   };
 
   const deleteHasil = async (id) => {
@@ -449,8 +594,8 @@ export default function LaporanPage() {
         d.status_pengerjaan === "submitted"
           ? "bg-green-100 text-green-700"
           : d.status_pengerjaan === "ongoing"
-            ? "bg-yellow-100 text-yellow-700"
-            : "bg-gray-100 text-gray-700"
+          ? "bg-yellow-100 text-yellow-700"
+          : "bg-gray-100 text-gray-700"
       }
     `}
                       >
