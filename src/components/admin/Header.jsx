@@ -26,6 +26,7 @@ const Header = () => {
     { name: "Mentor", href: "/mentor" },
     { name: "Batch", href: "/batch" },
     { name: "Kelas", href: "/kelas" },
+    { name: "Jadwal", href: "/Jadwal" },
     { name: "Private", href: "/private" },
     { name: "Modul", href: "/modul" },
     { name: "Materi", href: "/materi" },
@@ -96,7 +97,7 @@ const Header = () => {
         closeButton: false,
         draggable: false,
         pauseOnHover: false,
-      },
+      }
     );
 
     // OUTSIDE CLICK CLOSE

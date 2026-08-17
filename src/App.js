@@ -20,6 +20,7 @@ const PesertaPage = lazy(() => import("./pages/admin/DaftarPeserta"));
 const DaftarMentor = lazy(() => import("./pages/admin/DaftarMentor"));
 const DaftarBatch = lazy(() => import("./pages/admin/DaftarBatch"));
 const DaftarKelas = lazy(() => import("./pages/admin/DaftarKelas"));
+const DaftarJadwal = lazy(() => import("./pages/admin/jadwal/Daftarjadwal"));
 const DaftarPrivate = lazy(() => import("./pages/admin/DaftarPrivate"));
 const DaftarModul = lazy(() => import("./pages/admin/DaftarModul"));
 const DaftarMateri = lazy(() => import("./pages/admin/DaftarMateri"));
@@ -30,8 +31,8 @@ const LaporanPage = lazy(() => import("./pages/admin/LaporanPage"));
 const User = lazy(() => import("./User"));
 const HomePageUser = lazy(() => import("./pages/users/HomePage"));
 const Pembayaran = lazy(() => import("./pages/users/Pembayaran"));
-const MateriPrivateListContent = lazy(
-  () => import("./pages/users/MateriPrivateListContent"),
+const MateriPrivateListContent = lazy(() =>
+  import("./pages/users/MateriPrivateListContent")
 );
 
 // MENTOR
@@ -102,6 +103,15 @@ function App() {
             element={
               <ProtectedRoute allow={["superadmin"]}>
                 <DaftarKelas />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/jadwal"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarJadwal />
               </ProtectedRoute>
             }
           />

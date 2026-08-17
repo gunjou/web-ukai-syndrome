@@ -73,7 +73,7 @@ const HomeAdmin = () => {
         closeButton: false,
         draggable: false,
         pauseOnHover: false,
-      },
+      }
     );
 
     // OUTSIDE CLICK CLOSE

@@ -64,14 +64,14 @@ const DaftarKelas = () => {
         setIsLoading(false);
       }
     },
-    [],
+    []
   );
 
   // 2. Debounce Search
   const debouncedFetch = useRef(
     debounce((nextSearch, nextLimit) => {
       fetchKelasData(1, nextSearch, nextLimit);
-    }, 500),
+    }, 500)
   ).current;
 
   // 3. Effect untuk memantau perubahan search dan limit
@@ -161,7 +161,9 @@ const DaftarKelas = () => {
             onClick={() =>
               handleOpenListPesertaModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_peserta)}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(
+              kelas.total_peserta
+            )}`}
           >
             {kelas.total_peserta} Peserta
           </button>
@@ -171,7 +173,9 @@ const DaftarKelas = () => {
             onClick={() =>
               handleOpenListMentorModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_mentor)}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(
+              kelas.total_mentor
+            )}`}
           >
             {kelas.total_mentor} Mentor
           </button>
@@ -181,7 +185,9 @@ const DaftarKelas = () => {
             onClick={() =>
               handleOpenListModulModal(kelas.id_paketkelas, kelas.nama_kelas)
             }
-            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(kelas.total_modul)}`}
+            className={`px-3 py-1 text-white text-[10px] rounded-full hover:bg-yellow-500 whitespace-nowrap transition ${getBadgeColor(
+              kelas.total_modul
+            )}`}
           >
             {kelas.total_modul} Modul
           </button>
