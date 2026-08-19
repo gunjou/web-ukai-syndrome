@@ -21,6 +21,7 @@ const DaftarMentor = lazy(() => import("./pages/admin/DaftarMentor"));
 const DaftarBatch = lazy(() => import("./pages/admin/DaftarBatch"));
 const DaftarKelas = lazy(() => import("./pages/admin/DaftarKelas"));
 const DaftarJadwal = lazy(() => import("./pages/admin/jadwal/Daftarjadwal"));
+const DaftarAbsen = lazy(() => import("./pages/admin/jadwal/Daftarabsen"));
 const DaftarPrivate = lazy(() => import("./pages/admin/DaftarPrivate"));
 const DaftarModul = lazy(() => import("./pages/admin/DaftarModul"));
 const DaftarMateri = lazy(() => import("./pages/admin/DaftarMateri"));
@@ -112,6 +113,15 @@ function App() {
             element={
               <ProtectedRoute allow={["superadmin"]}>
                 <DaftarJadwal />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/daftarabsen"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarAbsen />
               </ProtectedRoute>
             }
           />
