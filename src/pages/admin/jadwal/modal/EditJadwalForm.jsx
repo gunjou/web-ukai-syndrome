@@ -24,6 +24,8 @@ const EditJadwalForm = ({
     waktu_mulai: "",
     waktu_selesai: "",
     type_pertemuan: "ONLINE",
+    topik: "",
+    catatan: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -32,23 +34,28 @@ const EditJadwalForm = ({
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [kelasRes, mentorRes] = await Promise.all([
+        const requests = [
           Api.get("/paket-kelas?limit=999"),
           Api.get("/jadwal/mentor-dropdown"),
-        ]);
+          Api.get(`/jadwal/${selectedId}`),
+        ];
+        const [kelasRes, mentorRes, jadwalRes] = await Promise.all(requests);
 
         setKelasOptions(kelasRes.data?.data || []);
         setMentorOptions(mentorRes.data?.data || []);
 
-        // Set initial form data from initialData
-        if (initialData) {
+        const jadwalDetail = jadwalRes.data?.data || jadwalRes.data;
+        const data = jadwalDetail || initialData;
+        if (data) {
           setFormData({
-            id_paketkelas: initialData.id_paketkelas || "",
-            id_mentor: initialData.id_mentor || "",
-            tanggal: initialData.tanggal || "",
-            waktu_mulai: initialData.waktu_mulai || "",
-            waktu_selesai: initialData.waktu_selesai || "",
-            type_pertemuan: initialData.type_pertemuan || "ONLINE",
+            id_paketkelas: data.id_paketkelas || "",
+            id_mentor: data.id_mentor || "",
+            tanggal: data.tanggal || "",
+            waktu_mulai: data.waktu_mulai || "",
+            waktu_selesai: data.waktu_selesai || "",
+            type_pertemuan: data.type_pertemuan || "ONLINE",
+            topik: data.topik || "",
+            catatan: data.catatan || "",
           });
         }
       } catch (error) {
@@ -60,7 +67,7 @@ const EditJadwalForm = ({
     };
 
     fetchOptions();
-  }, [initialData]);
+  }, [initialData, selectedId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -125,6 +132,8 @@ const EditJadwalForm = ({
         waktu_mulai: formData.waktu_mulai,
         waktu_selesai: formData.waktu_selesai,
         type_pertemuan: formData.type_pertemuan,
+        topik: formData.topik,
+        catatan: formData.catatan,
       };
 
       await Api.put(`/jadwal/${selectedId}`, payload);
@@ -290,6 +299,34 @@ const EditJadwalForm = ({
             <span className="text-sm text-gray-700">OFFLINE</span>
           </label>
         </div>
+      </div>
+
+      {/* Topik & Catatan */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Topik
+        </label>
+        <input
+          type="text"
+          name="topik"
+          value={formData.topik}
+          onChange={handleInputChange}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition"
+          placeholder="Masukkan topik jadwal"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Catatan
+        </label>
+        <textarea
+          name="catatan"
+          value={formData.catatan}
+          onChange={handleInputChange}
+          rows={3}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition resize-none"
+          placeholder="Masukkan catatan jadwal"
+        />
       </div>
 
       {/* Submit Button */}

@@ -223,6 +223,10 @@ const DaftarJadwal = () => {
         <td className="px-4 py-2 text-sm border text-center">
           {getTypePertemuanBadge(jadwal.type_pertemuan)}
         </td>
+        <td className="px-4 py-2 text-sm border">{jadwal.topik || "-"}</td>
+        <td className="px-4 py-2 text-sm border whitespace-pre-wrap">
+          {jadwal.catatan || "-"}
+        </td>
         <td className="px-4 py-2 text-sm border text-center">
           {getStatusBadge(jadwal.status)}
         </td>
@@ -402,6 +406,8 @@ const DaftarJadwal = () => {
                     <th className="px-4 py-3 text-center">Tanggal Efektif</th>
                     <th className="px-4 py-3 text-center">Jam</th>
                     <th className="px-4 py-3 text-center">Tipe Pertemuan</th>
+                    <th className="px-4 py-3">Topik</th>
+                    <th className="px-4 py-3">Catatan</th>
                     <th className="px-4 py-3 text-center">Status</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>

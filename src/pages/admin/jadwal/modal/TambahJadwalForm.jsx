@@ -22,6 +22,8 @@ const TambahJadwalForm = ({
     waktu_mulai: "",
     waktu_selesai: "",
     type_pertemuan: "ONLINE",
+    topik: "",
+    catatan: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -111,6 +113,8 @@ const TambahJadwalForm = ({
         waktu_mulai: formData.waktu_mulai,
         waktu_selesai: formData.waktu_selesai,
         type_pertemuan: formData.type_pertemuan,
+        topik: formData.topik,
+        catatan: formData.catatan,
       };
 
       await Api.post("/jadwal", payload);
@@ -278,6 +282,34 @@ const TambahJadwalForm = ({
             <span className="text-sm text-gray-700">OFFLINE</span>
           </label>
         </div>
+      </div>
+
+      {/* Topik & Catatan */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Topik
+        </label>
+        <input
+          type="text"
+          name="topik"
+          value={formData.topik}
+          onChange={handleInputChange}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition"
+          placeholder="Masukkan topik jadwal"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Catatan
+        </label>
+        <textarea
+          name="catatan"
+          value={formData.catatan}
+          onChange={handleInputChange}
+          rows={3}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition resize-none"
+          placeholder="Masukkan catatan jadwal"
+        />
       </div>
 
       {/* Submit Button */}
