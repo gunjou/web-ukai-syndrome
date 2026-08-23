@@ -37,7 +37,7 @@ const EditPesertaForm = ({
             label: k.nama_kelas,
           }))
           .sort((a, b) =>
-            a.label.localeCompare(b.label, "id", { sensitivity: "base" })
+            a.label.localeCompare(b.label, "id", { sensitivity: "base" }),
           );
         setKelasOptions(options);
       } catch (err) {
@@ -88,7 +88,7 @@ const EditPesertaForm = ({
     try {
       await Api.put(`/peserta/${initialData.id_user}`, formData);
       alert(
-        `Data peserta berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`
+        `Data peserta berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`,
       );
       setShowModal(false);
       setEditMode(false);
@@ -115,7 +115,7 @@ const EditPesertaForm = ({
     ConfirmToast("Yakin ingin reset password peserta ini?", async () => {
       await Api.put(`/peserta/reset-password/${formData.id_user}`);
       toast.success(
-        `Password dengan email ${formData.email} berhasil di-reset.`
+        `Password dengan email ${formData.email} berhasil di-reset.`,
       );
       setShowModal(false);
       setEditMode(false);
@@ -133,8 +133,8 @@ const EditPesertaForm = ({
             type="text"
             name="nama"
             value={formData.nama}
-            disabled
-            className="w-full border rounded-md px-3 py-2 bg-gray-100"
+            onChange={handleChange}
+            className="w-full border rounded-md px-3 py-2"
           />
         </div>
 
@@ -169,7 +169,7 @@ const EditPesertaForm = ({
           <Select
             options={kelasOptions}
             value={kelasOptions.find(
-              (opt) => opt.value.id_paketkelas === formData.id_kelas
+              (opt) => opt.value.id_paketkelas === formData.id_kelas,
             )}
             onChange={handleSelectKelas}
             placeholder="Pilih kelas..."
