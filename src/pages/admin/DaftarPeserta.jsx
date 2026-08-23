@@ -70,7 +70,7 @@ const DaftarPeserta = () => {
       search = "",
       batchId = "",
       currentLimit = 20,
-      batchFilter = "aktif",
+      batchFilter = "aktif"
     ) => {
       setIsLoading(true);
       setError("");
@@ -104,14 +104,14 @@ const DaftarPeserta = () => {
         setIsLoading(false);
       }
     },
-    [],
+    []
   );
 
   // 3. Debounce Search agar tidak spam API
   const debouncedFetch = useRef(
     debounce((nextSearch, nextBatch, nextLimit) => {
       fetchUsers(1, nextSearch, nextBatch, nextLimit);
-    }, 500),
+    }, 500)
   ).current;
 
   useEffect(() => {
@@ -157,7 +157,7 @@ const DaftarPeserta = () => {
         user.nama_batch,
         user.nama_kelas,
         user.nama_paket,
-      ].some((v) => (v ?? "").toLowerCase().includes(k)),
+      ].some((v) => (v ?? "").toLowerCase().includes(k))
     );
   }, [userData, searchTerm]);
 
@@ -195,7 +195,9 @@ const DaftarPeserta = () => {
         <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
           {user.nama}
         </td>
-        <td className="px-2 py-2 text-xs sm:text-sm border">{user.email}</td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.email || "-"}
+        </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.kode_pemulihan}
         </td>

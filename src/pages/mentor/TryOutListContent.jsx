@@ -222,7 +222,6 @@ const TryoutListContent = ({ tryout, onBack }) => {
           }}
           className="fixed inset-0 bg-gradient-to-r from-[#a11d1d] to-[#531d1d] z-[9999] flex items-center justify-center"
           tabIndex={-1}
-          onContextMenu={(e) => e.preventDefault()}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
         >
@@ -274,7 +273,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
           </button>
 
           {/* KONTEN UJIAN */}
-          <div className="bg-white rounded-xl p-8 w-full max-w-2xl shadow-lg relative select-none">
+          <div className="bg-white rounded-xl p-8 w-full max-w-2xl shadow-lg relative">
             {/* Progress bar */}
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
               <div

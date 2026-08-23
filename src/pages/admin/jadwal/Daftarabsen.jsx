@@ -15,6 +15,12 @@ const DaftarAbsen = () => {
   const [absensiData, setAbsensiData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${today.getFullYear()}-${month}-${day}`;
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedJadwal, setSelectedJadwal] = useState(null);
@@ -30,7 +36,9 @@ const DaftarAbsen = () => {
     setError("");
 
     try {
-      const response = await Api.get("/absensi/mentor");
+      const params = new URLSearchParams();
+      if (selectedDate) params.set("tanggal", selectedDate);
+      const response = await Api.get(`/absensi/mentor?${params.toString()}`);
       setAbsensiData(response.data?.data || []);
     } catch (requestError) {
       console.error("Gagal mengambil data absensi mentor:", requestError);
@@ -43,7 +51,7 @@ const DaftarAbsen = () => {
 
   useEffect(() => {
     fetchAbsensi();
-  }, []);
+  }, [selectedDate]);
 
   const filteredData = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -277,6 +285,13 @@ const DaftarAbsen = () => {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto justify-end">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="w-full sm:w-44 border rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+              title="Pilih tanggal absensi"
+            />
             <input
               type="text"
               value={searchTerm}

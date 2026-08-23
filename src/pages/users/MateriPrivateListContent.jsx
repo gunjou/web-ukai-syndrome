@@ -26,7 +26,7 @@ const MateriPrivateListContent = ({ tipe = "document" }) => {
       try {
         // Menggunakan parameter tipe (document / video)
         const response = await Api.get(
-          `/kelas-private/materi-saya?tipe=${tipe}`,
+          `/kelas-private/materi-saya?tipe=${tipe}`
         );
         setMateriList(response.data.data || []);
       } catch (err) {
@@ -86,7 +86,11 @@ const MateriPrivateListContent = ({ tipe = "document" }) => {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`p-3 rounded-xl ${tipe === "video" ? "bg-blue-50 dark:bg-blue-900/20" : "bg-red-50 dark:bg-red-900/20"}`}
+                  className={`p-3 rounded-xl ${
+                    tipe === "video"
+                      ? "bg-blue-50 dark:bg-blue-900/20"
+                      : "bg-red-50 dark:bg-red-900/20"
+                  }`}
                 >
                   {/* Gunakan icon yang sesuai tipe */}
                   {tipe === "video" ? (
@@ -130,7 +134,6 @@ const MateriPrivateListContent = ({ tipe = "document" }) => {
       {selectedMateri && tipe === "document" && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex flex-col animate-fadeIn"
-          onContextMenu={(e) => e.preventDefault()}
           tabIndex={0}
         >
           {/* Top Bar Modal */}
@@ -153,7 +156,7 @@ const MateriPrivateListContent = ({ tipe = "document" }) => {
                   onClick={() =>
                     window.open(
                       getDirectDownloadUrl(selectedMateri.url_file),
-                      "_blank",
+                      "_blank"
                     )
                   }
                   className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition"
@@ -171,7 +174,7 @@ const MateriPrivateListContent = ({ tipe = "document" }) => {
           </div>
 
           {/* Viewer Area */}
-          <div className="relative flex-1 overflow-hidden select-none bg-gray-200">
+          <div className="relative flex-1 overflow-hidden bg-gray-200">
             {/* Watermark Overlay */}
             <div
               className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none opacity-[0.08] z-10"

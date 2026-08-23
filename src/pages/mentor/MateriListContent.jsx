@@ -43,14 +43,14 @@ const MateriListContent = () => {
 
       // 2. Panggil API baru dengan query parameter id_modul
       const response = await Api.get(
-        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`,
+        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`
       );
 
       const materiData = response.data.data || [];
 
       // 3. Tetap filter berdasarkan tipe dokumen jika diperlukan
       const filtered = materiData.filter(
-        (item) => item.tipe_materi === "document",
+        (item) => item.tipe_materi === "document"
       );
 
       setMateriList(filtered);
@@ -76,7 +76,7 @@ const MateriListContent = () => {
 
   const handleVisibilityChange = async (id_materi, newVisibility) => {
     const confirm = window.confirm(
-      `Ubah status materi menjadi "${newVisibility}"?`,
+      `Ubah status materi menjadi "${newVisibility}"?`
     );
     if (!confirm) return;
 
@@ -88,8 +88,8 @@ const MateriListContent = () => {
 
       setMateriList((prev) =>
         prev.map((m) =>
-          m.id_materi === id_materi ? { ...m, visibility: newVisibility } : m,
-        ),
+          m.id_materi === id_materi ? { ...m, visibility: newVisibility } : m
+        )
       );
 
       toast.success("Status materi diperbarui ✓");
@@ -117,8 +117,8 @@ const MateriListContent = () => {
         prev.map((m) =>
           m.id_materi === id_materi
             ? { ...m, is_downloadable: Number(value) }
-            : m,
-        ),
+            : m
+        )
       );
 
       toast.success("Downloadable diperbarui ✓");
@@ -182,8 +182,8 @@ const MateriListContent = () => {
         materi.visibility === "open"
           ? "text-green-600 border-green-400"
           : materi.visibility === "hold"
-            ? "text-yellow-600 border-yellow-400"
-            : "text-red-600 border-red-400"
+          ? "text-yellow-600 border-yellow-400"
+          : "text-red-600 border-red-400"
       }
       ${
         loadingChange === materi.id_materi
@@ -237,11 +237,8 @@ const MateriListContent = () => {
 
       {/* Modal */}
       {selectedMateri && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex flex-col"
-          onContextMenu={(e) => e.preventDefault()} // Blok klik kanan di seluruh layar
-        >
-          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden select-none">
+        <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex flex-col">
+          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-white dark:bg-gray-900 z-20">
               <div className="flex items-center gap-3">
                 <HiDocumentText className="text-red-500 text-xl" />
@@ -257,10 +254,7 @@ const MateriListContent = () => {
               </button>
             </div>
             {/* PDF.js Document Viewer */}
-            <div
-              className="relative border rounded-lg overflow-hidden select-none"
-              onContextMenu={(e) => e.preventDefault()}
-            >
+            <div className="relative border rounded-lg overflow-hidden">
               {/* Watermark overlay */}
               <div
                 className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
@@ -273,7 +267,7 @@ const MateriListContent = () => {
                 {Array.from({ length: 40 }, (_, i) => (
                   <span
                     key={i}
-                    className="text-gray-400 font-bold select-none m-8 whitespace-nowrap"
+                    className="text-gray-400 font-bold m-8 whitespace-nowrap"
                     style={{ fontSize: "2rem" }}
                   >
                     {userName}

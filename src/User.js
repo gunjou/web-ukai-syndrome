@@ -16,31 +16,6 @@ const User = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Proteksi aktif
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
-
-    const handleKeyDown = (e) => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
-        (e.ctrlKey && (e.key === "U" || e.key === "u")) ||
-        (e.ctrlKey && (e.key === "S" || e.key === "s")) ||
-        (e.ctrlKey && (e.key === "C" || e.key === "c")) ||
-        (e.ctrlKey && (e.key === "X" || e.key === "x"))
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  useEffect(() => {
     const checkBatchStatus = async () => {
       try {
         const res = await Api.get("/peserta-kelas/status-batch-peserta");
@@ -56,11 +31,6 @@ const User = () => {
     };
 
     checkBatchStatus();
-
-    // Proteksi Inspect Element
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener("contextmenu", handleContextMenu);
-    // ... rest of your protection code
   }, [navigate]);
 
   if (checking) {

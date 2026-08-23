@@ -1,5 +1,10 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "leaflet/dist/leaflet.css";
@@ -22,6 +27,7 @@ const DaftarBatch = lazy(() => import("./pages/admin/DaftarBatch"));
 const DaftarKelas = lazy(() => import("./pages/admin/DaftarKelas"));
 const DaftarJadwal = lazy(() => import("./pages/admin/jadwal/Daftarjadwal"));
 const DaftarAbsen = lazy(() => import("./pages/admin/jadwal/Daftarabsen"));
+const MonitoringMateri = lazy(() => import("./pages/admin/MonitoringMateri"));
 const DaftarPrivate = lazy(() => import("./pages/admin/DaftarPrivate"));
 const DaftarModul = lazy(() => import("./pages/admin/DaftarModul"));
 const DaftarMateri = lazy(() => import("./pages/admin/DaftarMateri"));
@@ -40,11 +46,29 @@ const MateriPrivateListContent = lazy(() =>
 const HomeMentor = lazy(() => import("./pages/mentor/HomeMentor"));
 const MentorJs = lazy(() => import("./Mentor"));
 
-function App() {
-  useAntiInspect(true);
+function AppRoutes() {
+  const { pathname } = useLocation();
+  const isAdminRoute = [
+    "/admin-home",
+    "/akun-publik",
+    "/peserta",
+    "/mentor",
+    "/batch",
+    "/kelas",
+    "/jadwal",
+    "/daftarabsen",
+    "/monitoring-materi",
+    "/private",
+    "/modul",
+    "/materi",
+    "/tryout",
+    "/laporan",
+  ].some((route) => pathname === route || pathname.startsWith(`${route}/`));
+
+  useAntiInspect(!isAdminRoute);
 
   return (
-    <Router>
+    <div className={isAdminRoute ? "admin-page" : ""}>
       <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
         <Routes>
           {/* ROOT REDIRECT */}
@@ -122,6 +146,15 @@ function App() {
             element={
               <ProtectedRoute allow={["superadmin"]}>
                 <DaftarAbsen />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/monitoring-materi"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <MonitoringMateri />
               </ProtectedRoute>
             }
           />
@@ -226,6 +259,14 @@ function App() {
       </Suspense>
 
       <ToastContainer position="top-center" autoClose={3000} />
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppRoutes />
     </Router>
   );
 }

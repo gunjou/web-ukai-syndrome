@@ -70,15 +70,14 @@ const VideoListContent = () => {
 
       // 2. Panggil API baru dengan query parameter id_modul
       const response = await Api.get(
-        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`,
+        `/materi/mentor/${id_paketkelas}?id_modul=${activeModulId}`
       );
 
       const materiData = response.data.data || [];
 
       // 3. Tetap filter berdasarkan tipe video jika diperlukan
       const filtered = materiData.filter(
-        (item) =>
-          item.tipe_materi === "video" && isValidVideoUrl(item.url_file),
+        (item) => item.tipe_materi === "video" && isValidVideoUrl(item.url_file)
       );
 
       setVideoList(filtered);
@@ -98,13 +97,13 @@ const VideoListContent = () => {
   const fetchKomentar = async (id_materi, id_paketkelas) => {
     try {
       const res = await Api.get(
-        `/komentar/${id_materi}/komentar/${id_paketkelas}`,
+        `/komentar/${id_materi}/komentar/${id_paketkelas}`
       );
       const rawKomentar = res.data.data || [];
 
       // urutkan komentar terbaru paling atas
       rawKomentar.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
 
       const komentarMap = {};
@@ -117,7 +116,7 @@ const VideoListContent = () => {
       rawKomentar.forEach((item) => {
         if (item.parent_id) {
           komentarMap[item.parent_id]?.replies.push(
-            komentarMap[item.id_komentarmateri],
+            komentarMap[item.id_komentarmateri]
           );
         } else {
           rootKomentar.push(komentarMap[item.id_komentarmateri]);
@@ -183,7 +182,7 @@ const VideoListContent = () => {
 
       await Api.post(
         `/komentar/${selectedVideo.id_materi}/komentar/${selectedVideo.id_paketkelas}`,
-        payload,
+        payload
       );
       setNewComment("");
       setReplyingTo(null);
@@ -361,13 +360,13 @@ const VideoListContent = () => {
 
               {/* Watermark overlay */}
               <div
-                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none select-none capitalize"
+                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
                 style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
               >
                 {Array.from({ length: 50 }, (_, i) => (
                   <span
                     key={i}
-                    className="text-white font-bold select-none m-6 whitespace-nowrap"
+                    className="text-white font-bold m-6 whitespace-nowrap"
                     style={{ fontSize: "2rem" }}
                   >
                     {storedUser?.nama || "User"}

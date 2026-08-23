@@ -386,7 +386,7 @@ const TryoutListContent = ({ tryout, onBack }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 select-none overflow-hidden notranslate"
+      className="fixed inset-0 bg-[#F7F8FA] z-50 flex flex-col md:p-6 p-3 overflow-hidden notranslate"
       translate="no"
     >
       {/* WATERMARK */}

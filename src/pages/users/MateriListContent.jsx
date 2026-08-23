@@ -161,29 +161,17 @@ const MateriListContent = () => {
       {selectedMateri && (
         <div
           className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex flex-col"
-          onContextMenu={(e) => e.preventDefault()} // blok klik kanan
           onKeyDown={(e) => {
             // tutup modal dengan Escape
             if (e.key === "Escape") {
               setSelectedMateri(null);
               return;
             }
-
-            if (
-              (e.ctrlKey &&
-                (e.key === "c" || e.key === "u" || e.key === "s")) || // copy, source, save
-              (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J")) || // inspect element
-              e.key === "F12" || // devtools
-              e.key === "PrintScreen"
-            ) {
-              e.preventDefault();
-              alert("Tindakan ini tidak diizinkan!");
-            }
           }}
           tabIndex={0} // supaya modal bisa menangkap keyboard
         >
           {/* Fullscreen content */}
-          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden select-none">
+          <div className="relative w-full h-full bg-white dark:bg-gray-900 overflow-hidden">
             {/* Top bar */}
             <div className="flex items-center justify-between px-4 py-3 border-b bg-white dark:bg-gray-900 z-20">
               <div className="flex items-center gap-3">
@@ -247,7 +235,7 @@ const MateriListContent = () => {
                 {Array.from({ length: 120 }, (_, i) => (
                   <span
                     key={i}
-                    className="text-gray-400 font-bold select-none m-6 whitespace-nowrap"
+                    className="text-gray-400 font-bold m-6 whitespace-nowrap"
                     style={{ fontSize: "1.6rem" }}
                   >
                     {userName}

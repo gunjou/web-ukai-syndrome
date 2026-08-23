@@ -364,13 +364,13 @@ const VideoListContent = () => {
               {renderPlayer()}
 
               <div
-                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none select-none capitalize"
+                className="absolute inset-0 flex flex-wrap items-center justify-center pointer-events-none capitalize"
                 style={{ transform: "rotate(-25deg)", opacity: 0.25 }}
               >
                 {Array.from({ length: 50 }, (_, i) => (
                   <span
                     key={i}
-                    className="text-white font-bold select-none m-6 whitespace-nowrap"
+                    className="text-white font-bold m-6 whitespace-nowrap"
                     style={{ fontSize: "2rem" }}
                   >
                     {storedUser?.nama || "User"}

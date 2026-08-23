@@ -34,8 +34,27 @@ html {
   scroll-behavior: smooth;
 }
 * {
-  user-select: none; /* blok seleksi teks */
-  -webkit-user-drag: none; /* blok drag gambar */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+table,
+table * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.admin-page,
+.admin-page * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Ganti warna arrow default slick */
@@ -59,6 +78,7 @@ html {
 }
 input,
 textarea {
+  user-select: text;
   -webkit-user-select: text;
   -webkit-touch-callout: none;
 }

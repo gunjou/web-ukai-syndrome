@@ -37,7 +37,7 @@ const EditPesertaForm = ({
             label: k.nama_kelas,
           }))
           .sort((a, b) =>
-            a.label.localeCompare(b.label, "id", { sensitivity: "base" }),
+            a.label.localeCompare(b.label, "id", { sensitivity: "base" })
           );
         setKelasOptions(options);
       } catch (err) {
@@ -77,12 +77,18 @@ const EditPesertaForm = ({
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
+    if (!formData.email.trim()) {
+      toast.error("Email peserta wajib diisi.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await Api.put(`/peserta/${initialData.id_user}`, formData);
       alert(
-        `Data peserta berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`,
+        `Data peserta berhasil diperbarui!\nNama: ${formData.nama}\nEmail: ${formData.email}`
       );
       setShowModal(false);
       setEditMode(false);
@@ -109,7 +115,7 @@ const EditPesertaForm = ({
     ConfirmToast("Yakin ingin reset password peserta ini?", async () => {
       await Api.put(`/peserta/reset-password/${formData.id_user}`);
       toast.success(
-        `Password dengan email ${formData.email} berhasil di-reset.`,
+        `Password dengan email ${formData.email} berhasil di-reset.`
       );
       setShowModal(false);
       setEditMode(false);
@@ -132,15 +138,16 @@ const EditPesertaForm = ({
           />
         </div>
 
-        {/* Email (disable) */}
+        {/* Email */}
         <div>
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
-            disabled
-            className="w-full border rounded-md px-3 py-2 bg-gray-100"
+            onChange={handleChange}
+            required
+            className="w-full border rounded-md px-3 py-2"
           />
         </div>
 
@@ -162,7 +169,7 @@ const EditPesertaForm = ({
           <Select
             options={kelasOptions}
             value={kelasOptions.find(
-              (opt) => opt.value.id_paketkelas === formData.id_kelas,
+              (opt) => opt.value.id_paketkelas === formData.id_kelas
             )}
             onChange={handleSelectKelas}
             placeholder="Pilih kelas..."
