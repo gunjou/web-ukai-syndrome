@@ -83,6 +83,12 @@ const TambahJadwalForm = ({
     if (!formData.waktu_selesai) {
       newErrors.waktu_selesai = "Waktu selesai harus diisi";
     }
+    if (!formData.topik.trim()) {
+      newErrors.topik = "Topik harus diisi";
+    }
+    if (!formData.catatan.trim()) {
+      newErrors.catatan = "Catatan harus diisi";
+    }
 
     // Validate waktu_mulai < waktu_selesai
     if (formData.waktu_mulai && formData.waktu_selesai) {
@@ -113,8 +119,8 @@ const TambahJadwalForm = ({
         waktu_mulai: formData.waktu_mulai,
         waktu_selesai: formData.waktu_selesai,
         type_pertemuan: formData.type_pertemuan,
-        topik: formData.topik,
-        catatan: formData.catatan,
+        topik: formData.topik.trim(),
+        catatan: formData.catatan.trim(),
       };
 
       await Api.post("/jadwal", payload);
@@ -124,7 +130,9 @@ const TambahJadwalForm = ({
     } catch (error) {
       console.error("Gagal menambah jadwal:", error);
       const errorMessage =
-        error.response?.data?.message || "Gagal menambah jadwal";
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Gagal menambah jadwal";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -297,6 +305,9 @@ const TambahJadwalForm = ({
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition"
           placeholder="Masukkan topik jadwal"
         />
+        {errors.topik && (
+          <p className="text-red-500 text-xs mt-1">{errors.topik}</p>
+        )}
       </div>
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -310,6 +321,9 @@ const TambahJadwalForm = ({
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none transition resize-none"
           placeholder="Masukkan catatan jadwal"
         />
+        {errors.catatan && (
+          <p className="text-red-500 text-xs mt-1">{errors.catatan}</p>
+        )}
       </div>
 
       {/* Submit Button */}
