@@ -37,9 +37,7 @@ const UploadPesertaBulk = ({ setShowModal, fetchUsers }) => {
     formData.append("file", bulkFile);
 
     try {
-      const response = await Api.post("/peserta/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await Api.post("/peserta/upload", formData);
 
       // kalau sukses
       setUploadResult(response.data);
