@@ -9,6 +9,7 @@ import debounce from "lodash/debounce";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
+import { MdOutlineHistory } from "react-icons/md";
 import { toast } from "react-toastify";
 import Header from "../../../components/admin/Header.jsx";
 
@@ -17,6 +18,7 @@ import Api, { CDN_ASSET_URL } from "../../../utils/Api.jsx";
 import TambahJadwalForm from "./modal/TambahJadwalForm.jsx";
 import EditJadwalForm from "./modal/EditJadwalForm.jsx";
 import RescheduleJadwalModal from "./modal/RescheduleJadwalModal.jsx";
+import ImportHistoryModal from "./modal/ImportHistoryModal.jsx";
 
 const DaftarJadwal = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +37,7 @@ const DaftarJadwal = () => {
   const [showTambahModal, setShowTambahModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showImportHistoryModal, setShowImportHistoryModal] = useState(false);
 
   const [selectedId, setSelectedId] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
@@ -79,7 +82,7 @@ const DaftarJadwal = () => {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   // 2. Fetch Kelas untuk dropdown filter
@@ -99,7 +102,7 @@ const DaftarJadwal = () => {
       debounce((nextSearch, nextKelas, nextLimit) => {
         fetchJadwalData(1, nextSearch, nextKelas, nextLimit);
       }, 500),
-    [fetchJadwalData]
+    [fetchJadwalData],
   );
 
   // 4. Fetch kelas hanya sekali
@@ -313,6 +316,15 @@ const DaftarJadwal = () => {
               ))}
             </select>
 
+            {/* Button Check History */}
+            <button
+              onClick={() => setShowImportHistoryModal(true)}
+              className="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 whitespace-nowrap transition"
+            >
+              <MdOutlineHistory className="w-4 h-4" />
+              History Import
+            </button>
+
             {/* Button Tambah Jadwal */}
             <button
               onClick={() => {
@@ -473,6 +485,17 @@ const DaftarJadwal = () => {
           </>
         )}
       </div>
+
+      {showImportHistoryModal && (
+        <ImportHistoryModal
+          setShowModal={setShowImportHistoryModal}
+          fetchJadwal={fetchJadwalData}
+          currentPage={currentPage}
+          searchTerm={searchTerm}
+          filterKelas={filterKelas}
+          limit={limit}
+        />
+      )}
 
       {/* 🔹 Modal Tambah Jadwal */}
       {showTambahModal && (
