@@ -1,29 +1,50 @@
-// ImportHistoryModal.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import { AiOutlineClose, AiOutlineRollback } from "react-icons/ai";
 import { BsEye, BsTrash3 } from "react-icons/bs";
 import { toast } from "react-toastify";
+
 import Api from "../../../../utils/Api";
 
-const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
-  const [history, setHistory] = useState([]);
+// ========================================================================
+// COMPONENT
+// ========================================================================
 
+const ImportHistoryModal = ({
+  setShowModal,
+  fetchJadwal,
+  currentPage,
+  searchTerm,
+  filterKelas,
+  limit,
+}) => {
+  // ========================================================================
+  // STATE - HISTORY & DETAIL
+  // ========================================================================
+
+  const [history, setHistory] = useState([]);
   const [selectedImport, setSelectedImport] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState([]);
+
+  // ========================================================================
+  // STATE - LOADING
+  // ========================================================================
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isRollbackLoading, setIsRollbackLoading] = useState(false);
+
+  // ========================================================================
+  // STATE - ROLLBACK CONFIRMATION
+  // ========================================================================
 
   const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState("");
 
   const ROLLBACK_CONFIRM_TEXT = "ROLLBACK IMPORT";
 
-  // ============================================================
+  // ========================================================================
   // FETCH HISTORY
-  // ============================================================
+  // ========================================================================
 
   const fetchHistory = async () => {
     setIsLoading(true);
@@ -51,9 +72,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     fetchHistory();
   }, []);
 
-  // ============================================================
+  // ========================================================================
   // FETCH DETAIL IMPORT
-  // ============================================================
+  // ========================================================================
 
   const fetchImportDetail = async (importId) => {
     if (!importId) {
@@ -66,21 +87,14 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
 
       const response = await Api.get(`/jadwal/bulk/${importId}`);
 
-      console.log("IMPORT DETAIL:", response.data);
-
       const result = response.data;
 
       if (result?.status !== "success") {
         throw new Error(result?.message || "Gagal mengambil detail import");
       }
 
-      // Response API:
-      // data: {
-      //   import: {...},
-      //   details: [...]
-      // }
-
       const importData = result?.data?.import || null;
+
       const details = Array.isArray(result?.data?.details)
         ? result.data.details
         : [];
@@ -103,9 +117,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     }
   };
 
-  // ============================================================
+  // ========================================================================
   // VIEW DETAIL
-  // ============================================================
+  // ========================================================================
 
   const handleViewDetail = (item) => {
     const importId = item?.id_import;
@@ -121,9 +135,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     fetchImportDetail(importId);
   };
 
-  // ============================================================
+  // ========================================================================
   // ROLLBACK
-  // ============================================================
+  // ========================================================================
 
   const handleRollback = async () => {
     if (confirmText !== ROLLBACK_CONFIRM_TEXT) {
@@ -150,7 +164,6 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
       setShowRollbackConfirm(false);
       setConfirmText("");
 
-      // Hapus dari history
       setHistory((prev) =>
         prev.filter((item) => item.id_import !== selectedImport.id_import),
       );
@@ -158,8 +171,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
       setSelectedImport(null);
       setSelectedDetail([]);
 
-      if (onRollbackSuccess) {
-        onRollbackSuccess();
+      // Refresh daftar jadwal setelah rollback berhasil.
+      if (fetchJadwal) {
+        fetchJadwal(currentPage, searchTerm, filterKelas, limit);
       }
     } catch (error) {
       console.error("Gagal melakukan rollback:", error);
@@ -172,9 +186,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     }
   };
 
-  // ============================================================
+  // ========================================================================
   // FORMAT DATE TIME
-  // ============================================================
+  // ========================================================================
 
   const formatDateTime = (value) => {
     if (!value) return "-";
@@ -198,9 +212,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     }
   };
 
-  // ============================================================
+  // ========================================================================
   // FORMAT DATE
-  // ============================================================
+  // ========================================================================
 
   const formatDate = (value) => {
     if (!value) return "-";
@@ -222,9 +236,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     }
   };
 
-  // ============================================================
+  // ========================================================================
   // FORMAT TIME
-  // ============================================================
+  // ========================================================================
 
   const formatTime = (value) => {
     if (!value) return "-";
@@ -232,22 +246,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     return String(value).substring(0, 5);
   };
 
-  // ============================================================
+  // ========================================================================
   // NORMALIZE DATE
-  // ============================================================
-  /*
-   * Fungsi ini digunakan agar perbandingan tanggal tidak
-   * memperhitungkan jam.
-   *
-   * Contoh:
-   *
-   * 2026-08-28 08:00
-   * 2026-08-28 18:00
-   *
-   * dianggap sama-sama:
-   *
-   * 2026-08-28
-   */
+  // ========================================================================
 
   const normalizeDate = (value) => {
     if (!value) return null;
@@ -261,9 +262,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   };
 
-  // ============================================================
+  // ========================================================================
   // GET TODAY
-  // ============================================================
+  // ========================================================================
 
   const getToday = () => {
     const now = new Date();
@@ -271,24 +272,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   };
 
-  // ============================================================
-  // CHECK DETAIL DATE
-  // ============================================================
-  /*
-   * Rollback DISABLE apabila:
-   *
-   * tanggal detail <= tanggal sekarang
-   *
-   * Contoh hari ini 28 Agustus:
-   *
-   * Detail:
-   * 27 Agustus -> DISABLE
-   * 28 Agustus -> DISABLE
-   * 29 Agustus -> ENABLE
-   *
-   * Jika ada SATU saja data yang tanggalnya <= hari ini,
-   * maka seluruh import tidak boleh di-rollback.
-   */
+  // ========================================================================
+  // ROLLBACK RESTRICTION
+  // ========================================================================
 
   const rollbackRestriction = useMemo(() => {
     if (!selectedDetail || selectedDetail.length === 0) {
@@ -329,28 +315,11 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     };
   }, [selectedDetail]);
 
-  const isRollbackDisabled = useMemo(() => {
-    if (!Array.isArray(selectedDetail) || selectedDetail.length === 0) {
-      return false;
-    }
+  const isRollbackDisabled = rollbackRestriction.disabled;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return selectedDetail.some((detail) => {
-      if (!detail?.tanggal) {
-        return false;
-      }
-
-      const detailDate = new Date(`${detail.tanggal}T00:00:00`);
-
-      return detailDate <= today;
-    });
-  }, [selectedDetail]);
-
-  // ============================================================
+  // ========================================================================
   // RESET CONFIRMATION
-  // ============================================================
+  // ========================================================================
 
   const closeRollbackConfirm = () => {
     if (isRollbackLoading) return;
@@ -359,9 +328,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     setConfirmText("");
   };
 
-  // ============================================================
+  // ========================================================================
   // SUMMARY
-  // ============================================================
+  // ========================================================================
 
   const selectedSummary = useMemo(() => {
     if (!selectedImport) {
@@ -381,13 +350,13 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
     };
   }, [selectedImport, selectedDetail]);
 
-  // ============================================================
-  // RENDER
-  // ============================================================
+  // ========================================================================
+  // MODAL
+  // ========================================================================
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black bg-opacity-50 p-4 backdrop-blur-sm"
       onClick={() => {
         if (!showRollbackConfirm) {
           setShowModal(false);
@@ -395,20 +364,20 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-hidden relative"
-        onClick={(e) => e.stopPropagation()}
+        className="my-10 max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* ================================================== */}
-        {/* HEADER */}
-        {/* ================================================== */}
+        {/* ================================================================== */}
+        {/* MODAL HEADER                                                       */}
+        {/* ================================================================== */}
 
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+        <div className="flex items-center justify-between border-b bg-gray-50 px-6 py-4">
           <div>
             <h2 className="text-lg font-bold text-gray-800">
               History Import Jadwal
             </h2>
 
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-gray-500">
               Pilih import yang sudah di-commit untuk melihat data dan melakukan
               rollback.
             </p>
@@ -417,34 +386,39 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
           <button
             type="button"
             onClick={() => setShowModal(false)}
-            className="text-gray-500 hover:text-red-500 transition"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors duration-200 hover:bg-yellow-500 hover:text-white"
+            aria-label="Tutup modal"
           >
-            <AiOutlineClose size={24} />
+            <AiOutlineClose size={20} />
           </button>
         </div>
 
-        {/* ================================================== */}
-        {/* CONTENT */}
-        {/* ================================================== */}
+        {/* ================================================================== */}
+        {/* MODAL CONTENT                                                      */}
+        {/* ================================================================== */}
 
-        <div className="p-5 overflow-y-auto max-h-[calc(92vh-80px)]">
+        <div className="max-h-[calc(92vh-80px)] overflow-y-auto p-5">
           {!selectedImport ? (
             <>
-              {/* ============================================ */}
-              {/* HISTORY TABLE */}
-              {/* ============================================ */}
+              {/* ============================================================ */}
+              {/* HISTORY TABLE                                                */}
+              {/* ============================================================ */}
 
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+                <div className="flex min-h-[300px] flex-col items-center justify-center">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-yellow-500 border-t-transparent" />
 
-                  <p className="text-sm text-gray-500 mt-3">
+                  <p className="mt-3 text-sm font-medium text-gray-500">
                     Memuat history import...
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-400">
+                    Menyiapkan data history import
                   </p>
                 </div>
               ) : history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16">
-                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
                     <AiOutlineRollback size={28} className="text-gray-400" />
                   </div>
 
@@ -452,30 +426,24 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                     Belum ada history import
                   </p>
 
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-gray-500">
                     Belum terdapat jadwal yang di-import menggunakan fitur bulk
                     import.
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border rounded-xl">
+                <div className="overflow-x-auto rounded-xl border">
                   <table className="min-w-full">
                     <thead className="bg-gray-100">
                       <tr className="text-xs uppercase text-gray-600">
                         <th className="px-4 py-3 text-center">No</th>
-
                         <th className="px-4 py-3 text-left">File</th>
-
                         <th className="px-4 py-3 text-center">Total</th>
-
                         <th className="px-4 py-3 text-center">Valid</th>
-
                         <th className="px-4 py-3 text-center">
                           Tanggal Import
                         </th>
-
                         <th className="px-4 py-3 text-center">Status</th>
-
                         <th className="px-4 py-3 text-center">Aksi</th>
                       </tr>
                     </thead>
@@ -486,34 +454,34 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                           key={item.id_import}
                           className="border-t hover:bg-gray-50"
                         >
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-4 py-3 text-center text-sm">
                             {index + 1}
                           </td>
 
                           <td className="px-4 py-3">
-                            <div className="font-semibold text-sm text-gray-800">
+                            <div className="text-sm font-semibold text-gray-800">
                               {item.file_name || "-"}
                             </div>
 
-                            <div className="text-[11px] text-gray-400 mt-1">
+                            <div className="mt-1 text-[11px] text-gray-400">
                               ID: {item.id_import}
                             </div>
                           </td>
 
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-4 py-3 text-center text-sm">
                             {item.total_rows ?? 0}
                           </td>
 
-                          <td className="px-4 py-3 text-sm text-center text-green-600 font-semibold">
+                          <td className="px-4 py-3 text-center text-sm font-semibold text-green-600">
                             {item.valid_rows ?? 0}
                           </td>
 
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-4 py-3 text-center text-sm">
                             {formatDateTime(item.created_at)}
                           </td>
 
                           <td className="px-4 py-3 text-center">
-                            <span className="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                               COMMITTED
                             </span>
                           </td>
@@ -522,7 +490,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                             <button
                               type="button"
                               onClick={() => handleViewDetail(item)}
-                              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-semibold transition"
+                              className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-600"
                             >
                               <BsEye size={15} />
                               Lihat Detail
@@ -537,11 +505,11 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
             </>
           ) : (
             <>
-              {/* ============================================ */}
-              {/* DETAIL HEADER */}
-              {/* ============================================ */}
+              {/* ============================================================ */}
+              {/* DETAIL HEADER                                                 */}
+              {/* ============================================================ */}
 
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+              <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <button
                     type="button"
@@ -551,7 +519,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                       setConfirmText("");
                       setShowRollbackConfirm(false);
                     }}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold mb-2"
+                    className="mb-2 text-xs font-semibold text-blue-600 hover:text-blue-800"
                   >
                     ← Kembali ke history
                   </button>
@@ -560,14 +528,14 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                     Detail Import
                   </h3>
 
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-gray-500">
                     {selectedImport.file_name || "-"}
                   </p>
                 </div>
 
-                {/* ========================================== */}
-                {/* ROLLBACK BUTTON */}
-                {/* ========================================== */}
+                {/* ========================================================== */}
+                {/* ROLLBACK ACTION                                             */}
+                {/* ========================================================== */}
 
                 <div className="flex flex-col items-end gap-2">
                   <button
@@ -578,10 +546,10 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                       setShowRollbackConfirm(true);
                     }}
                     disabled={isRollbackDisabled}
-                    className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                       isRollbackDisabled
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-red-600 hover:bg-red-700 text-white"
+                        ? "cursor-not-allowed bg-gray-300 text-gray-500"
+                        : "bg-red-600 text-white hover:bg-red-700"
                     }`}
                   >
                     <BsTrash3 size={16} />
@@ -591,11 +559,9 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                       : "Rollback Import"}
                   </button>
 
-                  {/* INFO DISABLE */}
-
                   {isRollbackDisabled && (
                     <div className="max-w-xs text-right">
-                      <p className="text-[11px] text-red-500 leading-relaxed">
+                      <p className="text-[11px] leading-relaxed text-red-500">
                         {rollbackRestriction.reason}
                       </p>
                     </div>
@@ -603,95 +569,88 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                 </div>
               </div>
 
-              {/* ============================================ */}
-              {/* SUMMARY */}
-              {/* ============================================ */}
+              {/* ============================================================ */}
+              {/* SUMMARY                                                       */}
+              {/* ============================================================ */}
 
               {selectedSummary && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-                  <div className="border rounded-xl p-4 bg-gray-50">
+                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border bg-gray-50 p-4">
                     <p className="text-xs text-gray-500">Total Row</p>
 
-                    <p className="text-xl font-bold text-gray-800 mt-1">
+                    <p className="mt-1 text-xl font-bold text-gray-800">
                       {selectedSummary.total}
                     </p>
                   </div>
 
-                  <div className="border rounded-xl p-4 bg-green-50">
+                  <div className="rounded-xl border bg-green-50 p-4">
                     <p className="text-xs text-green-600">Valid</p>
 
-                    <p className="text-xl font-bold text-green-700 mt-1">
+                    <p className="mt-1 text-xl font-bold text-green-700">
                       {selectedSummary.valid}
                     </p>
                   </div>
 
-                  <div className="border rounded-xl p-4 bg-red-50">
+                  <div className="rounded-xl border bg-red-50 p-4">
                     <p className="text-xs text-red-600">Invalid</p>
 
-                    <p className="text-xl font-bold text-red-700 mt-1">
+                    <p className="mt-1 text-xl font-bold text-red-700">
                       {selectedSummary.invalid}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* ============================================ */}
-              {/* IMPORT INFO */}
-              {/* ============================================ */}
+              {/* ============================================================ */}
+              {/* IMPORT INFO                                                   */}
+              {/* ============================================================ */}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-                <div className="border rounded-xl p-4">
+              <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="rounded-xl border p-4">
                   <p className="text-xs text-gray-500">File</p>
 
-                  <p className="text-sm font-semibold text-gray-800 mt-1 break-all">
+                  <p className="mt-1 break-all text-sm font-semibold text-gray-800">
                     {selectedImport.file_name || "-"}
                   </p>
                 </div>
 
-                <div className="border rounded-xl p-4">
+                <div className="rounded-xl border p-4">
                   <p className="text-xs text-gray-500">Waktu Import</p>
 
-                  <p className="text-sm font-semibold text-gray-800 mt-1">
+                  <p className="mt-1 text-sm font-semibold text-gray-800">
                     {formatDateTime(selectedImport.created_at)}
                   </p>
                 </div>
               </div>
 
-              {/* ============================================ */}
-              {/* DETAIL TABLE */}
-              {/* ============================================ */}
+              {/* ============================================================ */}
+              {/* DETAIL TABLE                                                  */}
+              {/* ============================================================ */}
 
               {isLoadingDetail ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-9 h-9 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="h-9 w-9 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
 
-                  <p className="text-xs text-gray-500 mt-3">
+                  <p className="mt-3 text-xs text-gray-500">
                     Memuat detail import...
                   </p>
                 </div>
               ) : selectedDetail.length === 0 ? (
-                <div className="text-center py-10 text-sm text-gray-500">
+                <div className="py-10 text-center text-sm text-gray-500">
                   Tidak ada detail import.
                 </div>
               ) : (
-                <div className="overflow-x-auto border rounded-xl max-h-[45vh]">
+                <div className="max-h-[45vh] overflow-x-auto rounded-xl border">
                   <table className="min-w-full">
-                    <thead className="bg-gray-100 sticky top-0 z-10">
+                    <thead className="sticky top-0 z-10 bg-gray-100">
                       <tr className="text-xs uppercase text-gray-600">
                         <th className="px-3 py-3 text-center">Row</th>
-
                         <th className="px-4 py-3 text-left">Kelas</th>
-
                         <th className="px-4 py-3 text-left">Mentor</th>
-
                         <th className="px-4 py-3 text-center">Tanggal</th>
-
                         <th className="px-4 py-3 text-center">Jam</th>
-
                         <th className="px-4 py-3 text-left">Topik</th>
-
                         <th className="px-4 py-3 text-center">Tipe</th>
-
                         <th className="px-4 py-3 text-center">Status</th>
                       </tr>
                     </thead>
@@ -702,7 +661,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                           key={detail.id_detail || index}
                           className="border-t hover:bg-gray-50"
                         >
-                          <td className="px-3 py-3 text-xs text-center">
+                          <td className="px-3 py-3 text-center text-xs">
                             {detail.row_number ?? index + 1}
                           </td>
 
@@ -714,7 +673,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                             {detail.mentor_raw || detail.nama_mentor || "-"}
                           </td>
 
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-4 py-3 text-center text-sm">
                             {formatDate(
                               detail.tanggal ||
                                 detail.tanggal_efektif ||
@@ -722,7 +681,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                             )}
                           </td>
 
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-4 py-3 text-center text-sm">
                             {formatTime(detail.waktu_mulai)} -{" "}
                             {formatTime(detail.waktu_selesai)}
                           </td>
@@ -733,7 +692,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
 
                           <td className="px-4 py-3 text-center">
                             <span
-                              className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
+                              className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
                                 detail.type_pertemuan === "ONLINE"
                                   ? "bg-blue-100 text-blue-700"
                                   : "bg-purple-100 text-purple-700"
@@ -746,7 +705,7 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                           </td>
 
                           <td className="px-4 py-3 text-center">
-                            <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-semibold">
+                            <span className="rounded-full bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-700">
                               {detail.status || "-"}
                             </span>
                           </td>
@@ -759,54 +718,26 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
             </>
           )}
         </div>
-        {/* ================================================== */}
-        {/* WARNING */}
-        {/* ================================================== */}
 
-        {/* {selectedImport && (
-          <div className="mt-5 p-4 mx-5 mb-5 rounded-xl bg-red-50 border border-red-200">
-            <div className="flex gap-3">
-              <div className="text-red-600 mt-0.5">
-                <BsTrash3 size={18} />
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-red-700">
-                  Perhatian sebelum rollback
-                </p>
-
-                {isRollbackDisabled && (
-                  <div className="mt-3 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
-                    <p className="text-xs text-yellow-700">
-                      Rollback tidak dapat dilakukan karena terdapat jadwal pada
-                      tanggal hari ini atau tanggal yang sudah terlewat.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )} */}
-
-        {/* ================================================== */}
-        {/* ROLLBACK CONFIRMATION */}
-        {/* ================================================== */}
+        {/* ================================================================== */}
+        {/* ROLLBACK CONFIRMATION                                              */}
+        {/* ================================================================== */}
 
         {showRollbackConfirm && selectedImport && (
           <div
-            className="absolute inset-0 z-20 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm"
             onClick={closeRollbackConfirm}
           >
             <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
-              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
             >
-              {/* ========================================== */}
-              {/* CONFIRM HEADER */}
-              {/* ========================================== */}
+              {/* ============================================================ */}
+              {/* CONFIRM HEADER                                                */}
+              {/* ============================================================ */}
 
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-100">
                   <BsTrash3 size={20} className="text-red-600" />
                 </div>
 
@@ -821,16 +752,16 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                 </div>
               </div>
 
-              {/* ========================================== */}
-              {/* WARNING BOX */}
-              {/* ========================================== */}
+              {/* ============================================================ */}
+              {/* WARNING BOX                                                   */}
+              {/* ============================================================ */}
 
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                <p className="text-xs text-red-700 leading-relaxed">
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4">
+                <p className="text-xs leading-relaxed text-red-700">
                   Anda akan menghapus seluruh jadwal yang berasal dari import:
                 </p>
 
-                <p className="text-sm font-bold text-red-800 mt-2 break-all">
+                <p className="mt-2 break-all text-sm font-bold text-red-800">
                   {selectedImport.file_name || "-"}
                 </p>
 
@@ -846,13 +777,13 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                 </div>
               </div>
 
-              {/* ========================================== */}
-              {/* CONFIRM INPUT */}
-              {/* ========================================== */}
+              {/* ============================================================ */}
+              {/* CONFIRM INPUT                                                 */}
+              {/* ============================================================ */}
 
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Ketik{" "}
-                <span className="text-red-600 font-bold">
+                <span className="font-bold text-red-600">
                   {ROLLBACK_CONFIRM_TEXT}
                 </span>{" "}
                 untuk melanjutkan
@@ -865,36 +796,36 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                 disabled={isRollbackLoading}
                 placeholder={ROLLBACK_CONFIRM_TEXT}
                 autoFocus
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
               />
 
-              {/* ========================================== */}
-              {/* VALIDATION TEXT */}
-              {/* ========================================== */}
+              {/* ============================================================ */}
+              {/* VALIDATION TEXT                                               */}
+              {/* ============================================================ */}
 
               {confirmText.length > 0 &&
                 confirmText !== ROLLBACK_CONFIRM_TEXT && (
-                  <p className="text-xs text-red-500 mt-2">
+                  <p className="mt-2 text-xs text-red-500">
                     Teks konfirmasi belum sesuai.
                   </p>
                 )}
 
               {confirmText === ROLLBACK_CONFIRM_TEXT && (
-                <p className="text-xs text-green-600 mt-2">
+                <p className="mt-2 text-xs text-green-600">
                   Konfirmasi benar. Anda dapat melanjutkan rollback.
                 </p>
               )}
 
-              {/* ========================================== */}
-              {/* ACTION BUTTON */}
-              {/* ========================================== */}
+              {/* ============================================================ */}
+              {/* CONFIRM ACTION                                                 */}
+              {/* ============================================================ */}
 
-              <div className="flex justify-end gap-3 mt-5">
+              <div className="mt-5 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeRollbackConfirm}
                   disabled={isRollbackLoading}
-                  className="px-4 py-2 rounded-xl border border-gray-300 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Batal
                 </button>
@@ -905,11 +836,11 @@ const ImportHistoryModal = ({ setShowModal, onRollbackSuccess }) => {
                   disabled={
                     isRollbackLoading || confirmText !== ROLLBACK_CONFIRM_TEXT
                   }
-                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   {isRollbackLoading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       Memproses...
                     </>
                   ) : (
