@@ -19,7 +19,7 @@ const AssignMentorModal = ({ onClose, onSave, excludedIds = [] }) => {
 
     try {
       // Sesuaikan endpoint ini dengan endpoint list mentor Anda
-      const res = await Api.get(`/mentor`);
+      const res = await Api.get(`/mentor?page=1&limit=999`);
 
       const list = Array.isArray(res.data)
         ? res.data
