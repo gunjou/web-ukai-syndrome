@@ -120,36 +120,28 @@ const EditTryoutModal = ({ data, onClose, onRefresh }) => {
     }
 
     setAssignLoading(true);
+
     try {
-      const payloadBase = {
+      const payload = {
         id_tryout: Number(data.id_tryout),
         id_batch: Number(selectedBatch),
+        id_paketkelas: selectedKelas.map(Number),
       };
 
-      if (selectedKelas.length === kelasDalamBatch.length) {
-        // Semua kelas terpilih → assign ke semua
-        await Api.post("/tryout/assign-to-class", payloadBase);
-      } else if (selectedKelas.length > 0) {
-        // Assign hanya ke kelas tertentu (dalam satu request)
-        await Api.post("/tryout/assign-to-class", {
-          ...payloadBase,
-          id_paketkelas: selectedKelas.map(Number), // array id_paketkelas
-        });
-      } else {
-        toast.info("Tidak ada kelas yang dipilih.");
-        setAssignLoading(false);
-        return;
-      }
+      await Api.post("/tryout/assign-to-class", payload);
+      console.log("payload:", payload);
 
-      toast.success("Assign berhasil");
+      toast.success("Assignment kelas berhasil diperbarui");
       onRefresh && onRefresh();
     } catch (err) {
       console.error("assign error:", err);
+
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         err?.message;
-      toast.error(msg || "Gagal assign tryout");
+
+      toast.error(msg || "Gagal memperbarui assignment kelas");
     } finally {
       setAssignLoading(false);
     }
