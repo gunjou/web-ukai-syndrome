@@ -14,6 +14,7 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import RedirectByRole from "./utils/RedirectByRole";
 import PrivateMentorshipLayout from "./pages/mentor/PrivateMentorshipLayout";
 import PrivateMateri from "./pages/mentor/PrivateMateri";
+import DaftarPayroll from "./pages/admin/DaftarPayroll";
 
 // LAZY LOAD (IMPORTANT)
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -38,8 +39,8 @@ const LaporanPage = lazy(() => import("./pages/admin/LaporanPage"));
 const User = lazy(() => import("./User"));
 const HomePageUser = lazy(() => import("./pages/users/HomePage"));
 const Pembayaran = lazy(() => import("./pages/users/Pembayaran"));
-const MateriPrivateListContent = lazy(() =>
-  import("./pages/users/MateriPrivateListContent")
+const MateriPrivateListContent = lazy(
+  () => import("./pages/users/MateriPrivateListContent"),
 );
 
 // MENTOR
@@ -146,6 +147,15 @@ function AppRoutes() {
             element={
               <ProtectedRoute allow={["superadmin"]}>
                 <DaftarAbsen />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payroll"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarPayroll />
               </ProtectedRoute>
             }
           />

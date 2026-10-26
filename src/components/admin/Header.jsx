@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
-import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
+import { CDN_ASSET_URL } from "../../utils/Api.jsx";
 import ProfileDropdown from "../../pages/admin/components/ProfileDropdown.jsx";
 
 const Header = () => {
@@ -27,6 +27,7 @@ const Header = () => {
     { name: "Batch", href: "/batch" },
     { name: "Kelas", href: "/kelas" },
     { name: "Jadwal", href: "/jadwal" },
+    { name: "Payroll", href: "/payroll" },
     { name: "Absen", href: "/daftarabsen" },
     { name: "Monitoring", href: "/monitoring-materi" },
     { name: "Private", href: "/private" },
@@ -99,7 +100,7 @@ const Header = () => {
         closeButton: false,
         draggable: false,
         pauseOnHover: false,
-      }
+      },
     );
 
     // OUTSIDE CLICK CLOSE

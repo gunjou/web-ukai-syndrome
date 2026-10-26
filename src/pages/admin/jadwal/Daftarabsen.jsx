@@ -3,6 +3,7 @@ import {
   AiOutlineClose,
   AiOutlineEye,
   AiOutlineFilePdf,
+  AiOutlineLogout,
   AiOutlineReload,
 } from "react-icons/ai";
 import Header from "../../../components/admin/Header.jsx";
@@ -10,6 +11,7 @@ import Api from "../../../utils/Api.jsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "react-toastify";
+import CheckoutMentorForm from "../modal/CheckoutMentorForm.jsx";
 
 const DaftarAbsen = () => {
   const [absensiData, setAbsensiData] = useState([]);
@@ -30,6 +32,7 @@ const DaftarAbsen = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [updatingParticipantId, setUpdatingParticipantId] = useState(null);
+  const [checkoutTarget, setCheckoutTarget] = useState(null);
 
   const fetchAbsensi = async () => {
     setIsLoading(true);
@@ -51,6 +54,7 @@ const DaftarAbsen = () => {
 
   useEffect(() => {
     fetchAbsensi();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const filteredData = useMemo(() => {
@@ -82,6 +86,42 @@ const DaftarAbsen = () => {
       setDetailError("Gagal memuat detail absensi.");
     } finally {
       setIsDetailLoading(false);
+    }
+  };
+
+  // --- CHECK-OUT OLEH ADMIN ---
+  // Hanya untuk mentor yang sudah check-in tapi belum check-out
+  const canAdminCheckout = (absensi) =>
+    Boolean(
+      absensi?.id_absensi_mentor &&
+      absensi?.check_in_at &&
+      !absensi?.check_out_at,
+    );
+
+  // Gabungkan data list + detail supaya check-in terbaru ikut terbawa
+  const getDetailCheckoutTarget = () => {
+    if (!selectedJadwal || !detailData) return null;
+
+    return {
+      ...selectedJadwal,
+      id_absensi_mentor:
+        selectedJadwal.id_absensi_mentor ||
+        detailData.mentor?.id_absensi_mentor,
+      check_in_at: detailData.mentor?.check_in_at ?? selectedJadwal.check_in_at,
+      check_out_at:
+        detailData.mentor?.check_out_at ?? selectedJadwal.check_out_at,
+    };
+  };
+
+  const handleCheckoutSuccess = () => {
+    fetchAbsensi();
+
+    if (
+      selectedJadwal &&
+      checkoutTarget &&
+      selectedJadwal.id_jadwal === checkoutTarget.id_jadwal
+    ) {
+      openDetail(selectedJadwal);
     }
   };
 
@@ -124,6 +164,25 @@ const DaftarAbsen = () => {
     return <span className="font-semibold text-green-700">Sudah check-in</span>;
   };
 
+  const getCheckOutStatus = (absensi) => {
+    if (absensi.check_out_at) {
+      return <span className="font-semibold text-green-700">Selesai</span>;
+    }
+
+    // Sudah check-in tapi belum check-out = perlu tindakan admin
+    return (
+      <span
+        className={`${
+          absensi.check_in_at
+            ? "font-semibold text-orange-600"
+            : "text-gray-500"
+        }`}
+      >
+        Belum check-out
+      </span>
+    );
+  };
+
   const updateParticipantStatus = async (participant, statusKehadiran) => {
     if (!participant.id_absensi_peserta || updatingParticipantId) return;
 
@@ -142,7 +201,7 @@ const DaftarAbsen = () => {
           peserta: (currentDetail.peserta || []).map((item) =>
             item.id_absensi_peserta === participant.id_absensi_peserta
               ? { ...item, status_kehadiran: statusKehadiran }
-              : item
+              : item,
           ),
         };
       });
@@ -150,11 +209,11 @@ const DaftarAbsen = () => {
     } catch (requestError) {
       console.error(
         "Gagal memperbarui status kehadiran peserta:",
-        requestError
+        requestError,
       );
       toast.error(
         requestError.response?.data?.message ||
-          "Gagal memperbarui status kehadiran peserta."
+          "Gagal memperbarui status kehadiran peserta.",
       );
     } finally {
       setUpdatingParticipantId(null);
@@ -188,24 +247,24 @@ const DaftarAbsen = () => {
       doc.text(
         `Kelas: ${jadwal.nama_kelas || selectedJadwal.nama_kelas || "-"}`,
         14,
-        22
+        22,
       );
       doc.text(
         `Mentor: ${mentor.nickname_mentor || mentor.nama_mentor || "-"}`,
         14,
-        28
+        28,
       );
       doc.text(
         `Tanggal: ${formatDate(jadwal.tanggal || selectedJadwal.tanggal)}`,
         14,
-        34
+        34,
       );
       doc.text(
         `Jadwal: ${formatTime(jadwal.waktu_mulai)} - ${formatTime(
-          jadwal.waktu_selesai
+          jadwal.waktu_selesai,
         )} | ${jadwal.type_pertemuan || selectedJadwal.type_pertemuan || "-"}`,
         14,
-        40
+        40,
       );
       doc.setTextColor(0);
 
@@ -228,12 +287,12 @@ const DaftarAbsen = () => {
       doc.text(
         `Check-in mentor: ${formatDateTime(mentor.check_in_at)}`,
         14,
-        nextY
+        nextY,
       );
       doc.text(
         `Check-out mentor: ${formatDateTime(mentor.check_out_at)}`,
         14,
-        nextY + 6
+        nextY + 6,
       );
       nextY += 14;
 
@@ -264,12 +323,14 @@ const DaftarAbsen = () => {
         .replace(/^-|-$/g, "")
         .toLowerCase();
       doc.save(
-        `absensi-${safeClassName || "kelas"}-${jadwal.tanggal || "detail"}.pdf`
+        `absensi-${safeClassName || "kelas"}-${jadwal.tanggal || "detail"}.pdf`,
       );
     } finally {
       setIsExporting(false);
     }
   };
+
+  const detailCheckoutTarget = getDetailCheckoutTarget();
 
   return (
     <div className="user bg-gradient-to-r from-[#a11d1d] to-[#531d1d] min-h-screen relative px-4">
@@ -378,23 +439,37 @@ const DaftarAbsen = () => {
                         {getCheckInStatus(absensi)}
                       </td>
                       <td className="px-4 py-2 text-sm border text-center">
-                        {absensi.check_out_at ? (
-                          <span className="font-semibold text-green-700">
-                            Selesai
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">Belum check-out</span>
-                        )}
+                        {getCheckOutStatus(absensi)}
                       </td>
                       <td className="px-4 py-2 text-sm border text-center">
-                        <button
-                          type="button"
-                          onClick={() => openDetail(absensi)}
-                          title="Lihat detail absensi"
-                          className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition"
-                        >
-                          <AiOutlineEye className="w-4 h-4" />
-                        </button>
+                        <div className="flex justify-center gap-2">
+                          <div className="relative group">
+                            <button
+                              type="button"
+                              onClick={() => openDetail(absensi)}
+                              className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition"
+                            >
+                              <AiOutlineEye className="w-4 h-4" />
+                            </button>
+                            <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                              Lihat detail
+                            </span>
+                          </div>
+                          {canAdminCheckout(absensi) && (
+                            <div className="relative group">
+                              <button
+                                type="button"
+                                onClick={() => setCheckoutTarget(absensi)}
+                                className="p-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white transition"
+                              >
+                                <AiOutlineLogout className="w-4 h-4" />
+                              </button>
+                              <span className="absolute bottom-full z-10 mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-700 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
+                                Check-out mentor
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -471,11 +546,26 @@ const DaftarAbsen = () => {
                       {formatDateTime(detailData.mentor?.check_in_at)}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div
+                    className={`rounded-lg p-4 ${
+                      canAdminCheckout(detailCheckoutTarget)
+                        ? "bg-orange-50 border border-orange-200"
+                        : "bg-gray-50"
+                    }`}
+                  >
                     <p className="text-gray-500">Check-out</p>
                     <p className="font-semibold">
                       {formatDateTime(detailData.mentor?.check_out_at)}
                     </p>
+                    {canAdminCheckout(detailCheckoutTarget) && (
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutTarget(detailCheckoutTarget)}
+                        className="mt-2 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                      >
+                        <AiOutlineLogout /> Check-out oleh Admin
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -552,7 +642,7 @@ const DaftarAbsen = () => {
                                 onChange={(event) =>
                                   updateParticipantStatus(
                                     peserta,
-                                    event.target.value
+                                    event.target.value,
                                   )
                                 }
                                 disabled={
@@ -564,8 +654,8 @@ const DaftarAbsen = () => {
                                   peserta.status_kehadiran === "HADIR"
                                     ? "bg-green-100 text-green-700 border-green-200"
                                     : peserta.status_kehadiran === "BELUM ABSEN"
-                                    ? "bg-gray-100 text-gray-600 border-gray-200"
-                                    : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                      ? "bg-gray-100 text-gray-600 border-gray-200"
+                                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
                                 }`}
                                 title={
                                   peserta.id_absensi_peserta
@@ -595,6 +685,34 @@ const DaftarAbsen = () => {
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CHECK-OUT OLEH ADMIN */}
+      {checkoutTarget && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setCheckoutTarget(null)}
+        >
+          <div
+            className="bg-white p-6 rounded-2xl shadow-xl relative w-full max-w-md animate-slide-up"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setCheckoutTarget(null)}
+              className="absolute top-2 right-2 p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200 z-[70]"
+              title="Tutup"
+            >
+              <AiOutlineClose size={24} />
+            </button>
+
+            <CheckoutMentorForm
+              absensi={checkoutTarget}
+              onClose={() => setCheckoutTarget(null)}
+              onSuccess={handleCheckoutSuccess}
+            />
           </div>
         </div>
       )}
