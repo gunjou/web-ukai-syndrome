@@ -26,6 +26,7 @@ const TambahJadwalForm = ({
   // ========================================================================
 
   const [kelasOptions, setKelasOptions] = useState([]);
+  const [kelompokOptions, setKelompokOptions] = useState([]);
   const [mentorOptions, setMentorOptions] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +34,7 @@ const TambahJadwalForm = ({
 
   const [formData, setFormData] = useState({
     id_paketkelas: "",
+    id_kelompok: "",
     id_mentor: "",
     tanggal: "",
     waktu_mulai: "",
@@ -72,16 +74,26 @@ const TambahJadwalForm = ({
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [kelasRes, mentorRes] = await Promise.all([
+        const [kelasRes, kelompokRes, mentorRes] = await Promise.all([
           Api.get("/paket-kelas?limit=999"),
+          Api.get("/kelompok/all"),
           Api.get("/jadwal/mentor-dropdown"),
         ]);
 
         setKelasOptions(kelasRes.data?.data || []);
+        const kelompokPayload = kelompokRes.data;
+        const kelompokRows = Array.isArray(kelompokPayload)
+          ? kelompokPayload
+          : Array.isArray(kelompokPayload?.data)
+          ? kelompokPayload.data
+          : Array.isArray(kelompokPayload?.data?.data)
+          ? kelompokPayload.data.data
+          : [];
+        setKelompokOptions(kelompokRows);
         setMentorOptions(mentorRes.data?.data || []);
       } catch (error) {
         console.error("Gagal mengambil data dropdown:", error);
-        toast.error("Gagal memuat data dropdown");
+        toast.error("Gagal memuat data kelas, kelompok, atau mentor");
       } finally {
         setIsLoading(false);
       }
@@ -100,12 +112,24 @@ const TambahJadwalForm = ({
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "type_pertemuan"
+        ? value === "OFFLINE"
+          ? { id_paketkelas: "" }
+          : { id_kelompok: "" }
+        : {}),
     }));
 
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
+      }));
+    }
+    if (name === "type_pertemuan") {
+      setErrors((prev) => ({
+        ...prev,
+        id_paketkelas: "",
+        id_kelompok: "",
       }));
     }
   };
@@ -117,7 +141,11 @@ const TambahJadwalForm = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.id_paketkelas) {
+    if (formData.type_pertemuan === "OFFLINE" && !formData.id_kelompok) {
+      newErrors.id_kelompok = "Kelompok harus dipilih";
+    }
+
+    if (formData.type_pertemuan !== "OFFLINE" && !formData.id_paketkelas) {
       newErrors.id_paketkelas = "Kelas harus dipilih";
     }
 
@@ -166,7 +194,9 @@ const TambahJadwalForm = ({
 
     try {
       const payload = {
-        id_paketkelas: parseInt(formData.id_paketkelas, 10),
+        ...(formData.type_pertemuan === "OFFLINE"
+          ? { id_kelompok: parseInt(formData.id_kelompok, 10) }
+          : { id_paketkelas: parseInt(formData.id_paketkelas, 10) }),
         id_mentor: parseInt(formData.id_mentor, 10),
         tanggal: formData.tanggal,
         waktu_mulai: formData.waktu_mulai,
@@ -418,7 +448,7 @@ const TambahJadwalForm = ({
   const getErrorCount = () => {
     return bulkErrors.reduce(
       (total, rowError) => total + (rowError.errors?.length || 0),
-      0,
+      0
     );
   };
 
@@ -472,7 +502,7 @@ const TambahJadwalForm = ({
               </p>
 
               <p className="mt-1 text-xs text-gray-400">
-                Menyiapkan data kelas dan mentor
+                Menyiapkan data kelas, kelompok, dan mentor
               </p>
             </div>
           ) : (
@@ -513,43 +543,110 @@ const TambahJadwalForm = ({
               {/* MODE MANUAL                                                        */}
               {/* ================================================================== */}
 
+              {/* Tipe Pertemuan */}
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Tipe Pertemuan <span className="text-red-500">*</span>
+                </label>
+
+                <div className="flex gap-4">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="type_pertemuan"
+                      value="ONLINE"
+                      checked={formData.type_pertemuan === "ONLINE"}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-red-500"
+                    />
+
+                    <span className="text-sm text-gray-700">ONLINE</span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="type_pertemuan"
+                      value="OFFLINE"
+                      checked={formData.type_pertemuan === "OFFLINE"}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-red-500"
+                    />
+
+                    <span className="text-sm text-gray-700">OFFLINE</span>
+                  </label>
+                </div>
+              </div>
+
               {mode === "manual" && (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Kelas */}
-
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">
-                      Kelas <span className="text-red-500">*</span>
-                    </label>
-
-                    <select
-                      name="id_paketkelas"
-                      value={formData.id_paketkelas}
-                      onChange={handleInputChange}
-                      className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-red-500 ${
-                        errors.id_paketkelas
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">-- Pilih Kelas --</option>
-
-                      {kelasOptions.map((kelas) => (
-                        <option
-                          key={kelas.id_paketkelas}
-                          value={kelas.id_paketkelas}
-                        >
-                          {kelas.nama_kelas}
-                        </option>
-                      ))}
-                    </select>
-
-                    {errors.id_paketkelas && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {errors.id_paketkelas}
-                      </p>
-                    )}
-                  </div>
+                  {formData.type_pertemuan === "OFFLINE" ? (
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-700">
+                        Kelompok <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="id_kelompok"
+                        value={formData.id_kelompok}
+                        onChange={handleInputChange}
+                        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-red-500 ${
+                          errors.id_kelompok
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">-- Pilih Kelompok --</option>
+                        {kelompokOptions.map((kelompok) => (
+                          <option
+                            key={kelompok.id_kelompok}
+                            value={kelompok.id_kelompok}
+                          >
+                            {kelompok.nama_kelompok}
+                            {kelompok.nama_batch
+                              ? ` (${kelompok.nama_batch})`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.id_kelompok && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.id_kelompok}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-700">
+                        Kelas <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="id_paketkelas"
+                        value={formData.id_paketkelas}
+                        onChange={handleInputChange}
+                        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-red-500 ${
+                          errors.id_paketkelas
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">-- Pilih Kelas --</option>
+                        {kelasOptions.map((kelas) => (
+                          <option
+                            key={kelas.id_paketkelas}
+                            value={kelas.id_paketkelas}
+                          >
+                            {kelas.nama_kelas}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.id_paketkelas && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.id_paketkelas}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Mentor */}
 
@@ -655,42 +752,6 @@ const TambahJadwalForm = ({
                           {errors.waktu_selesai}
                         </p>
                       )}
-                    </div>
-                  </div>
-
-                  {/* Tipe Pertemuan */}
-
-                  <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">
-                      Tipe Pertemuan <span className="text-red-500">*</span>
-                    </label>
-
-                    <div className="flex gap-4">
-                      <label className="flex cursor-pointer items-center gap-2">
-                        <input
-                          type="radio"
-                          name="type_pertemuan"
-                          value="ONLINE"
-                          checked={formData.type_pertemuan === "ONLINE"}
-                          onChange={handleInputChange}
-                          className="h-4 w-4 text-red-500"
-                        />
-
-                        <span className="text-sm text-gray-700">ONLINE</span>
-                      </label>
-
-                      <label className="flex cursor-pointer items-center gap-2">
-                        <input
-                          type="radio"
-                          name="type_pertemuan"
-                          value="OFFLINE"
-                          checked={formData.type_pertemuan === "OFFLINE"}
-                          onChange={handleInputChange}
-                          className="h-4 w-4 text-red-500"
-                        />
-
-                        <span className="text-sm text-gray-700">OFFLINE</span>
-                      </label>
                     </div>
                   </div>
 

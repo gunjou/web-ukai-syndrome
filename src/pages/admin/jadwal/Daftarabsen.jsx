@@ -94,8 +94,8 @@ const DaftarAbsen = () => {
   const canAdminCheckout = (absensi) =>
     Boolean(
       absensi?.id_absensi_mentor &&
-      absensi?.check_in_at &&
-      !absensi?.check_out_at,
+        absensi?.check_in_at &&
+        !absensi?.check_out_at
     );
 
   // Gabungkan data list + detail supaya check-in terbaru ikut terbawa
@@ -201,7 +201,7 @@ const DaftarAbsen = () => {
           peserta: (currentDetail.peserta || []).map((item) =>
             item.id_absensi_peserta === participant.id_absensi_peserta
               ? { ...item, status_kehadiran: statusKehadiran }
-              : item,
+              : item
           ),
         };
       });
@@ -209,11 +209,11 @@ const DaftarAbsen = () => {
     } catch (requestError) {
       console.error(
         "Gagal memperbarui status kehadiran peserta:",
-        requestError,
+        requestError
       );
       toast.error(
         requestError.response?.data?.message ||
-          "Gagal memperbarui status kehadiran peserta.",
+          "Gagal memperbarui status kehadiran peserta."
       );
     } finally {
       setUpdatingParticipantId(null);
@@ -247,24 +247,24 @@ const DaftarAbsen = () => {
       doc.text(
         `Kelas: ${jadwal.nama_kelas || selectedJadwal.nama_kelas || "-"}`,
         14,
-        22,
+        22
       );
       doc.text(
         `Mentor: ${mentor.nickname_mentor || mentor.nama_mentor || "-"}`,
         14,
-        28,
+        28
       );
       doc.text(
         `Tanggal: ${formatDate(jadwal.tanggal || selectedJadwal.tanggal)}`,
         14,
-        34,
+        34
       );
       doc.text(
         `Jadwal: ${formatTime(jadwal.waktu_mulai)} - ${formatTime(
-          jadwal.waktu_selesai,
+          jadwal.waktu_selesai
         )} | ${jadwal.type_pertemuan || selectedJadwal.type_pertemuan || "-"}`,
         14,
-        40,
+        40
       );
       doc.setTextColor(0);
 
@@ -287,12 +287,12 @@ const DaftarAbsen = () => {
       doc.text(
         `Check-in mentor: ${formatDateTime(mentor.check_in_at)}`,
         14,
-        nextY,
+        nextY
       );
       doc.text(
         `Check-out mentor: ${formatDateTime(mentor.check_out_at)}`,
         14,
-        nextY + 6,
+        nextY + 6
       );
       nextY += 14;
 
@@ -323,7 +323,7 @@ const DaftarAbsen = () => {
         .replace(/^-|-$/g, "")
         .toLowerCase();
       doc.save(
-        `absensi-${safeClassName || "kelas"}-${jadwal.tanggal || "detail"}.pdf`,
+        `absensi-${safeClassName || "kelas"}-${jadwal.tanggal || "detail"}.pdf`
       );
     } finally {
       setIsExporting(false);
@@ -400,7 +400,7 @@ const DaftarAbsen = () => {
                 <thead className="bg-gray-200 sticky top-0 z-10 border-b">
                   <tr className="text-xs uppercase text-gray-700">
                     <th className="px-4 py-3">No</th>
-                    <th className="px-4 py-3 text-left">Kelas</th>
+                    <th className="px-4 py-3 text-left">Kelas / Kelompok</th>
                     <th className="px-4 py-3 text-left">Mentor</th>
                     <th className="px-4 py-3 text-center">Tanggal</th>
                     <th className="px-4 py-3 text-center">Jam</th>
@@ -420,7 +420,7 @@ const DaftarAbsen = () => {
                         {index + 1}
                       </td>
                       <td className="px-4 py-2 text-sm border font-semibold">
-                        {absensi.nama_kelas || "-"}
+                        {absensi.nama_kelas || absensi.nama_kelompok || "-"}
                       </td>
                       <td className="px-4 py-2 text-sm border">
                         {absensi.nickname_mentor || absensi.nama_mentor || "-"}
@@ -642,7 +642,7 @@ const DaftarAbsen = () => {
                                 onChange={(event) =>
                                   updateParticipantStatus(
                                     peserta,
-                                    event.target.value,
+                                    event.target.value
                                   )
                                 }
                                 disabled={
@@ -654,8 +654,8 @@ const DaftarAbsen = () => {
                                   peserta.status_kehadiran === "HADIR"
                                     ? "bg-green-100 text-green-700 border-green-200"
                                     : peserta.status_kehadiran === "BELUM ABSEN"
-                                      ? "bg-gray-100 text-gray-600 border-gray-200"
-                                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                    ? "bg-gray-100 text-gray-600 border-gray-200"
+                                    : "bg-yellow-100 text-yellow-700 border-yellow-200"
                                 }`}
                                 title={
                                   peserta.id_absensi_peserta

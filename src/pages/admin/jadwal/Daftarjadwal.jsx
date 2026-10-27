@@ -26,6 +26,7 @@ import SwitchMentorModal from "./modal/SwitchMentorModal.jsx";
 
 const INITIAL_PER_PAGE = 50;
 const SEARCH_DEBOUNCE = 500;
+const OFFLINE_FETCH_SIZE = 100; // [OFFLINE] ukuran per request saat ambil semua data
 
 // ========================================================================
 // DATE HELPER
@@ -36,7 +37,7 @@ const getCurrentMonth = () => {
 
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
     2,
-    "0",
+    "0"
   )}`;
 };
 
@@ -75,6 +76,59 @@ const getMonthDateRange = (monthValue) => {
 };
 
 // ========================================================================
+// [OFFLINE] FILTER OFFLINE DI FRONTEND
+// ========================================================================
+
+const filterOfflineRows = (rows, search, destinationId, startDate, endDate) => {
+  const keyword = String(search || "")
+    .trim()
+    .toLowerCase();
+
+  return rows.filter((jadwal) => {
+    // Tipe harus OFFLINE
+    const type = String(jadwal.type_pertemuan || "")
+      .trim()
+      .toUpperCase();
+
+    if (type !== "OFFLINE") return false;
+
+    // Kelompok
+    if (destinationId) {
+      const idKelompok = jadwal.id_kelompok ?? jadwal.kelompok?.id_kelompok;
+
+      if (String(idKelompok) !== String(destinationId)) return false;
+    }
+
+    // Periode (tanggal efektif karena jadwal bisa di-reschedule)
+    const tanggal = String(
+      jadwal.tanggal_efektif || jadwal.tanggal || ""
+    ).slice(0, 10);
+
+    if (startDate && (!tanggal || tanggal < startDate)) return false;
+    if (endDate && (!tanggal || tanggal > endDate)) return false;
+
+    // Pencarian
+    if (keyword) {
+      const haystack = [
+        jadwal.nama_kelas,
+        jadwal.nama_kelompok,
+        jadwal.kelompok?.nama_kelompok,
+        jadwal.nama_mentor,
+        jadwal.topik,
+        jadwal.catatan,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!haystack.includes(keyword)) return false;
+    }
+
+    return true;
+  });
+};
+
+// ========================================================================
 // MAIN COMPONENT
 // ========================================================================
 
@@ -84,7 +138,8 @@ const DaftarJadwal = () => {
   // ========================================================================
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterKelas, setFilterKelas] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterDestinationId, setFilterDestinationId] = useState("");
 
   const [periodMode, setPeriodMode] = useState("month");
   const [filterMonth, setFilterMonth] = useState(getCurrentMonth());
@@ -97,6 +152,7 @@ const DaftarJadwal = () => {
 
   const [jadwalData, setJadwalData] = useState([]);
   const [kelasOptions, setKelasOptions] = useState([]);
+  const [kelompokOptions, setKelompokOptions] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -140,6 +196,39 @@ const DaftarJadwal = () => {
   }, [periodMode, filterMonth, filterStartDate, filterEndDate]);
 
   // ========================================================================
+  // [OFFLINE] FETCH SEMUA DATA TANPA FILTER BACKEND
+  // ========================================================================
+
+  const fetchAllJadwalRows = useCallback(async () => {
+    let page = 1;
+    let totalPages = 1;
+    const rows = [];
+
+    do {
+      const response = await Api.get(
+        `/jadwal?page=${page}&per_page=${OFFLINE_FETCH_SIZE}`
+      );
+
+      const result = response?.data;
+      const data = Array.isArray(result?.data) ? result.data : [];
+      const meta = result?.meta || {};
+
+      rows.push(...data);
+
+      totalPages =
+        Number(meta.total_pages) ||
+        (meta.total ? Math.ceil(Number(meta.total) / OFFLINE_FETCH_SIZE) : 1);
+
+      // berhenti kalau halaman kosong, mencegah loop tak berujung
+      if (data.length === 0) break;
+
+      page += 1;
+    } while (page <= totalPages && page <= 200);
+
+    return rows;
+  }, []);
+
+  // ========================================================================
   // FETCH JADWAL
   // ========================================================================
 
@@ -147,15 +236,50 @@ const DaftarJadwal = () => {
     async (
       page = 1,
       search = "",
-      kelasId = "",
+      meetingType = "",
+      destinationId = "",
       currentPerPage = INITIAL_PER_PAGE,
       startDate = "",
-      endDate = "",
+      endDate = ""
     ) => {
       setIsLoading(true);
       setError("");
 
       try {
+        // ================================================================
+        // [OFFLINE] FILTER DI FRONTEND
+        // ================================================================
+
+        if (meetingType === "OFFLINE") {
+          const allRows = await fetchAllJadwalRows();
+
+          const filtered = filterOfflineRows(
+            allRows,
+            search,
+            destinationId,
+            startDate,
+            endDate
+          );
+
+          const total = filtered.length;
+          const pages = Math.max(Math.ceil(total / currentPerPage), 1);
+          const safePage = Math.min(Math.max(page, 1), pages);
+          const startIndex = (safePage - 1) * currentPerPage;
+
+          setJadwalData(
+            filtered.slice(startIndex, startIndex + currentPerPage)
+          );
+          setCurrentPage(safePage);
+          setTotalData(total);
+          setTotalPage(pages);
+
+          return;
+        }
+
+        // ================================================================
+        // ONLINE / SEMUA TIPE - TETAP LEWAT BACKEND
+        // ================================================================
+
         const params = new URLSearchParams();
 
         params.set("page", page);
@@ -167,8 +291,15 @@ const DaftarJadwal = () => {
           params.set("search", trimmedSearch);
         }
 
-        if (kelasId) {
-          params.set("id_paketkelas", kelasId);
+        if (meetingType) {
+          params.set("type_pertemuan", meetingType);
+          params.set("type", meetingType);
+        }
+
+        if (destinationId && meetingType === "ONLINE") {
+          params.set("id_paketkelas", destinationId);
+        } else if (destinationId && meetingType === "OFFLINE") {
+          params.set("id_kelompok", destinationId);
         }
 
         if (startDate) {
@@ -213,22 +344,39 @@ const DaftarJadwal = () => {
         setIsLoading(false);
       }
     },
-    [],
+    [fetchAllJadwalRows]
   );
 
   // ========================================================================
   // FETCH KELAS
   // ========================================================================
 
-  const fetchKelasOptions = useCallback(async () => {
-    try {
-      const response = await Api.get("/paket-kelas?limit=999");
+  const fetchFilterOptions = useCallback(async () => {
+    const [kelasResult, kelompokResult] = await Promise.allSettled([
+      Api.get("/paket-kelas?limit=999"),
+      Api.get("/kelompok/all"),
+    ]);
 
-      const result = response?.data;
-
+    if (kelasResult.status === "fulfilled") {
+      const result = kelasResult.value?.data;
       setKelasOptions(Array.isArray(result?.data) ? result.data : []);
-    } catch (error) {
-      console.error("Gagal mengambil data kelas:", error);
+    } else {
+      console.error("Gagal mengambil data kelas:", kelasResult.reason);
+    }
+
+    if (kelompokResult.status === "fulfilled") {
+      const payload = kelompokResult.value?.data;
+      const rows = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.data)
+        ? payload.data.data
+        : [];
+      setKelompokOptions(rows);
+    } else {
+      console.error("Gagal mengambil data kelompok:", kelompokResult.reason);
+      toast.error("Gagal memuat daftar kelompok.");
     }
   }, []);
 
@@ -239,28 +387,36 @@ const DaftarJadwal = () => {
   const debouncedFetch = useMemo(
     () =>
       debounce(
-        (nextSearch, nextKelas, nextPerPage, nextStartDate, nextEndDate) => {
+        (
+          nextSearch,
+          nextType,
+          nextDestinationId,
+          nextPerPage,
+          nextStartDate,
+          nextEndDate
+        ) => {
           fetchJadwalData(
             1,
             nextSearch,
-            nextKelas,
+            nextType,
+            nextDestinationId,
             nextPerPage,
             nextStartDate,
-            nextEndDate,
+            nextEndDate
           );
         },
-        SEARCH_DEBOUNCE,
+        SEARCH_DEBOUNCE
       ),
-    [fetchJadwalData],
+    [fetchJadwalData]
   );
 
   // ========================================================================
-  // INITIAL LOAD - KELAS
+  // INITIAL LOAD - CLASS AND GROUP FILTERS
   // ========================================================================
 
   useEffect(() => {
-    fetchKelasOptions();
-  }, [fetchKelasOptions]);
+    fetchFilterOptions();
+  }, [fetchFilterOptions]);
 
   // ========================================================================
   // FILTER CHANGE
@@ -271,10 +427,11 @@ const DaftarJadwal = () => {
 
     debouncedFetch(
       searchTerm,
-      filterKelas,
+      filterType,
+      filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate,
+      activeDateRange.endDate
     );
 
     return () => {
@@ -282,7 +439,8 @@ const DaftarJadwal = () => {
     };
   }, [
     searchTerm,
-    filterKelas,
+    filterType,
+    filterDestinationId,
     filterMonth,
     perPage,
     activeDateRange.startDate,
@@ -304,10 +462,11 @@ const DaftarJadwal = () => {
     fetchJadwalData(
       newPage,
       searchTerm,
-      filterKelas,
+      filterType,
+      filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate,
+      activeDateRange.endDate
     );
   };
 
@@ -319,16 +478,18 @@ const DaftarJadwal = () => {
     fetchJadwalData(
       currentPage,
       searchTerm,
-      filterKelas,
+      filterType,
+      filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate,
+      activeDateRange.endDate
     );
   }, [
     fetchJadwalData,
     currentPage,
     searchTerm,
-    filterKelas,
+    filterType,
+    filterDestinationId,
     perPage,
     activeDateRange.startDate,
     activeDateRange.endDate,
@@ -342,8 +503,13 @@ const DaftarJadwal = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleFilterKelasChange = (event) => {
-    setFilterKelas(event.target.value);
+  const handleFilterTypeChange = (event) => {
+    setFilterType(event.target.value);
+    setFilterDestinationId("");
+  };
+
+  const handleFilterDestinationChange = (event) => {
+    setFilterDestinationId(event.target.value);
   };
 
   const handlePeriodModeChange = (event) => {
@@ -396,7 +562,8 @@ const DaftarJadwal = () => {
 
   const handleResetFilter = () => {
     setSearchTerm("");
-    setFilterKelas("");
+    setFilterType("");
+    setFilterDestinationId("");
     setPeriodMode("month");
     setFilterMonth(getCurrentMonth());
     setFilterStartDate("");
@@ -447,10 +614,11 @@ const DaftarJadwal = () => {
         await fetchJadwalData(
           currentPage,
           searchTerm,
-          filterKelas,
+          filterType,
+          filterDestinationId,
           perPage,
           activeDateRange.startDate,
-          activeDateRange.endDate,
+          activeDateRange.endDate
         );
       } catch (error) {
         console.error("Gagal menghapus jadwal:", error);
@@ -609,70 +777,52 @@ const DaftarJadwal = () => {
           key={jadwal.id_jadwal}
           className="border-b text-sm transition-colors hover:bg-gray-50"
         >
-          {/* ================================================================
-              NOMOR
-          ================================================================ */}
+          {/* NOMOR */}
           <td className="whitespace-nowrap px-4 py-3 text-gray-600">{nomor}</td>
 
-          {/* ================================================================
-              NAMA KELAS
-          ================================================================ */}
+          {/* TUJUAN JADWAL */}
           <td className="px-4 py-3 font-semibold text-gray-800">
-            {jadwal.nama_kelas || "-"}
+            {jadwal.type_pertemuan === "OFFLINE"
+              ? jadwal.nama_kelompok || jadwal.kelompok?.nama_kelompok || "-"
+              : jadwal.nama_kelas || "-"}
           </td>
 
-          {/* ================================================================
-              MENTOR
-          ================================================================ */}
+          {/* MENTOR */}
           <td className="px-4 py-3 text-gray-700">
             {jadwal.nama_mentor || "-"}
           </td>
 
-          {/* ================================================================
-              TANGGAL
-          ================================================================ */}
+          {/* TANGGAL */}
           <td className="whitespace-nowrap px-4 py-3 text-center text-gray-700">
             {formatDate(tanggalEfektif)}
           </td>
 
-          {/* ================================================================
-              JAM
-          ================================================================ */}
+          {/* JAM */}
           <td className="whitespace-nowrap px-4 py-3 text-center text-gray-700">
             {formatTime(waktuMulai)} - {formatTime(waktuSelesai)}
           </td>
 
-          {/* ================================================================
-              TIPE PERTEMUAN
-          ================================================================ */}
+          {/* TIPE PERTEMUAN */}
           <td className="px-4 py-3 text-center">
             {getTypePertemuanBadge(jadwal.type_pertemuan)}
           </td>
 
-          {/* ================================================================
-              TOPIK
-          ================================================================ */}
+          {/* TOPIK */}
           <td className="max-w-xs px-4 py-3 text-gray-700">
             <div className="line-clamp-2">{jadwal.topik || "-"}</div>
           </td>
 
-          {/* ================================================================
-              CATATAN
-          ================================================================ */}
+          {/* CATATAN */}
           <td className="max-w-xs px-4 py-3 text-gray-600">
             <div className="line-clamp-2">{jadwal.catatan || "-"}</div>
           </td>
 
-          {/* ================================================================
-              STATUS
-          ================================================================ */}
+          {/* STATUS */}
           <td className="px-4 py-3 text-center">
             {getStatusBadge(jadwal.status)}
           </td>
 
-          {/* ================================================================
-              AKSI
-          ================================================================ */}
+          {/* AKSI */}
           <td className="px-4 py-3">
             <div className="flex items-center justify-center gap-2">
               {/* EDIT */}
@@ -752,25 +902,12 @@ const DaftarJadwal = () => {
   return (
     <div className="user relative min-h-screen bg-gradient-to-r from-[#a11d1d] to-[#531d1d] px-4">
       <Header />
-      {/* ====================================================================
-          HEADER
-      ==================================================================== */}
-
-      {/* ====================================================================
-          MAIN CONTENT
-      ==================================================================== */}
 
       <main className="px-4 py-3 md:px-5 md:py-4">
         <div className="rounded-xl bg-white shadow-sm">
-          {/* ==================================================================
-              HEADER
-          ================================================================== */}
-
+          {/* HEADER */}
           <div className="border-b px-4 py-3 md:px-5">
-            {/* ================================================================
-                ROW 1 - TITLE & ACTION
-            ================================================================ */}
-
+            {/* ROW 1 - TITLE & ACTION */}
             <div className="flex items-center justify-between gap-3">
               {/* TITLE */}
               <div className="min-w-0">
@@ -810,10 +947,7 @@ const DaftarJadwal = () => {
               </div>
             </div>
 
-            {/* ================================================================
-                ROW 2 - FILTER
-            ================================================================ */}
-
+            {/* ROW 2 - FILTER */}
             <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
               {/* SEARCH */}
               <div className="relative w-48">
@@ -821,28 +955,22 @@ const DaftarJadwal = () => {
                   type="text"
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  placeholder="Cari kelas/mentor/topik..."
+                  placeholder="Cari kelas/kelompok/mentor/topik..."
                   className="h-8 w-full rounded-md border border-gray-300 bg-white px-2.5 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
                 />
               </div>
 
-              {/* KELAS */}
-              <div className="relative w-40">
+              {/* MEETING TYPE */}
+              <div className="relative w-32">
                 <select
-                  value={filterKelas}
-                  onChange={handleFilterKelasChange}
+                  value={filterType}
+                  onChange={handleFilterTypeChange}
+                  aria-label="Filter tipe pertemuan"
                   className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
                 >
-                  <option value="">Semua Kelas</option>
-
-                  {kelasOptions.map((kelas) => (
-                    <option
-                      key={kelas.id_paketkelas}
-                      value={kelas.id_paketkelas}
-                    >
-                      {kelas.nama_kelas}
-                    </option>
-                  ))}
+                  <option value="">Semua Tipe</option>
+                  <option value="ONLINE">ONLINE</option>
+                  <option value="OFFLINE">OFFLINE</option>
                 </select>
 
                 <svg
@@ -857,6 +985,72 @@ const DaftarJadwal = () => {
                   />
                 </svg>
               </div>
+
+              {/* CLASS OR GROUP */}
+              {filterType === "ONLINE" && (
+                <div className="relative w-40">
+                  <select
+                    value={filterDestinationId}
+                    onChange={handleFilterDestinationChange}
+                    aria-label="Filter berdasarkan kelas"
+                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                  >
+                    <option value="">Semua Kelas</option>
+                    {kelasOptions.map((kelas) => (
+                      <option
+                        key={kelas.id_paketkelas}
+                        value={kelas.id_paketkelas}
+                      >
+                        {kelas.nama_kelas}
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
+
+              {filterType === "OFFLINE" && (
+                <div className="relative w-44">
+                  <select
+                    value={filterDestinationId}
+                    onChange={handleFilterDestinationChange}
+                    aria-label="Filter berdasarkan kelompok"
+                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                  >
+                    <option value="">Semua Kelompok</option>
+                    {kelompokOptions.map((kelompok) => (
+                      <option
+                        key={kelompok.id_kelompok}
+                        value={kelompok.id_kelompok}
+                      >
+                        {kelompok.nama_kelompok}
+                        {kelompok.nama_batch ? ` (${kelompok.nama_batch})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
 
               {/* MODE PERIODE */}
               <div className="relative w-24">
@@ -943,7 +1137,8 @@ const DaftarJadwal = () => {
 
               {/* RESET */}
               {(searchTerm.trim() ||
-                filterKelas ||
+                filterType ||
+                filterDestinationId ||
                 filterMonth !== getCurrentMonth() ||
                 filterStartDate ||
                 filterEndDate ||
@@ -959,17 +1154,16 @@ const DaftarJadwal = () => {
             </div>
           </div>
 
-          {/* ==================================================================
-              TABLE
-          ================================================================== */}
-
+          {/* TABLE */}
           <div className="max-h-[calc(100vh-260px)] overflow-auto">
             <table className="min-w-full bg-white">
               <thead className="sticky top-0 z-10 border-b bg-gray-200">
                 <tr className="text-[11px] uppercase text-gray-700">
                   <th className="whitespace-nowrap px-3 py-2.5">No</th>
 
-                  <th className="whitespace-nowrap px-3 py-2.5">Nama Kelas</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">
+                    Kelas / Kelompok
+                  </th>
 
                   <th className="whitespace-nowrap px-3 py-2.5">Mentor</th>
 
@@ -1003,10 +1197,7 @@ const DaftarJadwal = () => {
             </table>
           </div>
 
-          {/* ==================================================================
-              PAGINATION
-          ================================================================== */}
-
+          {/* PAGINATION */}
           <div className="flex flex-col items-center justify-between gap-2 border-t px-4 py-2.5 sm:flex-row md:px-5">
             {/* PAGINATION INFO */}
             <div className="flex items-center gap-3">
@@ -1024,10 +1215,11 @@ const DaftarJadwal = () => {
                     fetchJadwalData(
                       1,
                       searchTerm,
-                      filterKelas,
+                      filterType,
+                      filterDestinationId,
                       newPerPage,
                       activeDateRange.startDate,
-                      activeDateRange.endDate,
+                      activeDateRange.endDate
                     );
                   }}
                   className="cursor-pointer bg-transparent font-bold text-blue-600 focus:outline-none"
@@ -1082,40 +1274,31 @@ const DaftarJadwal = () => {
         </div>
       </main>
 
-      {/* ====================================================================
-          MODAL - HISTORY IMPORT
-      ==================================================================== */}
-
+      {/* MODAL - HISTORY IMPORT */}
       {showImportHistoryModal && (
         <ImportHistoryModal
           setShowModal={setShowImportHistoryModal}
           fetchJadwal={handleRefreshFetch}
           currentPage={currentPage}
           searchTerm={searchTerm}
-          filterKelas={filterKelas}
+          filterKelas={filterDestinationId}
           limit={perPage}
         />
       )}
 
-      {/* ====================================================================
-          MODAL - TAMBAH JADWAL
-      ==================================================================== */}
-
+      {/* MODAL - TAMBAH JADWAL */}
       {showTambahModal && (
         <TambahJadwalForm
           setShowModal={setShowTambahModal}
           fetchJadwal={handleRefreshFetch}
           currentPage={currentPage}
           searchTerm={searchTerm}
-          filterKelas={filterKelas}
+          filterKelas={filterDestinationId}
           limit={perPage}
         />
       )}
 
-      {/* ====================================================================
-          MODAL - EDIT JADWAL
-      ==================================================================== */}
-
+      {/* MODAL - EDIT JADWAL */}
       {showEditModal && selectedData && (
         <EditJadwalForm
           setShowModal={setShowEditModal}
@@ -1124,15 +1307,12 @@ const DaftarJadwal = () => {
           initialData={selectedData}
           currentPage={currentPage}
           searchTerm={searchTerm}
-          filterKelas={filterKelas}
+          filterKelas={filterDestinationId}
           limit={perPage}
         />
       )}
 
-      {/* ====================================================================
-          MODAL - RESCHEDULE
-      ==================================================================== */}
-
+      {/* MODAL - RESCHEDULE */}
       {showRescheduleModal && selectedData && (
         <RescheduleJadwalModal
           setShowModal={setShowRescheduleModal}
@@ -1141,15 +1321,12 @@ const DaftarJadwal = () => {
           initialData={selectedData}
           currentPage={currentPage}
           searchTerm={searchTerm}
-          filterKelas={filterKelas}
+          filterKelas={filterDestinationId}
           limit={perPage}
         />
       )}
 
-      {/* ====================================================================
-          MODAL - SWITCH MENTOR
-      ==================================================================== */}
-
+      {/* MODAL - SWITCH MENTOR */}
       {showSwitchMentorModal && selectedSwitchJadwal && (
         <SwitchMentorModal
           setShowModal={setShowSwitchMentorModal}
@@ -1157,7 +1334,7 @@ const DaftarJadwal = () => {
           selectedJadwal={selectedSwitchJadwal}
           currentPage={currentPage}
           searchTerm={searchTerm}
-          filterKelas={filterKelas}
+          filterKelas={filterDestinationId}
           limit={perPage}
         />
       )}
