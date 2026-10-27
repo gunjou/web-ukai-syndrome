@@ -25,6 +25,7 @@ const DaftarAkunPublik = lazy(() => import("./pages/admin/DaftarAkunPublik"));
 const PesertaPage = lazy(() => import("./pages/admin/DaftarPeserta"));
 const DaftarMentor = lazy(() => import("./pages/admin/DaftarMentor"));
 const DaftarBatch = lazy(() => import("./pages/admin/DaftarBatch"));
+const DaftarKelompok = lazy(() => import("./pages/admin/DaftarKelompok"));
 const DaftarKelas = lazy(() => import("./pages/admin/DaftarKelas"));
 const DaftarJadwal = lazy(() => import("./pages/admin/jadwal/Daftarjadwal"));
 const DaftarAbsen = lazy(() => import("./pages/admin/jadwal/Daftarabsen"));
@@ -39,8 +40,8 @@ const LaporanPage = lazy(() => import("./pages/admin/LaporanPage"));
 const User = lazy(() => import("./User"));
 const HomePageUser = lazy(() => import("./pages/users/HomePage"));
 const Pembayaran = lazy(() => import("./pages/users/Pembayaran"));
-const MateriPrivateListContent = lazy(
-  () => import("./pages/users/MateriPrivateListContent"),
+const MateriPrivateListContent = lazy(() =>
+  import("./pages/users/MateriPrivateListContent")
 );
 
 // MENTOR
@@ -55,6 +56,7 @@ function AppRoutes() {
     "/peserta",
     "/mentor",
     "/batch",
+    "/kelompok",
     "/kelas",
     "/jadwal",
     "/daftarabsen",
@@ -120,6 +122,15 @@ function AppRoutes() {
             element={
               <ProtectedRoute allow={["superadmin"]}>
                 <DaftarBatch />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/kelompok"
+            element={
+              <ProtectedRoute allow={["superadmin"]}>
+                <DaftarKelompok />
               </ProtectedRoute>
             }
           />

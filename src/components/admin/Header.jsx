@@ -25,6 +25,7 @@ const Header = () => {
     { name: "Peserta", href: "/peserta" },
     { name: "Mentor", href: "/mentor" },
     { name: "Batch", href: "/batch" },
+    { name: "Kelompok", href: "/kelompok" },
     { name: "Kelas", href: "/kelas" },
     { name: "Jadwal", href: "/jadwal" },
     { name: "Payroll", href: "/payroll" },
@@ -100,7 +101,7 @@ const Header = () => {
         closeButton: false,
         draggable: false,
         pauseOnHover: false,
-      },
+      }
     );
 
     // OUTSIDE CLICK CLOSE
@@ -123,7 +124,7 @@ const Header = () => {
         <img
           src={`${CDN_ASSET_URL}/logo_syndrome_kuning.png`}
           alt="Logo"
-          className="h-10 cursor-pointer"
+          className="h-10 shrink-0 cursor-pointer"
         />
       </Link>
 
@@ -135,15 +136,15 @@ const Header = () => {
       </div>
 
       {/* Menu Desktop */}
-      <nav className="absolute left-1/2 -translate-x-1/2 font-semibold space-x-2 hidden md:flex">
+      <nav className="mx-4 flex min-w-0 flex-1 flex-wrap justify-center gap-x-2 gap-y-1 font-semibold hidden md:flex">
         {filteredNavItems.map((item) => (
           <Link
             key={item.name}
             to={item.href}
-            className={`rounded-md p-2 flex items-center gap-2 whitespace-nowrap transition-colors duration-200 ${
+            className={`rounded-lg border p-2 flex items-center gap-2 whitespace-nowrap transition-colors duration-200 ${
               isMenuActive(item)
-                ? "bg-yellow-500 text-white"
-                : "text-gray-700 hover:bg-gray-200"
+                ? "border-yellow-500 bg-yellow-500 text-white"
+                : "border-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             {item.name}
@@ -152,11 +153,11 @@ const Header = () => {
       </nav>
 
       {/* Tombol Profile dan Logout Desktop */}
-      <div className="flex items-center gap-2 ml-auto hidden md:flex">
+      <div className="flex shrink-0 items-center gap-2 hidden md:flex">
         <ProfileDropdown />
         <button
           onClick={confirmLogout}
-          className="py-1 px-4 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center rounded-full"
+          className="py-1 px-4 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center rounded-full border"
         >
           Logout
         </button>
