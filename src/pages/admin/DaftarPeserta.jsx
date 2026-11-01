@@ -1,17 +1,11 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import debounce from "lodash/debounce";
 import { BsTrash3 } from "react-icons/bs";
 import { LuPencil } from "react-icons/lu";
 import { AiOutlinePlus, AiOutlineClose } from "react-icons/ai";
 import { toast } from "react-toastify";
 
-import Api, { CDN_ASSET_URL } from "../../utils/Api.jsx";
+import Api from "../../utils/Api.jsx";
 import Header from "../../components/admin/Header.jsx";
 import TambahPesertaForm from "./modal/TambahPesertaForm.jsx";
 import UploadPesertaBulk from "./modal/UploadPesertaBulk.jsx";
@@ -70,7 +64,7 @@ const DaftarPeserta = () => {
       search = "",
       batchId = "",
       currentLimit = 20,
-      batchFilter = "aktif"
+      batchFilter = "aktif",
     ) => {
       setIsLoading(true);
       setError("");
@@ -104,14 +98,14 @@ const DaftarPeserta = () => {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   // 3. Debounce Search agar tidak spam API
   const debouncedFetch = useRef(
     debounce((nextSearch, nextBatch, nextLimit) => {
       fetchUsers(1, nextSearch, nextBatch, nextLimit);
-    }, 500)
+    }, 500),
   ).current;
 
   useEffect(() => {
@@ -123,16 +117,11 @@ const DaftarPeserta = () => {
     return () => debouncedFetch.cancel();
   }, [searchTerm, selectedBatch, limit, debouncedFetch]);
 
-  // Handle Perubahan Input
-  useEffect(() => {
-    debouncedFetch(searchTerm, selectedBatch);
-  }, [searchTerm, selectedBatch, debouncedFetch]);
-
   // Handle Ganti Halaman
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPage) {
       setCurrentPage(newPage);
-      fetchUsers(newPage, searchTerm, selectedBatch);
+      fetchUsers(newPage, searchTerm, selectedBatch, limit);
     }
   };
 
@@ -147,19 +136,8 @@ const DaftarPeserta = () => {
     });
   };
 
-  const filteredData = useMemo(() => {
-    const k = searchTerm.toLowerCase();
-    return userData.filter((user) =>
-      [
-        user.nama,
-        user.email,
-        user.no_hp,
-        user.nama_batch,
-        user.nama_kelas,
-        user.nama_paket,
-      ].some((v) => (v ?? "").toLowerCase().includes(k))
-    );
-  }, [userData, searchTerm]);
+  // Search sudah ditangani server (nama/email/kelas/kelompok)
+  const filteredData = userData;
 
   // apply sort ke filteredData
   const sortedData = [...filteredData].sort((a, b) => {
@@ -170,6 +148,20 @@ const DaftarPeserta = () => {
       ? valA.localeCompare(valB, "id", { sensitivity: "base" })
       : valB.localeCompare(valA, "id", { sensitivity: "base" });
   });
+
+  // Muat ulang data dengan halaman, search, filter & limit yang sedang aktif
+  const refreshUsers = () => {
+    fetchUsers(currentPage, searchTerm, selectedBatch, limit);
+  };
+
+  const handleCopyToken = async (token) => {
+    try {
+      await navigator.clipboard.writeText(token);
+      toast.success("Token berhasil disalin.");
+    } catch {
+      toast.error("Gagal menyalin token.");
+    }
+  };
 
   const handleEdit = (user) => {
     setEditData(user);
@@ -182,7 +174,7 @@ const DaftarPeserta = () => {
     ConfirmToast("Yakin ingin menghapus peserta ini?", async () => {
       await Api.delete(`/peserta/${id}`);
       toast.success("Peserta berhasil dihapus.");
-      fetchUsers();
+      refreshUsers();
     });
   };
 
@@ -190,7 +182,7 @@ const DaftarPeserta = () => {
     sortedData.map((user, index) => (
       <tr key={user.id_user || index} className="bg-gray-100 hover:bg-gray-300">
         <td className="px-2 py-2 text-xs sm:text-sm border text-center">
-          {index + 1}
+          {(currentPage - 1) * limit + index + 1}
         </td>
         <td className="px-4 py-2 text-xs sm:text-sm border capitalize">
           {user.nama}
@@ -199,7 +191,17 @@ const DaftarPeserta = () => {
           {user.email || "-"}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
-          {user.kode_pemulihan}
+          {user.kode_pemulihan ? (
+            <span
+              onClick={() => handleCopyToken(user.kode_pemulihan)}
+              title="Klik untuk menyalin"
+              className="blur-sm hover:blur-none transition-all duration-200 cursor-pointer select-none font-mono"
+            >
+              {user.kode_pemulihan}
+            </span>
+          ) : (
+            "-"
+          )}
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.no_hp || "-"}
@@ -212,6 +214,9 @@ const DaftarPeserta = () => {
         </td>
         <td className="px-2 py-2 text-xs sm:text-sm border">
           {user.nama_kelas || "-"}
+        </td>
+        <td className="px-2 py-2 text-xs sm:text-sm border">
+          {user.nama_kelompok || "-"}
         </td>
         {/* Kolom aksi */}
         <td className="px-4 py-2 text-xs sm:text-sm border w-[80px]">
@@ -259,13 +264,13 @@ const DaftarPeserta = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari peserta..."
-              className="border rounded-lg px-4 py-2 w-full text-sm"
+              placeholder="Cari nama, email, kelas, kelompok..."
+              className="border rounded-lg px-4 py-2 flex-[2] min-w-0 text-sm"
             />
             <select
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
-              className="border rounded-lg px-2 py-2 text-sm w-full"
+              className="border rounded-lg px-2 py-2 text-sm flex-1 min-w-0"
             >
               <option value="">Semua Batch</option>
               {batchOptions.map((b) => (
@@ -363,6 +368,17 @@ const DaftarPeserta = () => {
                   >
                     Kelas{" "}
                     {sortConfig.key === "nama_kelas"
+                      ? sortConfig.direction === "asc"
+                        ? "▲"
+                        : "▼"
+                      : ""}
+                  </th>
+                  <th
+                    onClick={() => handleSort("nama_kelompok")}
+                    className="px-4 py-2 border cursor-pointer"
+                  >
+                    Kelompok{" "}
+                    {sortConfig.key === "nama_kelompok"
                       ? sortConfig.direction === "asc"
                         ? "▲"
                         : "▼"
@@ -477,7 +493,7 @@ const DaftarPeserta = () => {
               <EditPesertaForm
                 setShowModal={setShowModal}
                 setEditMode={setEditMode}
-                fetchUsers={fetchUsers}
+                fetchUsers={refreshUsers}
                 initialData={editData}
               />
             ) : (
@@ -509,12 +525,12 @@ const DaftarPeserta = () => {
                 {activeTab === "single" ? (
                   <TambahPesertaForm
                     setShowModal={setShowModal}
-                    fetchUsers={fetchUsers}
+                    fetchUsers={refreshUsers}
                   />
                 ) : (
                   <UploadPesertaBulk
                     setShowModal={setShowModal}
-                    fetchUsers={fetchUsers}
+                    fetchUsers={refreshUsers}
                   />
                 )}
               </>
