@@ -37,7 +37,7 @@ const getCurrentMonth = () => {
 
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
     2,
-    "0"
+    "0",
   )}`;
 };
 
@@ -101,7 +101,7 @@ const filterOfflineRows = (rows, search, destinationId, startDate, endDate) => {
 
     // Periode (tanggal efektif karena jadwal bisa di-reschedule)
     const tanggal = String(
-      jadwal.tanggal_efektif || jadwal.tanggal || ""
+      jadwal.tanggal_efektif || jadwal.tanggal || "",
     ).slice(0, 10);
 
     if (startDate && (!tanggal || tanggal < startDate)) return false;
@@ -206,7 +206,7 @@ const DaftarJadwal = () => {
 
     do {
       const response = await Api.get(
-        `/jadwal?page=${page}&per_page=${OFFLINE_FETCH_SIZE}`
+        `/jadwal?page=${page}&per_page=${OFFLINE_FETCH_SIZE}`,
       );
 
       const result = response?.data;
@@ -240,7 +240,7 @@ const DaftarJadwal = () => {
       destinationId = "",
       currentPerPage = INITIAL_PER_PAGE,
       startDate = "",
-      endDate = ""
+      endDate = "",
     ) => {
       setIsLoading(true);
       setError("");
@@ -258,7 +258,7 @@ const DaftarJadwal = () => {
             search,
             destinationId,
             startDate,
-            endDate
+            endDate,
           );
 
           const total = filtered.length;
@@ -267,7 +267,7 @@ const DaftarJadwal = () => {
           const startIndex = (safePage - 1) * currentPerPage;
 
           setJadwalData(
-            filtered.slice(startIndex, startIndex + currentPerPage)
+            filtered.slice(startIndex, startIndex + currentPerPage),
           );
           setCurrentPage(safePage);
           setTotalData(total);
@@ -344,7 +344,7 @@ const DaftarJadwal = () => {
         setIsLoading(false);
       }
     },
-    [fetchAllJadwalRows]
+    [fetchAllJadwalRows],
   );
 
   // ========================================================================
@@ -369,10 +369,10 @@ const DaftarJadwal = () => {
       const rows = Array.isArray(payload)
         ? payload
         : Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload?.data?.data)
-        ? payload.data.data
-        : [];
+          ? payload.data
+          : Array.isArray(payload?.data?.data)
+            ? payload.data.data
+            : [];
       setKelompokOptions(rows);
     } else {
       console.error("Gagal mengambil data kelompok:", kelompokResult.reason);
@@ -393,7 +393,7 @@ const DaftarJadwal = () => {
           nextDestinationId,
           nextPerPage,
           nextStartDate,
-          nextEndDate
+          nextEndDate,
         ) => {
           fetchJadwalData(
             1,
@@ -402,12 +402,12 @@ const DaftarJadwal = () => {
             nextDestinationId,
             nextPerPage,
             nextStartDate,
-            nextEndDate
+            nextEndDate,
           );
         },
-        SEARCH_DEBOUNCE
+        SEARCH_DEBOUNCE,
       ),
-    [fetchJadwalData]
+    [fetchJadwalData],
   );
 
   // ========================================================================
@@ -431,7 +431,7 @@ const DaftarJadwal = () => {
       filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate
+      activeDateRange.endDate,
     );
 
     return () => {
@@ -466,7 +466,7 @@ const DaftarJadwal = () => {
       filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate
+      activeDateRange.endDate,
     );
   };
 
@@ -482,7 +482,7 @@ const DaftarJadwal = () => {
       filterDestinationId,
       perPage,
       activeDateRange.startDate,
-      activeDateRange.endDate
+      activeDateRange.endDate,
     );
   }, [
     fetchJadwalData,
@@ -618,7 +618,7 @@ const DaftarJadwal = () => {
           filterDestinationId,
           perPage,
           activeDateRange.startDate,
-          activeDateRange.endDate
+          activeDateRange.endDate,
         );
       } catch (error) {
         console.error("Gagal menghapus jadwal:", error);
@@ -907,8 +907,8 @@ const DaftarJadwal = () => {
         <div className="rounded-xl bg-white shadow-sm">
           {/* HEADER */}
           <div className="border-b px-4 py-3 md:px-5">
-            {/* ROW 1 - TITLE & ACTION */}
-            <div className="flex items-center justify-between gap-3">
+            {/* TITLE, FILTER & ACTION (SATU BARIS) */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
               {/* TITLE */}
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-bold text-gray-800">
@@ -923,32 +923,8 @@ const DaftarJadwal = () => {
                 </p>
               </div>
 
-              {/* ACTION */}
-              <div className="flex shrink-0 items-center gap-1.5">
-                {/* HISTORY IMPORT */}
-                <button
-                  type="button"
-                  onClick={handleImportHistoryClick}
-                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-gray-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-gray-600"
-                >
-                  <MdOutlineHistory className="h-3.5 w-3.5" />
-                  <span>History</span>
-                </button>
-
-                {/* TAMBAH JADWAL */}
-                <button
-                  type="button"
-                  onClick={handleTambahClick}
-                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-yellow-500 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-yellow-600"
-                >
-                  <AiOutlinePlus className="h-3.5 w-3.5" />
-                  <span>Tambah</span>
-                </button>
-              </div>
-            </div>
-
-            {/* ROW 2 - FILTER */}
-            <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
+              {/* FILTER + ACTION */}
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
               {/* SEARCH */}
               <div className="relative w-48">
                 <input
@@ -1151,6 +1127,30 @@ const DaftarJadwal = () => {
                   Reset
                 </button>
               )}
+
+              {/* ACTION */}
+              <div className="ml-1 flex shrink-0 items-center gap-1.5 border-l border-gray-200 pl-2.5">
+                {/* HISTORY IMPORT */}
+                <button
+                  type="button"
+                  onClick={handleImportHistoryClick}
+                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-gray-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-gray-600"
+                >
+                  <MdOutlineHistory className="h-3.5 w-3.5" />
+                  <span>History</span>
+                </button>
+
+                {/* TAMBAH JADWAL */}
+                <button
+                  type="button"
+                  onClick={handleTambahClick}
+                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-yellow-500 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-yellow-600"
+                >
+                  <AiOutlinePlus className="h-3.5 w-3.5" />
+                  <span>Tambah</span>
+                </button>
+              </div>
+              </div>
             </div>
           </div>
 
@@ -1219,7 +1219,7 @@ const DaftarJadwal = () => {
                       filterDestinationId,
                       newPerPage,
                       activeDateRange.startDate,
-                      activeDateRange.endDate
+                      activeDateRange.endDate,
                     );
                   }}
                   className="cursor-pointer bg-transparent font-bold text-blue-600 focus:outline-none"
