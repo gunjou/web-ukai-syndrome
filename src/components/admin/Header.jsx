@@ -28,6 +28,7 @@ const Header = () => {
     { name: "Kelompok", href: "/kelompok" },
     { name: "Kelas", href: "/kelas" },
     { name: "Jadwal", href: "/jadwal" },
+    { name: "Tukar Jadwal", href: "/jadwal/tukar" },
     { name: "Payroll", href: "/payroll" },
     { name: "Absen", href: "/daftarabsen" },
     { name: "Monitoring", href: "/monitoring-materi" },

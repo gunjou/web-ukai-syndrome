@@ -8,8 +8,14 @@ import {
   FaBook,
   FaUserTie,
   FaRegChartBar,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaClipboardCheck,
+  FaEye,
+  FaLock,
 } from "react-icons/fa";
 import { IoCreateSharp } from "react-icons/io5";
+import { AiOutlineSwap } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -101,55 +107,75 @@ const HomeAdmin = () => {
       link: "/peserta",
       icon: <FaUsers className="text-yellow-500 text-sm" />,
     },
-    // {
-    //   label: "PESERTA KELAS",
-    //   link: "/peserta/peserta-kelas",
-    //   icon: <FaUsers className="text-yellow-500 text-sm" />,
-    // },
-    // {
-    //   label: "PESERTA BATCH",
-    //   link: "/batch/peserta-batch",
-    //   icon: <FaUsers className="text-yellow-500 text-sm" />,
-    // },
+    {
+      label: "MENTOR",
+      link: "/mentor",
+      icon: <FaUserTie className="text-yellow-500 text-sm" />,
+    },
     {
       label: "BATCH",
       link: "/batch",
-      icon: <FaLayerGroup className="text-yellow-500 text-sm" />, // icon tumpukan
+      icon: <FaLayerGroup className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "KELOMPOK",
+      link: "/kelompok",
+      icon: <FaUsers className="text-yellow-500 text-sm" />,
     },
     {
       label: "KELAS",
       link: "/kelas",
-      icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // icon papan
+      icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "JADWAL",
+      link: "/jadwal",
+      icon: <FaCalendarAlt className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "TUKAR JADWAL",
+      link: "/jadwal/tukar",
+      icon: <AiOutlineSwap className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "PAYROLL",
+      link: "/payroll",
+      icon: <FaMoneyBillWave className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "ABSEN",
+      link: "/daftarabsen",
+      icon: <FaClipboardCheck className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "MONITORING",
+      link: "/monitoring-materi",
+      icon: <FaEye className="text-yellow-500 text-sm" />,
+    },
+    {
+      label: "PRIVATE",
+      link: "/private",
+      icon: <FaLock className="text-yellow-500 text-sm" />,
     },
     {
       label: "MODUL",
       link: "/modul",
-      icon: <FaBook className="text-yellow-500 text-sm" />, // icon buku
+      icon: <FaBook className="text-yellow-500 text-sm" />,
     },
     {
       label: "MATERI",
       link: "/materi",
-      icon: <FaFileAlt className="text-yellow-500 text-sm" />, // icon file dokumen
+      icon: <FaFileAlt className="text-yellow-500 text-sm" />,
     },
-    {
-      label: "MENTOR",
-      link: "/mentor",
-      icon: <FaUserTie className="text-yellow-500 text-sm" />, // icon orang berdasi
-    },
-    // {
-    //   label: "MENTOR KELAS",
-    //   link: "/mentor/mentor-kelas",
-    //   icon: <FaChalkboardTeacher className="text-yellow-500 text-sm" />, // sama kayak kelas
-    // },
     {
       label: "TRYOUT",
       link: "/tryout",
-      icon: <IoCreateSharp className="text-yellow-500 text-sm" />, // icon laporan chart
+      icon: <IoCreateSharp className="text-yellow-500 text-sm" />,
     },
     {
       label: "LAPORAN",
       link: "/laporan",
-      icon: <FaRegChartBar className="text-yellow-500 text-sm" />, // icon laporan chart
+      icon: <FaRegChartBar className="text-yellow-500 text-sm" />,
     },
   ];
 
