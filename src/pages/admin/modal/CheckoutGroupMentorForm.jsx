@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { toast } from "react-toastify";
 import Api from "../../../utils/Api";
+import { getTargetLabel, getTargetName } from "../jadwal/jadwalTarget.js";
 
 // ========================================================================
 // FORM - CHECK-OUT MANUAL OLEH ADMIN UNTUK 1 GROUP (v2)
@@ -42,9 +43,8 @@ export const getPendingCheckoutClasses = (group) =>
   );
 
 const CheckoutGroupMentorForm = ({ group, onClose, onSuccess }) => {
-  const isOffline = group.type_pertemuan === "OFFLINE";
-  const label = isOffline ? "Kelompok" : "Kelas";
   const pending = getPendingCheckoutClasses(group);
+  const label = getTargetLabel(group.classes);
 
   // Jam check-out harus setelah check-in paling akhir di antara yang pending
   const jamCheckInTerakhir = pending
@@ -141,10 +141,7 @@ const CheckoutGroupMentorForm = ({ group, onClose, onSuccess }) => {
               className="flex justify-between gap-4 px-4 py-2"
             >
               <span className="font-semibold text-gray-800">
-                {(isOffline ? item.nama_kelompok : item.nama_kelas) ||
-                  item.nama_kelas ||
-                  item.nama_kelompok ||
-                  "-"}
+                {getTargetName(item)}
               </span>
               <span className="font-semibold text-green-700">
                 {getJamDariDatetime(item.check_in_at) || "-"}

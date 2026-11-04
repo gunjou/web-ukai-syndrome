@@ -16,6 +16,7 @@ import CheckoutGroupMentorForm, {
   getPendingCheckoutClasses,
 } from "../modal/CheckoutGroupMentorForm.jsx";
 import { LuChevronRight, LuLayers } from "react-icons/lu";
+import { getTargetLabel, getTargetName } from "./jadwalTarget.js";
 
 // ========================================================================
 // HELPER GROUP (v2) - 1 group = mentor + tipe + tanggal + jam yang sama
@@ -24,13 +25,6 @@ import { LuChevronRight, LuLayers } from "react-icons/lu";
 const getGroupClasses = (group) =>
   Array.isArray(group?.classes) ? group.classes : [];
 
-const getTargetName = (group, item) =>
-  (group?.type_pertemuan === "OFFLINE"
-    ? item?.nama_kelompok
-    : item?.nama_kelas) ||
-  item?.nama_kelas ||
-  item?.nama_kelompok ||
-  "-";
 
 // Gabungkan data group + 1 kelas agar bentuknya sama seperti 1 absensi lama
 const toAbsensiItem = (group, item) => {
@@ -100,6 +94,7 @@ const DaftarAbsen = () => {
           ...getGroupClasses(absensi).flatMap((item) => [
             item.nama_kelas,
             item.nama_kelompok,
+            item.nama_mentorship,
           ]),
         ]
           .filter(Boolean)
@@ -130,7 +125,7 @@ const DaftarAbsen = () => {
     setIsDetailLoading(true);
 
     try {
-      const response = await Api.get(`/absensi/jadwal/${absensi.id_jadwal}`);
+      const response = await Api.get(`/absensi/v2/jadwal/${absensi.id_jadwal}`);
       setDetailData(response.data?.data || null);
     } catch (requestError) {
       console.error("Gagal mengambil detail absensi:", requestError);
@@ -327,7 +322,7 @@ const DaftarAbsen = () => {
       doc.setFontSize(10);
       doc.setTextColor(80);
       doc.text(
-        `Kelas: ${jadwal.nama_kelas || selectedJadwal.nama_kelas || "-"}`,
+        `Kelas: ${getTargetName({ ...selectedJadwal, ...jadwal })}`,
         14,
         22,
       );
@@ -400,7 +395,7 @@ const DaftarAbsen = () => {
         }
       }
 
-      const safeClassName = (jadwal.nama_kelas || "absensi")
+      const safeClassName = (getTargetName({ ...selectedJadwal, ...jadwal }) || "absensi")
         .replace(/[^a-z0-9]+/gi, "-")
         .replace(/^-|-$/g, "")
         .toLowerCase();
@@ -511,23 +506,18 @@ const DaftarAbsen = () => {
                         </td>
                         <td className="px-4 py-2 text-sm border font-semibold whitespace-nowrap">
                           {isSingle ? (
-                            getTargetName(group, classes[0])
+                            getTargetName(classes[0])
                           ) : (
                             <button
                               type="button"
                               onClick={() => setGroupJadwalId(group.id_jadwal)}
                               title={`Lihat daftar ${
-                                group.type_pertemuan === "OFFLINE"
-                                  ? "kelompok"
-                                  : "kelas"
+                                getTargetLabel(classes).toLowerCase()
                               }`}
                               className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-white shadow-sm ring-2 ring-yellow-200 transition hover:bg-yellow-600 hover:shadow-md focus:outline-none focus:ring-yellow-300 active:scale-95"
                             >
                               <LuLayers className="h-3.5 w-3.5" />
-                              {classes.length}{" "}
-                              {group.type_pertemuan === "OFFLINE"
-                                ? "Kelompok"
-                                : "Kelas"}
+                              {classes.length} {getTargetLabel(classes)}
                               <LuChevronRight className="h-3.5 w-3.5" />
                             </button>
                           )}
@@ -646,10 +636,7 @@ const DaftarAbsen = () => {
               <AiOutlineClose size={24} />
             </button>
             <h2 className="text-xl font-bold text-gray-800 pr-8">
-              Daftar{" "}
-              {selectedGroup.type_pertemuan === "OFFLINE"
-                ? "Kelompok"
-                : "Kelas"}
+              Daftar {getTargetLabel(selectedGroup.classes)}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
               {selectedGroup.nickname_mentor ||
@@ -679,9 +666,7 @@ const DaftarAbsen = () => {
                   <tr className="text-xs uppercase text-gray-700">
                     <th className="px-4 py-3 text-center w-12">No</th>
                     <th className="px-4 py-3 text-left">
-                      {selectedGroup.type_pertemuan === "OFFLINE"
-                        ? "Kelompok"
-                        : "Kelas"}
+                      {getTargetLabel(selectedGroup.classes)}
                     </th>
                     <th className="px-4 py-3 text-center">Check-in</th>
                     <th className="px-4 py-3 text-center">Check-out</th>
@@ -696,7 +681,7 @@ const DaftarAbsen = () => {
                       <tr key={item.id_jadwal} className="border-t">
                         <td className="px-4 py-3 text-center">{index + 1}</td>
                         <td className="px-4 py-3 font-semibold">
-                          {getTargetName(selectedGroup, item)}
+                          {getTargetName(item)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {getCheckInStatus(absensi)}
@@ -757,7 +742,7 @@ const DaftarAbsen = () => {
               Detail Absensi
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {selectedJadwal.nama_kelas} | {formatDate(selectedJadwal.tanggal)}
+              {getTargetName(selectedJadwal)} | {formatDate(selectedJadwal.tanggal)}
             </p>
             <button
               type="button"

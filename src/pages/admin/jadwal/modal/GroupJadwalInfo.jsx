@@ -1,4 +1,5 @@
 import React from "react";
+import { getTargetLabel, getTargetName } from "../jadwalTarget.js";
 
 // ========================================================================
 // INFO RINGKAS 1 GROUP JADWAL (dipakai di modal-modal aksi group v2)
@@ -21,21 +22,12 @@ export const formatTanggalGroup = (value) => {
 export const formatJamGroup = (value) =>
   value ? String(value).substring(0, 5) : "-";
 
-export const getGroupTargetLabel = (group) =>
-  group?.type_pertemuan === "OFFLINE" ? "Kelompok" : "Kelas";
+export const getGroupTargetLabel = (group) => getTargetLabel(group?.classes);
 
 export const getGroupTargetNames = (group) => {
-  const isOffline = group?.type_pertemuan === "OFFLINE";
   const classes = Array.isArray(group?.classes) ? group.classes : [];
 
-  return classes
-    .map(
-      (item) =>
-        (isOffline ? item.nama_kelompok : item.nama_kelas) ||
-        item.nama_kelas ||
-        item.nama_kelompok,
-    )
-    .filter(Boolean);
+  return classes.map((item) => getTargetName(item)).filter(Boolean);
 };
 
 const GroupJadwalInfo = ({ group, className = "" }) => {

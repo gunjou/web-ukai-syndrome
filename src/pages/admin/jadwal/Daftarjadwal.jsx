@@ -26,7 +26,7 @@ import { ConfirmToast } from "../modal/ConfirmToast.jsx";
 import Api from "../../../utils/Api.jsx";
 
 import TambahJadwalForm from "./modal/TambahJadwalForm.jsx";
-import EditJadwalForm from "./modal/EditJadwalForm.jsx";
+import EditJadwalV2Form from "./modal/EditJadwalV2Form.jsx";
 import RescheduleJadwalModal from "./modal/RescheduleJadwalModal.jsx";
 import ImportHistoryModal from "./modal/ImportHistoryModal.jsx";
 import SwitchMentorModal from "./modal/SwitchMentorModal.jsx";
@@ -34,6 +34,7 @@ import GroupKelasModal from "./modal/GroupKelasModal.jsx";
 import EditGroupJadwalModal from "./modal/EditGroupJadwalModal.jsx";
 import RescheduleGroupJadwalModal from "./modal/RescheduleGroupJadwalModal.jsx";
 import SwitchMentorGroupModal from "./modal/SwitchMentorGroupModal.jsx";
+import { getTargetLabel, getTargetName } from "./jadwalTarget.js";
 
 // ========================================================================
 // CONSTANT
@@ -87,6 +88,38 @@ const getMonthDateRange = (monthValue) => {
     startDate: formatDate(firstDay),
     endDate: formatDate(lastDay),
   };
+};
+
+// ========================================================================
+// PAGINATION HELPER
+// <= 7 halaman: tampil semua (1 2 3 4 5 6 7)
+// >  7 halaman: 1 ... 4 5 6 ... 20 (halaman sekitar halaman aktif)
+// ========================================================================
+
+const getPageItems = (current, total) => {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+
+  // Jaga jumlah tombol tetap stabil di dekat awal/akhir
+  if (current <= 3) {
+    start = 2;
+    end = 4;
+  } else if (current >= total - 2) {
+    start = total - 3;
+    end = total - 1;
+  }
+
+  const items = [1];
+  if (start > 2) items.push("ellipsis-start");
+  for (let page = start; page <= end; page += 1) items.push(page);
+  if (end < total - 1) items.push("ellipsis-end");
+  items.push(total);
+
+  return items;
 };
 
 // ========================================================================
@@ -705,7 +738,6 @@ const DaftarJadwal = () => {
 
       const waktuSelesai = jadwal.waktu_selesai_efektif || jadwal.waktu_selesai;
 
-      const isOffline = jadwal.type_pertemuan === "OFFLINE";
       const targets = Array.isArray(jadwal.classes) ? jadwal.classes : [];
       const jumlahTarget = jadwal.count ?? targets.length;
       const firstTarget = targets[0];
@@ -724,22 +756,17 @@ const DaftarJadwal = () => {
           <td className="px-4 py-3">
             {jumlahTarget === 1 ? (
               <span className="font-semibold text-gray-800 whitespace-nowrap">
-                {(isOffline
-                  ? firstTarget?.nama_kelompok
-                  : firstTarget?.nama_kelas) ||
-                  firstTarget?.nama_kelas ||
-                  firstTarget?.nama_kelompok ||
-                  "-"}
+                {getTargetName(firstTarget)}
               </span>
             ) : (
               <button
                 type="button"
                 onClick={() => setSelectedGroup(jadwal)}
-                title={`Lihat daftar ${isOffline ? "kelompok" : "kelas"}`}
+                title={`Lihat daftar ${getTargetLabel(targets).toLowerCase()}`}
                 className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-white shadow-sm ring-2 ring-yellow-200 transition hover:bg-yellow-600 hover:shadow-md focus:outline-none focus:ring-yellow-300 active:scale-95"
               >
                 <LuLayers className="h-3.5 w-3.5" />
-                {jumlahTarget} {isOffline ? "Kelompok" : "Kelas"}
+                {jumlahTarget} {getTargetLabel(targets)}
                 <LuChevronRight className="h-3.5 w-3.5" />
               </button>
             )}
@@ -781,7 +808,16 @@ const DaftarJadwal = () => {
                   label: "Edit jadwal",
                   color: "bg-blue-500 hover:bg-blue-600",
                   icon: <LuPencil className="h-4 w-4" />,
-                  onClick: () => openGroupAction("edit", jadwal),
+                  // 1 kelas/kelompok: edit satuan (bisa ganti tipe & target).
+                  // >1: edit group (mentor/tanggal/jam/topik untuk semua).
+                  onClick: () =>
+                    jumlahTarget === 1 && firstTarget
+                      ? handleEditClick({
+                          ...jadwal,
+                          ...firstTarget,
+                          classes: undefined,
+                        })
+                      : openGroupAction("edit", jadwal),
                 },
                 {
                   label: "Switch mentor",
@@ -814,7 +850,7 @@ const DaftarJadwal = () => {
 
                   <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
                     {jumlahTarget > 1
-                      ? `${action.label} (${jumlahTarget} ${isOffline ? "kelompok" : "kelas"})`
+                      ? `${action.label} (${jumlahTarget} ${getTargetLabel(targets).toLowerCase()})`
                       : action.label}
                   </span>
                 </div>
@@ -1202,9 +1238,31 @@ const DaftarJadwal = () => {
                 Previous
               </button>
 
-              <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-blue-600 px-2 text-[11px] font-bold text-white">
-                {currentPage}
-              </span>
+              {getPageItems(currentPage, totalPage).map((item) =>
+                typeof item === "number" ? (
+                  <button
+                    key={item}
+                    type="button"
+                    disabled={isLoading || item === currentPage}
+                    onClick={() => handlePageChange(item)}
+                    aria-current={item === currentPage ? "page" : undefined}
+                    className={`flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[11px] font-bold transition ${
+                      item === currentPage
+                        ? "bg-blue-600 text-white"
+                        : "border border-gray-300 bg-white text-gray-600 hover:border-blue-500 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ) : (
+                  <span
+                    key={item}
+                    className="px-0.5 text-[11px] font-bold text-gray-400"
+                  >
+                    ...
+                  </span>
+                ),
+              )}
 
               <button
                 type="button"
@@ -1288,7 +1346,7 @@ const DaftarJadwal = () => {
 
       {/* MODAL - EDIT JADWAL */}
       {showEditModal && selectedData && (
-        <EditJadwalForm
+        <EditJadwalV2Form
           setShowModal={setShowEditModal}
           fetchJadwal={handleRefreshFetch}
           selectedId={selectedId}

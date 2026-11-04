@@ -4,6 +4,7 @@ import { BsTrash3 } from "react-icons/bs";
 import { LuCalendarClock, LuPencil } from "react-icons/lu";
 
 import GroupJadwalInfo, { getGroupTargetLabel } from "./GroupJadwalInfo.jsx";
+import { getTargetName } from "../jadwalTarget.js";
 
 // ========================================================================
 // MODAL - DAFTAR KELAS / KELOMPOK DALAM 1 GROUP JADWAL (v2/group)
@@ -37,7 +38,6 @@ const GroupKelasModal = ({
 }) => {
   if (!group) return null;
 
-  const isOffline = group.type_pertemuan === "OFFLINE";
   const label = getGroupTargetLabel(group);
   const classes = Array.isArray(group.classes) ? group.classes : [];
 
@@ -110,10 +110,7 @@ const GroupKelasModal = ({
                     >
                       <td className="px-3 py-2.5 text-gray-600">{index + 1}</td>
                       <td className="px-3 py-2.5 font-semibold text-gray-800">
-                        {(isOffline ? item.nama_kelompok : item.nama_kelas) ||
-                          item.nama_kelas ||
-                          item.nama_kelompok ||
-                          "-"}
+                        {getTargetName(item)}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center justify-center gap-2">

@@ -4,6 +4,27 @@ import { toast } from "react-toastify";
 import Api from "../../../../utils/Api";
 
 // ========================================================================
+// TARGET JADWAL (manual)
+// ONLINE  -> Kelas / Kelas Private
+// OFFLINE -> Kelompok / Kelas Private
+// ========================================================================
+
+const TARGET_LABEL = {
+  KELAS: "Kelas",
+  KELOMPOK: "Kelompok",
+  PRIVATE: "Kelas Private",
+};
+
+const TARGET_FIELD = {
+  KELAS: "id_paketkelas",
+  KELOMPOK: "id_kelompok",
+  PRIVATE: "id_mentorship",
+};
+
+const getTargetKinds = (type) =>
+  type === "OFFLINE" ? ["KELOMPOK", "PRIVATE"] : ["KELAS", "PRIVATE"];
+
+// ========================================================================
 // COMPONENT
 // ========================================================================
 
@@ -28,6 +49,7 @@ const TambahJadwalForm = ({
   const [kelasOptions, setKelasOptions] = useState([]);
   const [kelompokOptions, setKelompokOptions] = useState([]);
   const [mentorOptions, setMentorOptions] = useState([]);
+  const [privateOptions, setPrivateOptions] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +57,8 @@ const TambahJadwalForm = ({
   const [formData, setFormData] = useState({
     id_paketkelas: "",
     id_kelompok: "",
+    id_mentorship: "",
+    target_kind: "KELAS",
     id_mentor: "",
     tanggal: "",
     waktu_mulai: "",
@@ -91,6 +115,15 @@ const TambahJadwalForm = ({
           : [];
         setKelompokOptions(kelompokRows);
         setMentorOptions(mentorRes.data?.data || []);
+
+        // Dropdown kelas private (v2) - gagal tidak menghalangi form
+        try {
+          const privateRes = await Api.get("/jadwal/v2/private-dropdown");
+          setPrivateOptions(privateRes.data?.data || []);
+        } catch (privateError) {
+          console.error("Gagal mengambil kelas private:", privateError);
+          setPrivateOptions([]);
+        }
       } catch (error) {
         console.error("Gagal mengambil data dropdown:", error);
         toast.error("Gagal memuat data kelas, kelompok, atau mentor");
@@ -109,15 +142,29 @@ const TambahJadwalForm = ({
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "type_pertemuan"
-        ? value === "OFFLINE"
-          ? { id_paketkelas: "" }
-          : { id_kelompok: "" }
-        : {}),
-    }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+
+      // Ganti tipe: target menyesuaikan, kelas private tetap dipertahankan
+      if (name === "type_pertemuan") {
+        const kinds = getTargetKinds(value);
+        if (!kinds.includes(prev.target_kind)) {
+          next.target_kind = kinds[0];
+        }
+        next.id_paketkelas = next.target_kind === "KELAS" ? prev.id_paketkelas : "";
+        next.id_kelompok = next.target_kind === "KELOMPOK" ? prev.id_kelompok : "";
+      }
+
+      // Kelas private: mentor otomatis mengikuti mentor kelas private
+      if (name === "id_mentorship") {
+        const selected = privateOptions.find(
+          (item) => String(item.id_mentorship) === String(value),
+        );
+        if (selected?.id_mentor) next.id_mentor = String(selected.id_mentor);
+      }
+
+      return next;
+    });
 
     if (errors[name]) {
       setErrors((prev) => ({
@@ -125,13 +172,31 @@ const TambahJadwalForm = ({
         [name]: "",
       }));
     }
-    if (name === "type_pertemuan") {
+    if (name === "type_pertemuan" || name === "id_mentorship") {
       setErrors((prev) => ({
         ...prev,
         id_paketkelas: "",
         id_kelompok: "",
+        id_mentorship: "",
+        id_mentor: "",
       }));
     }
+  };
+
+  const handleTargetKindChange = (kind) => {
+    setFormData((prev) => ({
+      ...prev,
+      target_kind: kind,
+      id_paketkelas: "",
+      id_kelompok: "",
+      id_mentorship: "",
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      id_paketkelas: "",
+      id_kelompok: "",
+      id_mentorship: "",
+    }));
   };
 
   // ========================================================================
@@ -141,12 +206,10 @@ const TambahJadwalForm = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (formData.type_pertemuan === "OFFLINE" && !formData.id_kelompok) {
-      newErrors.id_kelompok = "Kelompok harus dipilih";
-    }
+    const targetField = TARGET_FIELD[formData.target_kind];
 
-    if (formData.type_pertemuan !== "OFFLINE" && !formData.id_paketkelas) {
-      newErrors.id_paketkelas = "Kelas harus dipilih";
+    if (!formData[targetField]) {
+      newErrors[targetField] = `${TARGET_LABEL[formData.target_kind]} harus dipilih`;
     }
 
     if (!formData.id_mentor) {
@@ -193,10 +256,13 @@ const TambahJadwalForm = ({
     setIsSubmitting(true);
 
     try {
+      const targetField = TARGET_FIELD[formData.target_kind];
+
       const payload = {
-        ...(formData.type_pertemuan === "OFFLINE"
-          ? { id_kelompok: parseInt(formData.id_kelompok, 10) }
-          : { id_paketkelas: parseInt(formData.id_paketkelas, 10) }),
+        id_paketkelas: null,
+        id_kelompok: null,
+        id_mentorship: null,
+        [targetField]: parseInt(formData[targetField], 10),
         id_mentor: parseInt(formData.id_mentor, 10),
         tanggal: formData.tanggal,
         waktu_mulai: formData.waktu_mulai,
@@ -206,7 +272,8 @@ const TambahJadwalForm = ({
         catatan: formData.catatan.trim() || null,
       };
 
-      await Api.post("/jadwal", payload);
+      // v2: mendukung kelas / kelompok / kelas private
+      await Api.post("/jadwal/v2", payload);
 
       toast.success("Jadwal berhasil ditambahkan");
 
@@ -581,7 +648,30 @@ const TambahJadwalForm = ({
 
               {mode === "manual" && (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {formData.type_pertemuan === "OFFLINE" ? (
+                  {/* Jadwal untuk: kelas / kelompok / kelas private */}
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Jadwal Untuk <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {getTargetKinds(formData.type_pertemuan).map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => handleTargetKindChange(kind)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                            formData.target_kind === kind
+                              ? "border-red-600 bg-red-600 text-white"
+                              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                          }`}
+                        >
+                          {TARGET_LABEL[kind]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.target_kind === "KELOMPOK" && (
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-gray-700">
                         Kelompok <span className="text-red-500">*</span>
@@ -615,7 +705,9 @@ const TambahJadwalForm = ({
                         </p>
                       )}
                     </div>
-                  ) : (
+                  )}
+
+                  {formData.target_kind === "KELAS" && (
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-gray-700">
                         Kelas <span className="text-red-500">*</span>
@@ -643,6 +735,49 @@ const TambahJadwalForm = ({
                       {errors.id_paketkelas && (
                         <p className="mt-1 text-xs text-red-500">
                           {errors.id_paketkelas}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {formData.target_kind === "PRIVATE" && (
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-700">
+                        Kelas Private <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="id_mentorship"
+                        value={formData.id_mentorship}
+                        onChange={handleInputChange}
+                        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-red-500 ${
+                          errors.id_mentorship
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">
+                          {privateOptions.length
+                            ? "-- Pilih Kelas Private --"
+                            : "Belum ada kelas private"}
+                        </option>
+                        {privateOptions.map((item) => (
+                          <option
+                            key={item.id_mentorship}
+                            value={item.id_mentorship}
+                          >
+                            {item.nama_mentorship || "Kelas Private"} -{" "}
+                            {item.nama_peserta || "-"} (Mentor:{" "}
+                            {item.nickname_mentor || item.nama_mentor || "-"})
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-[11px] text-gray-500">
+                        Mentor otomatis mengikuti mentor kelas private, masih
+                        bisa diubah.
+                      </p>
+                      {errors.id_mentorship && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.id_mentorship}
                         </p>
                       )}
                     </div>
