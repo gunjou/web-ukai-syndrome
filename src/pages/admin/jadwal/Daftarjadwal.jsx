@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import debounce from "lodash/debounce";
 import {
   AiOutlineCalendar,
@@ -6,7 +12,12 @@ import {
   AiOutlineSwap,
 } from "react-icons/ai";
 import { BsTrash3 } from "react-icons/bs";
-import { LuCalendarClock, LuPencil } from "react-icons/lu";
+import {
+  LuCalendarClock,
+  LuChevronRight,
+  LuLayers,
+  LuPencil,
+} from "react-icons/lu";
 import { MdOutlineHistory } from "react-icons/md";
 import { toast } from "react-toastify";
 
@@ -19,6 +30,10 @@ import EditJadwalForm from "./modal/EditJadwalForm.jsx";
 import RescheduleJadwalModal from "./modal/RescheduleJadwalModal.jsx";
 import ImportHistoryModal from "./modal/ImportHistoryModal.jsx";
 import SwitchMentorModal from "./modal/SwitchMentorModal.jsx";
+import GroupKelasModal from "./modal/GroupKelasModal.jsx";
+import EditGroupJadwalModal from "./modal/EditGroupJadwalModal.jsx";
+import RescheduleGroupJadwalModal from "./modal/RescheduleGroupJadwalModal.jsx";
+import SwitchMentorGroupModal from "./modal/SwitchMentorGroupModal.jsx";
 
 // ========================================================================
 // CONSTANT
@@ -26,7 +41,6 @@ import SwitchMentorModal from "./modal/SwitchMentorModal.jsx";
 
 const INITIAL_PER_PAGE = 50;
 const SEARCH_DEBOUNCE = 500;
-const OFFLINE_FETCH_SIZE = 100; // [OFFLINE] ukuran per request saat ambil semua data
 
 // ========================================================================
 // DATE HELPER
@@ -76,59 +90,6 @@ const getMonthDateRange = (monthValue) => {
 };
 
 // ========================================================================
-// [OFFLINE] FILTER OFFLINE DI FRONTEND
-// ========================================================================
-
-const filterOfflineRows = (rows, search, destinationId, startDate, endDate) => {
-  const keyword = String(search || "")
-    .trim()
-    .toLowerCase();
-
-  return rows.filter((jadwal) => {
-    // Tipe harus OFFLINE
-    const type = String(jadwal.type_pertemuan || "")
-      .trim()
-      .toUpperCase();
-
-    if (type !== "OFFLINE") return false;
-
-    // Kelompok
-    if (destinationId) {
-      const idKelompok = jadwal.id_kelompok ?? jadwal.kelompok?.id_kelompok;
-
-      if (String(idKelompok) !== String(destinationId)) return false;
-    }
-
-    // Periode (tanggal efektif karena jadwal bisa di-reschedule)
-    const tanggal = String(
-      jadwal.tanggal_efektif || jadwal.tanggal || "",
-    ).slice(0, 10);
-
-    if (startDate && (!tanggal || tanggal < startDate)) return false;
-    if (endDate && (!tanggal || tanggal > endDate)) return false;
-
-    // Pencarian
-    if (keyword) {
-      const haystack = [
-        jadwal.nama_kelas,
-        jadwal.nama_kelompok,
-        jadwal.kelompok?.nama_kelompok,
-        jadwal.nama_mentor,
-        jadwal.topik,
-        jadwal.catatan,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      if (!haystack.includes(keyword)) return false;
-    }
-
-    return true;
-  });
-};
-
-// ========================================================================
 // MAIN COMPONENT
 // ========================================================================
 
@@ -145,6 +106,12 @@ const DaftarJadwal = () => {
   const [filterMonth, setFilterMonth] = useState(getCurrentMonth());
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
+
+  // Urutan default: jadwal yang belum selesai tampil lebih dulu (terdekat),
+  // lalu yang sudah selesai (terbaru). Tidak ada data yang disembunyikan.
+  const [sortUpcoming, setSortUpcoming] = useState(true);
+  const sortUpcomingRef = useRef(sortUpcoming);
+  sortUpcomingRef.current = sortUpcoming;
 
   // ========================================================================
   // STATE - DATA
@@ -179,6 +146,11 @@ const DaftarJadwal = () => {
   const [selectedSwitchJadwal, setSelectedSwitchJadwal] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+
+  // Aksi group (v2) - berlaku untuk semua jadwal dalam 1 group
+  const [groupAction, setGroupAction] = useState(null); // "edit" | "reschedule" | "switch"
+  const [actionGroup, setActionGroup] = useState(null);
 
   // ========================================================================
   // ACTIVE DATE RANGE
@@ -194,39 +166,6 @@ const DaftarJadwal = () => {
       endDate: filterEndDate,
     };
   }, [periodMode, filterMonth, filterStartDate, filterEndDate]);
-
-  // ========================================================================
-  // [OFFLINE] FETCH SEMUA DATA TANPA FILTER BACKEND
-  // ========================================================================
-
-  const fetchAllJadwalRows = useCallback(async () => {
-    let page = 1;
-    let totalPages = 1;
-    const rows = [];
-
-    do {
-      const response = await Api.get(
-        `/jadwal?page=${page}&per_page=${OFFLINE_FETCH_SIZE}`,
-      );
-
-      const result = response?.data;
-      const data = Array.isArray(result?.data) ? result.data : [];
-      const meta = result?.meta || {};
-
-      rows.push(...data);
-
-      totalPages =
-        Number(meta.total_pages) ||
-        (meta.total ? Math.ceil(Number(meta.total) / OFFLINE_FETCH_SIZE) : 1);
-
-      // berhenti kalau halaman kosong, mencegah loop tak berujung
-      if (data.length === 0) break;
-
-      page += 1;
-    } while (page <= totalPages && page <= 200);
-
-    return rows;
-  }, []);
 
   // ========================================================================
   // FETCH JADWAL
@@ -246,40 +185,6 @@ const DaftarJadwal = () => {
       setError("");
 
       try {
-        // ================================================================
-        // [OFFLINE] FILTER DI FRONTEND
-        // ================================================================
-
-        if (meetingType === "OFFLINE") {
-          const allRows = await fetchAllJadwalRows();
-
-          const filtered = filterOfflineRows(
-            allRows,
-            search,
-            destinationId,
-            startDate,
-            endDate,
-          );
-
-          const total = filtered.length;
-          const pages = Math.max(Math.ceil(total / currentPerPage), 1);
-          const safePage = Math.min(Math.max(page, 1), pages);
-          const startIndex = (safePage - 1) * currentPerPage;
-
-          setJadwalData(
-            filtered.slice(startIndex, startIndex + currentPerPage),
-          );
-          setCurrentPage(safePage);
-          setTotalData(total);
-          setTotalPage(pages);
-
-          return;
-        }
-
-        // ================================================================
-        // ONLINE / SEMUA TIPE - TETAP LEWAT BACKEND
-        // ================================================================
-
         const params = new URLSearchParams();
 
         params.set("page", page);
@@ -293,7 +198,6 @@ const DaftarJadwal = () => {
 
         if (meetingType) {
           params.set("type_pertemuan", meetingType);
-          params.set("type", meetingType);
         }
 
         if (destinationId && meetingType === "ONLINE") {
@@ -310,7 +214,10 @@ const DaftarJadwal = () => {
           params.set("end_date", endDate);
         }
 
-        const response = await Api.get(`/jadwal?${params.toString()}`);
+        params.set("upcoming", sortUpcomingRef.current ? "1" : "0");
+
+        // Data jadwal sudah di-group per mentor + tipe + tanggal + jam
+        const response = await Api.get(`/jadwal/v2/group?${params.toString()}`);
 
         const result = response?.data;
 
@@ -344,7 +251,7 @@ const DaftarJadwal = () => {
         setIsLoading(false);
       }
     },
-    [fetchAllJadwalRows],
+    [],
   );
 
   // ========================================================================
@@ -443,6 +350,7 @@ const DaftarJadwal = () => {
     filterDestinationId,
     filterMonth,
     perPage,
+    sortUpcoming,
     activeDateRange.startDate,
     activeDateRange.endDate,
     debouncedFetch,
@@ -568,6 +476,7 @@ const DaftarJadwal = () => {
     setFilterMonth(getCurrentMonth());
     setFilterStartDate("");
     setFilterEndDate("");
+    setSortUpcoming(true);
     setCurrentPage(1);
   };
 
@@ -576,18 +485,21 @@ const DaftarJadwal = () => {
   // ========================================================================
 
   const handleEditClick = (jadwal) => {
+    setSelectedGroup(null);
     setSelectedId(jadwal.id_jadwal);
     setSelectedData(jadwal);
     setShowEditModal(true);
   };
 
   const handleRescheduleClick = (jadwal) => {
+    setSelectedGroup(null);
     setSelectedId(jadwal.id_jadwal);
     setSelectedData(jadwal);
     setShowRescheduleModal(true);
   };
 
   const handleOpenSwitchMentor = (jadwal) => {
+    setSelectedGroup(null);
     setSelectedSwitchJadwal(jadwal);
     setShowSwitchMentorModal(true);
   };
@@ -610,6 +522,7 @@ const DaftarJadwal = () => {
         await Api.delete(`/jadwal/${id}`);
 
         toast.success("Jadwal berhasil dihapus.");
+        setSelectedGroup(null);
 
         await fetchJadwalData(
           currentPage,
@@ -629,23 +542,43 @@ const DaftarJadwal = () => {
   };
 
   // ========================================================================
-  // BADGE - STATUS
+  // AKSI GROUP (v2) - DITERAPKAN KE SEMUA JADWAL DALAM GROUP
   // ========================================================================
 
-  const getStatusBadge = (status) => {
-    if (status === 1) {
-      return (
-        <span className="whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
-          Aktif
-        </span>
-      );
-    }
+  const openGroupAction = (action, group) => {
+    setActionGroup(group);
+    setGroupAction(action);
+  };
 
-    return (
-      <span className="whitespace-nowrap rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-800">
-        Nonaktif
-      </span>
-    );
+  const closeGroupAction = () => {
+    setGroupAction(null);
+    setActionGroup(null);
+  };
+
+  const handleDeleteGroup = (group) => {
+    const total = group.count ?? group.classes?.length ?? 1;
+    const message =
+      total > 1
+        ? `Yakin ingin menghapus ${total} jadwal dalam group ini?`
+        : "Yakin ingin menghapus jadwal ini?";
+
+    ConfirmToast(message, async () => {
+      try {
+        const response = await Api.delete(
+          `/jadwal/v2/group/${group.id_jadwal}`,
+        );
+
+        toast.success(response?.data?.message || "Jadwal berhasil dihapus.");
+
+        handleRefreshFetch();
+      } catch (error) {
+        console.error("Gagal menghapus group jadwal:", error);
+
+        toast.error(
+          error?.response?.data?.message || "Gagal menghapus jadwal.",
+        );
+      }
+    });
   };
 
   // ========================================================================
@@ -728,7 +661,7 @@ const DaftarJadwal = () => {
       return (
         <tr>
           <td
-            colSpan="10"
+            colSpan="8"
             className="px-4 py-10 text-center text-sm text-gray-500"
           >
             Memuat data jadwal...
@@ -741,7 +674,7 @@ const DaftarJadwal = () => {
       return (
         <tr>
           <td
-            colSpan="10"
+            colSpan="8"
             className="px-4 py-10 text-center text-sm text-red-500"
           >
             {error}
@@ -754,7 +687,7 @@ const DaftarJadwal = () => {
       return (
         <tr>
           <td
-            colSpan="10"
+            colSpan="8"
             className="px-4 py-10 text-center text-sm text-gray-500"
           >
             Tidak ada data jadwal.
@@ -772,19 +705,44 @@ const DaftarJadwal = () => {
 
       const waktuSelesai = jadwal.waktu_selesai_efektif || jadwal.waktu_selesai;
 
+      const isOffline = jadwal.type_pertemuan === "OFFLINE";
+      const targets = Array.isArray(jadwal.classes) ? jadwal.classes : [];
+      const jumlahTarget = jadwal.count ?? targets.length;
+      const firstTarget = targets[0];
+
       return (
         <tr
-          key={jadwal.id_jadwal}
-          className="border-b text-sm transition-colors hover:bg-gray-50"
+          key={`${jadwal.id_mentor}-${jadwal.type_pertemuan}-${tanggalEfektif}-${waktuMulai}-${waktuSelesai}`}
+          className={`border-b text-sm transition-colors hover:bg-gray-50 ${
+            jadwal.is_selesai ? "bg-gray-50/60 opacity-60" : ""
+          }`}
         >
           {/* NOMOR */}
           <td className="whitespace-nowrap px-4 py-3 text-gray-600">{nomor}</td>
 
-          {/* TUJUAN JADWAL */}
-          <td className="px-4 py-3 font-semibold text-gray-800">
-            {jadwal.type_pertemuan === "OFFLINE"
-              ? jadwal.nama_kelompok || jadwal.kelompok?.nama_kelompok || "-"
-              : jadwal.nama_kelas || "-"}
+          {/* KELAS / KELOMPOK: 1 item = nama langsung, >1 = "{count} Kelas" */}
+          <td className="px-4 py-3">
+            {jumlahTarget === 1 ? (
+              <span className="font-semibold text-gray-800 whitespace-nowrap">
+                {(isOffline
+                  ? firstTarget?.nama_kelompok
+                  : firstTarget?.nama_kelas) ||
+                  firstTarget?.nama_kelas ||
+                  firstTarget?.nama_kelompok ||
+                  "-"}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSelectedGroup(jadwal)}
+                title={`Lihat daftar ${isOffline ? "kelompok" : "kelas"}`}
+                className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-white shadow-sm ring-2 ring-yellow-200 transition hover:bg-yellow-600 hover:shadow-md focus:outline-none focus:ring-yellow-300 active:scale-95"
+              >
+                <LuLayers className="h-3.5 w-3.5" />
+                {jumlahTarget} {isOffline ? "Kelompok" : "Kelas"}
+                <LuChevronRight className="h-3.5 w-3.5" />
+              </button>
+            )}
           </td>
 
           {/* MENTOR */}
@@ -792,14 +750,12 @@ const DaftarJadwal = () => {
             {jadwal.nama_mentor || "-"}
           </td>
 
-          {/* TANGGAL */}
+          {/* TANGGAL & JAM */}
           <td className="whitespace-nowrap px-4 py-3 text-center text-gray-700">
-            {formatDate(tanggalEfektif)}
-          </td>
-
-          {/* JAM */}
-          <td className="whitespace-nowrap px-4 py-3 text-center text-gray-700">
-            {formatTime(waktuMulai)} - {formatTime(waktuSelesai)}
+            <div>{formatDate(tanggalEfektif)}</div>
+            <div className="text-xs text-gray-500">
+              {formatTime(waktuMulai)} - {formatTime(waktuSelesai)}
+            </div>
           </td>
 
           {/* TIPE PERTEMUAN */}
@@ -817,77 +773,52 @@ const DaftarJadwal = () => {
             <div className="line-clamp-2">{jadwal.catatan || "-"}</div>
           </td>
 
-          {/* STATUS */}
-          <td className="px-4 py-3 text-center">
-            {getStatusBadge(jadwal.status)}
-          </td>
-
-          {/* AKSI */}
+          {/* AKSI GROUP (berlaku untuk semua jadwal dalam group) */}
           <td className="px-4 py-3">
             <div className="flex items-center justify-center gap-2">
-              {/* EDIT */}
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={() => handleEditClick(jadwal)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white transition-colors hover:bg-blue-600"
-                  aria-label="Edit jadwal"
-                >
-                  <LuPencil className="h-4 w-4" />
-                </button>
+              {[
+                {
+                  label: "Edit jadwal",
+                  color: "bg-blue-500 hover:bg-blue-600",
+                  icon: <LuPencil className="h-4 w-4" />,
+                  onClick: () => openGroupAction("edit", jadwal),
+                },
+                {
+                  label: "Switch mentor",
+                  color: "bg-yellow-500 hover:bg-yellow-600",
+                  icon: <AiOutlineSwap className="h-4 w-4" />,
+                  onClick: () => openGroupAction("switch", jadwal),
+                },
+                {
+                  label: "Reschedule",
+                  color: "bg-orange-500 hover:bg-orange-600",
+                  icon: <LuCalendarClock className="h-4 w-4" />,
+                  onClick: () => openGroupAction("reschedule", jadwal),
+                },
+                {
+                  label: "Hapus jadwal",
+                  color: "bg-red-500 hover:bg-red-600",
+                  icon: <BsTrash3 className="h-4 w-4" />,
+                  onClick: () => handleDeleteGroup(jadwal),
+                },
+              ].map((action) => (
+                <div key={action.label} className="group relative">
+                  <button
+                    type="button"
+                    onClick={action.onClick}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-white transition-colors ${action.color}`}
+                    aria-label={action.label}
+                  >
+                    {action.icon}
+                  </button>
 
-                <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
-                  Edit jadwal
-                </span>
-              </div>
-
-              {/* SWITCH MENTOR */}
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={() => handleOpenSwitchMentor(jadwal)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 text-white transition-colors hover:bg-yellow-600"
-                  aria-label="Switch mentor"
-                >
-                  <AiOutlineSwap className="h-4 w-4" />
-                </button>
-
-                <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
-                  Switch mentor
-                </span>
-              </div>
-
-              {/* RESCHEDULE */}
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={() => handleRescheduleClick(jadwal)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-white transition-colors hover:bg-orange-600"
-                  aria-label="Reschedule jadwal"
-                >
-                  <LuCalendarClock className="h-4 w-4" />
-                </button>
-
-                <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
-                  Reschedule
-                </span>
-              </div>
-
-              {/* DELETE */}
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={() => handleDelete(jadwal.id_jadwal)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white transition-colors hover:bg-red-600"
-                  aria-label="Hapus jadwal"
-                >
-                  <BsTrash3 className="h-4 w-4" />
-                </button>
-
-                <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
-                  Hapus jadwal
-                </span>
-              </div>
+                  <span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-700 px-2 py-1 text-xs text-white shadow-md group-hover:block">
+                    {jumlahTarget > 1
+                      ? `${action.label} (${jumlahTarget} ${isOffline ? "kelompok" : "kelas"})`
+                      : action.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </td>
         </tr>
@@ -925,231 +856,257 @@ const DaftarJadwal = () => {
 
               {/* FILTER + ACTION */}
               <div className="flex flex-wrap items-center justify-end gap-1.5">
-              {/* SEARCH */}
-              <div className="relative w-48">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  placeholder="Cari kelas/kelompok/mentor/topik..."
-                  className="h-8 w-full rounded-md border border-gray-300 bg-white px-2.5 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                />
-              </div>
-
-              {/* MEETING TYPE */}
-              <div className="relative w-32">
-                <select
-                  value={filterType}
-                  onChange={handleFilterTypeChange}
-                  aria-label="Filter tipe pertemuan"
-                  className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                >
-                  <option value="">Semua Tipe</option>
-                  <option value="ONLINE">ONLINE</option>
-                  <option value="OFFLINE">OFFLINE</option>
-                </select>
-
-                <svg
-                  className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-
-              {/* CLASS OR GROUP */}
-              {filterType === "ONLINE" && (
-                <div className="relative w-40">
-                  <select
-                    value={filterDestinationId}
-                    onChange={handleFilterDestinationChange}
-                    aria-label="Filter berdasarkan kelas"
-                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                  >
-                    <option value="">Semua Kelas</option>
-                    {kelasOptions.map((kelas) => (
-                      <option
-                        key={kelas.id_paketkelas}
-                        value={kelas.id_paketkelas}
-                      >
-                        {kelas.nama_kelas}
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              )}
-
-              {filterType === "OFFLINE" && (
-                <div className="relative w-44">
-                  <select
-                    value={filterDestinationId}
-                    onChange={handleFilterDestinationChange}
-                    aria-label="Filter berdasarkan kelompok"
-                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                  >
-                    <option value="">Semua Kelompok</option>
-                    {kelompokOptions.map((kelompok) => (
-                      <option
-                        key={kelompok.id_kelompok}
-                        value={kelompok.id_kelompok}
-                      >
-                        {kelompok.nama_kelompok}
-                        {kelompok.nama_batch ? ` (${kelompok.nama_batch})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              )}
-
-              {/* MODE PERIODE */}
-              <div className="relative w-24">
-                <select
-                  value={periodMode}
-                  onChange={handlePeriodModeChange}
-                  className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                >
-                  <option value="month">Bulanan</option>
-                  <option value="range">Range</option>
-                </select>
-
-                <svg
-                  className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-
-              {/* BULAN */}
-              {periodMode === "month" && (
-                <div className="relative w-36">
-                  <AiOutlineCalendar
-                    className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-gray-400"
-                    size={14}
-                  />
-
+                {/* SEARCH */}
+                <div className="relative w-64">
                   <input
-                    type="month"
-                    value={filterMonth}
-                    onChange={handleMonthChange}
-                    className="h-8 w-full rounded-md border border-gray-300 bg-white pl-8 pr-1.5 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    placeholder="Cari kelas/kelompok/mentor/topik..."
+                    className="h-8 w-full rounded-md border border-gray-300 bg-white px-2.5 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
                   />
                 </div>
-              )}
 
-              {/* RANGE */}
-              {periodMode === "range" && (
-                <>
-                  {/* TANGGAL AWAL */}
-                  <div className="relative w-32">
+                {/* MEETING TYPE */}
+                <div className="relative w-32">
+                  <select
+                    value={filterType}
+                    onChange={handleFilterTypeChange}
+                    aria-label="Filter tipe pertemuan"
+                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                  >
+                    <option value="">Semua Tipe</option>
+                    <option value="ONLINE">ONLINE</option>
+                    <option value="OFFLINE">OFFLINE</option>
+                  </select>
+
+                  <svg
+                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+
+                {/* CLASS OR GROUP */}
+                {filterType === "ONLINE" && (
+                  <div className="relative w-40">
+                    <select
+                      value={filterDestinationId}
+                      onChange={handleFilterDestinationChange}
+                      aria-label="Filter berdasarkan kelas"
+                      className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                    >
+                      <option value="">Semua Kelas</option>
+                      {kelasOptions.map((kelas) => (
+                        <option
+                          key={kelas.id_paketkelas}
+                          value={kelas.id_paketkelas}
+                        >
+                          {kelas.nama_kelas}
+                        </option>
+                      ))}
+                    </select>
+                    <svg
+                      className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {filterType === "OFFLINE" && (
+                  <div className="relative w-44">
+                    <select
+                      value={filterDestinationId}
+                      onChange={handleFilterDestinationChange}
+                      aria-label="Filter berdasarkan kelompok"
+                      className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                    >
+                      <option value="">Semua Kelompok</option>
+                      {kelompokOptions.map((kelompok) => (
+                        <option
+                          key={kelompok.id_kelompok}
+                          value={kelompok.id_kelompok}
+                        >
+                          {kelompok.nama_kelompok}
+                          {kelompok.nama_batch
+                            ? ` (${kelompok.nama_batch})`
+                            : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <svg
+                      className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                )}
+
+                {/* MODE PERIODE */}
+                <div className="relative w-24">
+                  <select
+                    value={periodMode}
+                    onChange={handlePeriodModeChange}
+                    className="h-8 w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 pr-7 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                  >
+                    <option value="month">Bulanan</option>
+                    <option value="range">Range</option>
+                  </select>
+
+                  <svg
+                    className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+
+                {/* BULAN */}
+                {periodMode === "month" && (
+                  <div className="relative w-36">
                     <AiOutlineCalendar
                       className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-gray-400"
                       size={14}
                     />
 
                     <input
-                      type="date"
-                      value={filterStartDate}
-                      onChange={handleStartDateChange}
+                      type="month"
+                      value={filterMonth}
+                      onChange={handleMonthChange}
                       className="h-8 w-full rounded-md border border-gray-300 bg-white pl-8 pr-1.5 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                      aria-label="Tanggal awal"
                     />
                   </div>
+                )}
 
-                  <span className="text-[10px] font-medium text-gray-400">
-                    s/d
-                  </span>
+                {/* RANGE */}
+                {periodMode === "range" && (
+                  <>
+                    {/* TANGGAL AWAL */}
+                    <div className="relative w-32">
+                      <AiOutlineCalendar
+                        className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-gray-400"
+                        size={14}
+                      />
 
-                  {/* TANGGAL AKHIR */}
-                  <div className="relative w-32">
-                    <AiOutlineCalendar
-                      className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-gray-400"
-                      size={14}
+                      <input
+                        type="date"
+                        value={filterStartDate}
+                        onChange={handleStartDateChange}
+                        className="h-8 w-full rounded-md border border-gray-300 bg-white pl-8 pr-1.5 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                        aria-label="Tanggal awal"
+                      />
+                    </div>
+
+                    <span className="text-[10px] font-medium text-gray-400">
+                      s/d
+                    </span>
+
+                    {/* TANGGAL AKHIR */}
+                    <div className="relative w-32">
+                      <AiOutlineCalendar
+                        className="pointer-events-none absolute left-2.5 top-1/2 z-10 -translate-y-1/2 text-gray-400"
+                        size={14}
+                      />
+
+                      <input
+                        type="date"
+                        value={filterEndDate}
+                        min={filterStartDate || undefined}
+                        onChange={handleEndDateChange}
+                        className="h-8 w-full rounded-md border border-gray-300 bg-white pl-8 pr-1.5 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
+                        aria-label="Tanggal akhir"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* URUTAN: MULAI DARI SEKARANG */}
+                <label
+                  className="flex h-8 cursor-pointer select-none items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 text-xs font-medium text-gray-700"
+                  title="Aktif: jadwal yang belum selesai tampil lebih dulu, lalu yang sudah selesai. Nonaktif: urut kronologis."
+                >
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={sortUpcoming}
+                    onClick={() => setSortUpcoming((prev) => !prev)}
+                    className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                      sortUpcoming ? "bg-yellow-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform ${
+                        sortUpcoming ? "translate-x-3.5" : "translate-x-0.5"
+                      }`}
                     />
+                  </button>
+                  <span>Upcoming</span>
+                </label>
 
-                    <input
-                      type="date"
-                      value={filterEndDate}
-                      min={filterStartDate || undefined}
-                      onChange={handleEndDateChange}
-                      className="h-8 w-full rounded-md border border-gray-300 bg-white pl-8 pr-1.5 text-xs font-medium text-gray-700 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-200"
-                      aria-label="Tanggal akhir"
-                    />
-                  </div>
-                </>
-              )}
+                {/* RESET */}
+                {(searchTerm.trim() ||
+                  filterType ||
+                  filterDestinationId ||
+                  filterMonth !== getCurrentMonth() ||
+                  filterStartDate ||
+                  filterEndDate ||
+                  !sortUpcoming ||
+                  periodMode !== "month") && (
+                  <button
+                    type="button"
+                    onClick={handleResetFilter}
+                    className="flex h-8 items-center justify-center rounded-md border border-gray-300 bg-white px-2.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100"
+                  >
+                    Reset
+                  </button>
+                )}
 
-              {/* RESET */}
-              {(searchTerm.trim() ||
-                filterType ||
-                filterDestinationId ||
-                filterMonth !== getCurrentMonth() ||
-                filterStartDate ||
-                filterEndDate ||
-                periodMode !== "month") && (
-                <button
-                  type="button"
-                  onClick={handleResetFilter}
-                  className="flex h-8 items-center justify-center rounded-md border border-gray-300 bg-white px-2.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100"
-                >
-                  Reset
-                </button>
-              )}
+                {/* ACTION */}
+                <div className="ml-1 flex shrink-0 items-center gap-1.5 border-l border-gray-200 pl-2.5">
+                  {/* HISTORY IMPORT */}
+                  <button
+                    type="button"
+                    onClick={handleImportHistoryClick}
+                    className="flex h-8 items-center justify-center gap-1 rounded-md bg-gray-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-gray-600"
+                  >
+                    <MdOutlineHistory className="h-3.5 w-3.5" />
+                    <span>History</span>
+                  </button>
 
-              {/* ACTION */}
-              <div className="ml-1 flex shrink-0 items-center gap-1.5 border-l border-gray-200 pl-2.5">
-                {/* HISTORY IMPORT */}
-                <button
-                  type="button"
-                  onClick={handleImportHistoryClick}
-                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-gray-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-gray-600"
-                >
-                  <MdOutlineHistory className="h-3.5 w-3.5" />
-                  <span>History</span>
-                </button>
-
-                {/* TAMBAH JADWAL */}
-                <button
-                  type="button"
-                  onClick={handleTambahClick}
-                  className="flex h-8 items-center justify-center gap-1 rounded-md bg-yellow-500 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-yellow-600"
-                >
-                  <AiOutlinePlus className="h-3.5 w-3.5" />
-                  <span>Tambah</span>
-                </button>
-              </div>
+                  {/* TAMBAH JADWAL */}
+                  <button
+                    type="button"
+                    onClick={handleTambahClick}
+                    className="flex h-8 items-center justify-center gap-1 rounded-md bg-yellow-500 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-yellow-600"
+                  >
+                    <AiOutlinePlus className="h-3.5 w-3.5" />
+                    <span>Tambah</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1168,11 +1125,7 @@ const DaftarJadwal = () => {
                   <th className="whitespace-nowrap px-3 py-2.5">Mentor</th>
 
                   <th className="whitespace-nowrap px-3 py-2.5 text-center">
-                    Tanggal Efektif
-                  </th>
-
-                  <th className="whitespace-nowrap px-3 py-2.5 text-center">
-                    Jam
+                    Tanggal &amp; Jam
                   </th>
 
                   <th className="whitespace-nowrap px-3 py-2.5 text-center">
@@ -1182,10 +1135,6 @@ const DaftarJadwal = () => {
                   <th className="whitespace-nowrap px-3 py-2.5">Topik</th>
 
                   <th className="whitespace-nowrap px-3 py-2.5">Catatan</th>
-
-                  <th className="whitespace-nowrap px-3 py-2.5 text-center">
-                    Status
-                  </th>
 
                   <th className="whitespace-nowrap px-3 py-2.5 text-center">
                     Aksi
@@ -1273,6 +1222,45 @@ const DaftarJadwal = () => {
           </div>
         </div>
       </main>
+
+      {/* MODAL - DAFTAR KELAS / KELOMPOK DALAM GROUP */}
+      {selectedGroup && (
+        <GroupKelasModal
+          group={selectedGroup}
+          onClose={() => setSelectedGroup(null)}
+          onEdit={handleEditClick}
+          onReschedule={handleRescheduleClick}
+          onSwitchMentor={handleOpenSwitchMentor}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* MODAL - AKSI GROUP (v2) */}
+      {groupAction === "edit" && actionGroup && (
+        <EditGroupJadwalModal
+          setShowModal={closeGroupAction}
+          fetchJadwal={handleRefreshFetch}
+          group={actionGroup}
+        />
+      )}
+
+      {groupAction === "reschedule" && actionGroup && (
+        <RescheduleGroupJadwalModal
+          setShowModal={closeGroupAction}
+          fetchJadwal={handleRefreshFetch}
+          group={actionGroup}
+        />
+      )}
+
+      {groupAction === "switch" && actionGroup && (
+        <SwitchMentorGroupModal
+          setShowModal={closeGroupAction}
+          fetchJadwal={handleRefreshFetch}
+          group={actionGroup}
+          startDate={activeDateRange.startDate}
+          endDate={activeDateRange.endDate}
+        />
+      )}
 
       {/* MODAL - HISTORY IMPORT */}
       {showImportHistoryModal && (
