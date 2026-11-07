@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   AiOutlineClose,
+  AiOutlineEnvironment,
   AiOutlineEye,
   AiOutlineFilePdf,
   AiOutlineLogout,
@@ -25,12 +26,36 @@ import { getTargetLabel, getTargetName } from "./jadwalTarget.js";
 const getGroupClasses = (group) =>
   Array.isArray(group?.classes) ? group.classes : [];
 
-
 // Gabungkan data group + 1 kelas agar bentuknya sama seperti 1 absensi lama
 const toAbsensiItem = (group, item) => {
   // eslint-disable-next-line no-unused-vars
   const { classes, count, count_check_in, count_check_out, ...rest } = group;
   return { ...rest, ...item };
+};
+
+// shortcut: embed Google Maps tanpa API key (output=embed tidak resmi), pindah ke Maps Embed API jika berhenti berfungsi
+const getMapsEmbedUrl = ({ latitude, longitude }) =>
+  `https://www.google.com/maps?q=${latitude},${longitude}&z=17&output=embed`;
+
+// Tidak tampil jika koordinat kosong (mis. pertemuan online)
+const LokasiAbsen = ({ label, latitude, longitude, onPreview }) => {
+  if (latitude == null || longitude == null) return null;
+  const lokasi = {
+    label,
+    latitude: Number(latitude),
+    longitude: Number(longitude),
+  };
+  return (
+    <button
+      type="button"
+      onClick={() => onPreview(lokasi)}
+      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 underline hover:text-blue-800 cursor-pointer text-left"
+      title={`Lihat lokasi ${label.toLowerCase()} di peta`}
+    >
+      <AiOutlineEnvironment size={14} className="shrink-0" />
+      {lokasi.latitude}, {lokasi.longitude}
+    </button>
+  );
 };
 
 const DaftarAbsen = () => {
@@ -50,6 +75,7 @@ const DaftarAbsen = () => {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
+  const [previewLokasi, setPreviewLokasi] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [updatingParticipantId, setUpdatingParticipantId] = useState(null);
   const [checkoutTarget, setCheckoutTarget] = useState(null);
@@ -395,7 +421,9 @@ const DaftarAbsen = () => {
         }
       }
 
-      const safeClassName = (getTargetName({ ...selectedJadwal, ...jadwal }) || "absensi")
+      const safeClassName = (
+        getTargetName({ ...selectedJadwal, ...jadwal }) || "absensi"
+      )
         .replace(/[^a-z0-9]+/gi, "-")
         .replace(/^-|-$/g, "")
         .toLowerCase();
@@ -511,9 +539,9 @@ const DaftarAbsen = () => {
                             <button
                               type="button"
                               onClick={() => setGroupJadwalId(group.id_jadwal)}
-                              title={`Lihat daftar ${
-                                getTargetLabel(classes).toLowerCase()
-                              }`}
+                              title={`Lihat daftar ${getTargetLabel(
+                                classes,
+                              ).toLowerCase()}`}
                               className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-white shadow-sm ring-2 ring-yellow-200 transition hover:bg-yellow-600 hover:shadow-md focus:outline-none focus:ring-yellow-300 active:scale-95"
                             >
                               <LuLayers className="h-3.5 w-3.5" />
@@ -727,197 +755,256 @@ const DaftarAbsen = () => {
           onClick={() => setSelectedJadwal(null)}
         >
           <div
-            className="bg-white rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              type="button"
-              onClick={() => setSelectedJadwal(null)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-red-500"
-              title="Tutup detail"
-            >
-              <AiOutlineClose size={24} />
-            </button>
-            <h2 className="text-xl font-bold text-gray-800 pr-8">
-              Detail Absensi
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {getTargetName(selectedJadwal)} | {formatDate(selectedJadwal.tanggal)}
-            </p>
-            <button
-              type="button"
-              onClick={exportPDF}
-              disabled={isDetailLoading || !detailData || isExporting}
-              className="mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition"
-            >
-              <AiOutlineFilePdf />
-              {isExporting ? "Membuat PDF..." : "Export PDF"}
-            </button>
+            <div className="bg-yellow-600 text-white px-6 py-4 flex flex-wrap items-center gap-3">
+              <div className="flex-1 min-w-[200px]">
+                <h2 className="text-lg font-bold">Detail Absensi</h2>
+                <p className="text-sm text-gray-300 mt-0.5">
+                  {getTargetName(selectedJadwal)} |{" "}
+                  {formatDate(selectedJadwal.tanggal)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={exportPDF}
+                disabled={isDetailLoading || !detailData || isExporting}
+                className="bg-custom-merah hover:bg-red-700 disabled:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition"
+              >
+                <AiOutlineFilePdf />
+                {isExporting ? "Membuat PDF..." : "Export PDF"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedJadwal(null)}
+                className="p-1 text-gray-300 hover:text-white transition"
+                title="Tutup detail"
+              >
+                <AiOutlineClose size={24} />
+              </button>
+            </div>
 
-            {isDetailLoading ? (
-              <div className="py-12 text-center text-gray-500">
-                Memuat detail absensi...
-              </div>
-            ) : detailError ? (
-              <div className="py-12 text-center text-red-500">
-                {detailError}
-              </div>
-            ) : detailData ? (
-              <div className="mt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-500">Mentor</p>
-                    <p className="font-semibold">
-                      {detailData.mentor?.nickname_mentor ||
-                        detailData.mentor?.nama_mentor ||
-                        "-"}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-500">Check-in</p>
-                    <p className="font-semibold">
-                      {formatDateTime(detailData.mentor?.check_in_at)}
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-lg p-4 ${
-                      canAdminCheckout(detailCheckoutTarget)
-                        ? "bg-orange-50 border border-orange-200"
-                        : "bg-gray-50"
-                    }`}
-                  >
-                    <p className="text-gray-500">Check-out</p>
-                    <p className="font-semibold">
-                      {formatDateTime(detailData.mentor?.check_out_at)}
-                    </p>
-                    {canAdminCheckout(detailCheckoutTarget) && (
-                      <button
-                        type="button"
-                        onClick={() => setCheckoutTarget(detailCheckoutTarget)}
-                        className="mt-2 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
-                      >
-                        <AiOutlineLogout /> Check-out oleh Admin
-                      </button>
-                    )}
-                  </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              {isDetailLoading ? (
+                <div className="py-12 text-center text-gray-500">
+                  Memuat detail absensi...
                 </div>
-                <div>
-                  <h3 className="font-bold text-gray-800 mb-3">
-                    Evidence Kehadiran
-                  </h3>
+              ) : detailError ? (
+                <div className="py-12 text-center text-red-500">
+                  {detailError}
+                </div>
+              ) : detailData ? (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 shrink-0 rounded-full bg-custom-biru text-white font-bold flex items-center justify-center">
+                      {(detailData.mentor?.nickname_mentor ||
+                        detailData.mentor?.nama_mentor ||
+                        "-")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Mentor</p>
+                      <p className="font-semibold text-gray-800">
+                        {detailData.mentor?.nickname_mentor ||
+                          detailData.mentor?.nama_mentor ||
+                          "-"}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       {
-                        label: "Evidence Check-in",
+                        label: "Check-in",
+                        at: detailData.mentor?.check_in_at,
+                        latitude: detailData.mentor?.check_in_latitude,
+                        longitude: detailData.mentor?.check_in_longitude,
                         url: detailData.mentor?.evidence_checkin_url,
                       },
                       {
-                        label: "Evidence Check-out",
+                        label: "Check-out",
+                        at: detailData.mentor?.check_out_at,
+                        latitude: detailData.mentor?.check_out_latitude,
+                        longitude: detailData.mentor?.check_out_longitude,
                         url: detailData.mentor?.evidence_checkout_url,
+                        needsAdmin: canAdminCheckout(detailCheckoutTarget),
                       },
-                    ].map((evidence) => (
-                      <div
-                        key={evidence.label}
-                        className="border rounded-lg p-3"
-                      >
-                        <p className="text-sm font-semibold text-gray-700 mb-2">
-                          {evidence.label}
-                        </p>
-                        {evidence.url ? (
-                          <button
-                            type="button"
-                            onClick={() => setPreviewImage(evidence)}
-                            className="block w-full text-left group"
-                            title={`Preview ${evidence.label.toLowerCase()}`}
-                          >
-                            <img
-                              src={evidence.url}
-                              alt={evidence.label}
-                              className="w-full h-44 object-contain bg-gray-100 rounded-lg group-hover:opacity-80 transition"
-                            />
-                            <span className="block text-xs text-blue-600 mt-2">
-                              Klik untuk memperbesar
+                    ].map((card) => {
+                      const evidence = {
+                        label: `Evidence ${card.label}`,
+                        url: card.url,
+                      };
+                      return (
+                        <div
+                          key={card.label}
+                          className={`bg-white rounded-xl border p-4 shadow-sm ${
+                            card.needsAdmin
+                              ? "border-orange-300"
+                              : "border-gray-200"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-bold text-gray-800">
+                              {card.label}
+                            </p>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                card.at
+                                  ? "bg-green-100 text-green-700"
+                                  : card.needsAdmin
+                                    ? "bg-orange-100 text-orange-700"
+                                    : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              {card.at ? "Tercatat" : "Belum"}
                             </span>
-                          </button>
-                        ) : (
-                          <div className="h-44 rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500">
-                            Belum ada evidence
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-800 mb-3">
-                    Kehadiran Peserta ({detailData.peserta?.length || 0})
-                  </h3>
-                  <div className="overflow-x-auto border rounded-lg">
-                    <table className="min-w-full text-sm">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="px-4 py-3 text-left">Nama Peserta</th>
-                          <th className="px-4 py-3 text-center">
-                            Status Kehadiran
-                          </th>
-                          <th className="px-4 py-3 text-center">Check-in</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(detailData.peserta || []).map((peserta) => (
-                          <tr key={peserta.id_peserta} className="border-t">
-                            <td className="px-4 py-3">
-                              {peserta.nama_peserta || "-"}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <select
-                                value={peserta.status_kehadiran || ""}
-                                onChange={(event) =>
-                                  updateParticipantStatus(
-                                    peserta,
-                                    event.target.value,
-                                  )
-                                }
-                                disabled={
-                                  !peserta.id_absensi_peserta ||
-                                  updatingParticipantId ===
-                                    peserta.id_absensi_peserta
-                                }
-                                className={`px-2 py-1 rounded-full text-xs font-semibold border outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-                                  peserta.status_kehadiran === "HADIR"
-                                    ? "bg-green-100 text-green-700 border-green-200"
-                                    : peserta.status_kehadiran === "BELUM ABSEN"
-                                      ? "bg-gray-100 text-gray-600 border-gray-200"
-                                      : "bg-yellow-100 text-yellow-700 border-yellow-200"
-                                }`}
-                                title={
-                                  peserta.id_absensi_peserta
-                                    ? "Ubah status kehadiran"
-                                    : "Peserta belum memiliki data absensi"
-                                }
+                          <p className="text-sm text-gray-600 mt-1">
+                            {formatDateTime(card.at)}
+                          </p>
+                          <LokasiAbsen
+                            label={card.label}
+                            latitude={card.latitude}
+                            longitude={card.longitude}
+                            onPreview={setPreviewLokasi}
+                          />
+                          {card.needsAdmin && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCheckoutTarget(detailCheckoutTarget)
+                              }
+                              className="mt-2 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                            >
+                              <AiOutlineLogout /> Check-out oleh Admin
+                            </button>
+                          )}
+                          <div className="mt-3">
+                            {evidence.url ? (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewImage(evidence)}
+                                className="block w-full text-left group"
+                                title={`Preview ${evidence.label.toLowerCase()}`}
                               >
-                                <option value="HADIR">HADIR</option>
-                                <option value="IZIN">IZIN</option>
-                                <option value="SAKIT">SAKIT</option>
-                                <option value="ALPA">ALPA</option>
-                                {!peserta.id_absensi_peserta && (
-                                  <option value="BELUM ABSEN">
-                                    BELUM ABSEN
-                                  </option>
-                                )}
-                              </select>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {formatDateTime(peserta.check_in_at)}
-                            </td>
+                                <img
+                                  src={evidence.url}
+                                  alt={evidence.label}
+                                  className="w-full h-44 object-contain bg-gray-100 rounded-lg group-hover:opacity-80 transition"
+                                />
+                                <span className="block text-xs text-blue-600 mt-2">
+                                  Klik untuk memperbesar
+                                </span>
+                              </button>
+                            ) : (
+                              <div className="h-44 rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500">
+                                Belum ada evidence
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <h3 className="font-bold text-gray-800 mr-auto">
+                        Kehadiran Peserta ({detailData.peserta?.length || 0})
+                      </h3>
+                      {[
+                        ["HADIR", "bg-green-100 text-green-700"],
+                        ["IZIN", "bg-yellow-100 text-yellow-700"],
+                        ["SAKIT", "bg-yellow-100 text-yellow-700"],
+                        ["ALPA", "bg-yellow-100 text-yellow-700"],
+                        ["BELUM ABSEN", "bg-gray-200 text-gray-600"],
+                      ].map(([status, warna]) => (
+                        <span
+                          key={status}
+                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${warna}`}
+                        >
+                          {status}{" "}
+                          {
+                            (detailData.peserta || []).filter(
+                              (item) => item.status_kehadiran === status,
+                            ).length
+                          }
+                        </span>
+                      ))}
+                    </div>
+                    <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl shadow-sm">
+                      <table className="min-w-full text-sm">
+                        <thead className="bg-gray-100 text-gray-600">
+                          <tr>
+                            <th className="px-4 py-3 text-left">
+                              Nama Peserta
+                            </th>
+                            <th className="px-4 py-3 text-center">
+                              Status Kehadiran
+                            </th>
+                            <th className="px-4 py-3 text-center">Check-in</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {(detailData.peserta || []).map((peserta) => (
+                            <tr
+                              key={peserta.id_peserta}
+                              className="border-t hover:bg-gray-50"
+                            >
+                              <td className="px-4 py-3">
+                                {peserta.nama_peserta || "-"}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <select
+                                  value={peserta.status_kehadiran || ""}
+                                  onChange={(event) =>
+                                    updateParticipantStatus(
+                                      peserta,
+                                      event.target.value,
+                                    )
+                                  }
+                                  disabled={
+                                    !peserta.id_absensi_peserta ||
+                                    updatingParticipantId ===
+                                      peserta.id_absensi_peserta
+                                  }
+                                  className={`px-2 py-1 rounded-full text-xs font-semibold border outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                                    peserta.status_kehadiran === "HADIR"
+                                      ? "bg-green-100 text-green-700 border-green-200"
+                                      : peserta.status_kehadiran ===
+                                          "BELUM ABSEN"
+                                        ? "bg-gray-100 text-gray-600 border-gray-200"
+                                        : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                  }`}
+                                  title={
+                                    peserta.id_absensi_peserta
+                                      ? "Ubah status kehadiran"
+                                      : "Peserta belum memiliki data absensi"
+                                  }
+                                >
+                                  <option value="HADIR">HADIR</option>
+                                  <option value="IZIN">IZIN</option>
+                                  <option value="SAKIT">SAKIT</option>
+                                  <option value="ALPA">ALPA</option>
+                                  {!peserta.id_absensi_peserta && (
+                                    <option value="BELUM ABSEN">
+                                      BELUM ABSEN
+                                    </option>
+                                  )}
+                                </select>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {formatDateTime(peserta.check_in_at)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
         </div>
       )}
@@ -999,6 +1086,44 @@ const DaftarAbsen = () => {
               src={previewImage.url}
               alt={previewImage.label}
               className="max-w-full max-h-[85vh] object-contain rounded-lg bg-white"
+            />
+          </div>
+        </div>
+      )}
+
+      {previewLokasi && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setPreviewLokasi(null)}
+        >
+          <div
+            className="bg-white rounded-lg w-full max-w-3xl p-4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <div>
+                <h3 className="font-bold text-gray-800">
+                  Lokasi {previewLokasi.label}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {previewLokasi.latitude}, {previewLokasi.longitude}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewLokasi(null)}
+                className="text-gray-500 hover:text-red-500"
+                title="Tutup peta"
+              >
+                <AiOutlineClose size={24} />
+              </button>
+            </div>
+            <iframe
+              src={getMapsEmbedUrl(previewLokasi)}
+              title={`Peta lokasi ${previewLokasi.label}`}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="h-[60vh] w-full rounded-lg border-0"
             />
           </div>
         </div>
